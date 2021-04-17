@@ -6,5 +6,8 @@
       "Microsoft.Hosting.Lifetime": "Information"
     }
   },
-  "AllowedHosts": "*"
+  "AllowedHosts": "*",
+  "ConnectionStrings": {
+    "TtsDb": "server=xxx;database=xxx;user=xxx;password=xxx"
+  }
 }
