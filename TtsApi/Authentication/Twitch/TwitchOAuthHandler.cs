@@ -9,23 +9,30 @@ namespace TtsApi.Authentication.Twitch
     {
         public static TwitchValidateResult Validate(string oauth)
         {
-            TwitchValidateResult validateResult = new();
+            string responseFromServer = "";
 
-            WebRequest request = WebRequest.Create(@"https://id.twitch.tv/oauth2/validate");
-            request.Headers.Add(HttpRequestHeader.Authorization, oauth);
-            WebResponse response = request.GetResponse();
-            //if (((HttpWebResponse) response).StatusCode != HttpStatusCode.OK)
-
-            using (Stream dataStream = response.GetResponseStream())
+            try
             {
+                WebRequest request = WebRequest.Create(@"https://id.twitch.tv/oauth2/validate");
+                request.Headers.Add(HttpRequestHeader.Authorization, oauth);
+                WebResponse response = request.GetResponse();
+                using Stream dataStream = response.GetResponseStream();
                 StreamReader reader = new(dataStream ?? throw new InvalidOperationException());
-                string responseFromServer = reader.ReadToEnd();
-                validateResult = JsonSerializer.Deserialize<TwitchValidateResult>(responseFromServer);
+                responseFromServer = reader.ReadToEnd();
+                response.Close();
+            }
+            catch (WebException e)
+            {
+                if (e.Response != null)
+                {
+                    using Stream dataStream = e.Response.GetResponseStream();
+                    StreamReader reader = new(dataStream ?? throw new InvalidOperationException());
+                    responseFromServer = reader.ReadToEnd();
+                    e.Response.Close();
+                }
             }
 
-            // Close the response.
-            response.Close();
-            return validateResult;
+            return JsonSerializer.Deserialize<TwitchValidateResult>(responseFromServer);
         }
     }
 }

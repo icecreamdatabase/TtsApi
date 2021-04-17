@@ -37,7 +37,7 @@ namespace TtsApi
                     options.DefaultAuthenticateScheme = ApiKeyAuthenticationOptions.DefaultScheme;
                     options.DefaultChallengeScheme = ApiKeyAuthenticationOptions.DefaultScheme;
                 })
-                .AddApiKeySupport(options => { });
+                .AddApiKeySupport(_ => { });
             services.AddAuthorization(options =>
             {
                 options.AddPolicy(Policies.ChatBot, policy => policy.Requirements.Add(new ChatBotRequirements()));

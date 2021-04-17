@@ -22,7 +22,7 @@ namespace TtsApi.Authentication.Twitch
         public int ExpiresIn { get; set; }
 
         [JsonPropertyName("status")]
-        public string Status { get; set; }
+        public int Status { get; set; }
 
         [JsonPropertyName("message")]
         public string Message { get; set; }

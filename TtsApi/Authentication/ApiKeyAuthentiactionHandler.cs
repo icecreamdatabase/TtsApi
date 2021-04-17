@@ -4,11 +4,14 @@ using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using TtsApi.Authentication.Twitch;
+
+// this disables the warning about not using async.
+// I'm overriding, so therefore can't change the return type to none Task<T>
+#pragma warning disable 1998
 
 namespace TtsApi.Authentication
 {
@@ -33,19 +36,20 @@ namespace TtsApi.Authentication
             {
                 return AuthenticateResult.NoResult();
             }
-
-            string? providedApiKey = apiKeyHeaderValues.FirstOrDefault();
-
+            string providedApiKey = apiKeyHeaderValues.FirstOrDefault();
             if (apiKeyHeaderValues.Count == 0 || string.IsNullOrWhiteSpace(providedApiKey))
             {
                 return AuthenticateResult.NoResult();
             }
 
-            //providedApiKey  
             TwitchValidateResult validate = TwitchOAuthHandler.Validate(providedApiKey);
 
-            if (validate.UserId == null)
+            if (string.IsNullOrEmpty(validate.UserId))
+            {
+                //Response.StatusCode = validate.Status;
+                //await Response.WriteAsync(validate.Message);
                 return AuthenticateResult.NoResult();
+            }
 
             List<Claim> claims = new()
             {
@@ -64,22 +68,6 @@ namespace TtsApi.Authentication
             AuthenticationTicket ticket = new(principal, ApiKeyAuthenticationOptions.Scheme);
 
             return AuthenticateResult.Success(ticket);
-        }
-
-        protected override async Task HandleChallengeAsync(AuthenticationProperties properties)
-        {
-            Response.StatusCode = 401;
-            Response.ContentType = ProblemDetailsContentType;
-
-            await Response.WriteAsync("401");
-        }
-
-        protected override async Task HandleForbiddenAsync(AuthenticationProperties properties)
-        {
-            Response.StatusCode = 403;
-            Response.ContentType = ProblemDetailsContentType;
-
-            await Response.WriteAsync("403");
         }
     }
 }

@@ -1,7 +1,5 @@
-﻿using System.Linq;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using TtsApi.Authentication.Policies;
 using TtsApi.Model;
@@ -26,8 +24,9 @@ namespace TtsApi.Controllers
         [Authorize(Policy = Policies.Admin)]
         public string Get()
         {
-            _ttsDbContext.Database.EnsureCreated();
-            return _ttsDbContext.Database.GenerateCreateScript();
+            //_ttsDbContext.Database.EnsureCreated();
+            //return _ttsDbContext.Database.GenerateCreateScript();
+            return "xd";
         }
     }
 }
