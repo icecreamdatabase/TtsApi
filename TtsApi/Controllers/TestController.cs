@@ -1,7 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Linq;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using TtsApi.Authentication.Policies;
+using TtsApi.Model;
 
 namespace TtsApi.Controllers
 {
@@ -11,16 +14,20 @@ namespace TtsApi.Controllers
     {
         private readonly ILogger<TestController> _logger;
 
-        public TestController(ILogger<TestController> logger)
+        public TestController(ILogger<TestController> logger, TtsDbContext ttsDbContext)
         {
             _logger = logger;
+            _ttsDbContext = ttsDbContext;
         }
+
+        private readonly TtsDbContext _ttsDbContext;
 
         [HttpGet]
         [Authorize(Policy = Policies.Admin)]
         public string Get()
         {
-            return "xd";
+            _ttsDbContext.Database.EnsureCreated();
+            return _ttsDbContext.Database.GenerateCreateScript();
         }
     }
 }
