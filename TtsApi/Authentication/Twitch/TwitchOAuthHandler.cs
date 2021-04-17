@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text.Json;
@@ -7,8 +8,17 @@ namespace TtsApi.Authentication.Twitch
 {
     public static class TwitchOAuthHandler
     {
+        private const int OAuthRememberTime = 120;
+        private static readonly Dictionary<string, TwitchValidateResult> PreviousValidated = new();
+
         public static TwitchValidateResult Validate(string oauth)
         {
+            if (PreviousValidated.ContainsKey(oauth))
+            {
+                if ((DateTime.Now - PreviousValidated[oauth].LastUpdated ).TotalSeconds < OAuthRememberTime)
+                    return PreviousValidated[oauth];
+            }
+
             string responseFromServer = "";
 
             try
@@ -32,7 +42,15 @@ namespace TtsApi.Authentication.Twitch
                 }
             }
 
-            return JsonSerializer.Deserialize<TwitchValidateResult>(responseFromServer);
+            TwitchValidateResult current = JsonSerializer.Deserialize<TwitchValidateResult>(responseFromServer);
+            if (current != null && (!string.IsNullOrEmpty(current.Login) || !string.IsNullOrEmpty(current.Message)))
+            {
+                current.LastUpdated = DateTime.Now;
+                PreviousValidated.Remove(oauth);
+                PreviousValidated.Add(oauth, current);
+            }
+
+            return current;
         }
     }
 }

@@ -17,8 +17,6 @@ namespace TtsApi.Authentication
 {
     public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthenticationOptions>
     {
-        private const string ProblemDetailsContentType = "application/problem+json";
-
         private const string ApiKeyHeaderName = "Authorization";
 
         public ApiKeyAuthenticationHandler(

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
 namespace TtsApi.Authentication.Twitch
@@ -26,5 +27,8 @@ namespace TtsApi.Authentication.Twitch
 
         [JsonPropertyName("message")]
         public string Message { get; set; }
+
+        [JsonIgnore]
+        protected internal DateTime LastUpdated { get; set; }
     }
 }

@@ -1,10 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using TtsApi.Model.Schema;
 
 namespace TtsApi.Model
 {
     public class TtsDbContext : DbContext
     {
         public DbSet<BotData> BotData { get; set; }
+        public DbSet<Channels> Channels { get; set; }
 
         public TtsDbContext(DbContextOptions<TtsDbContext> options) : base(options)
         {
@@ -18,13 +20,8 @@ namespace TtsApi.Model
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<BotData>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Key).IsRequired();
-                entity.Property(e => e.Value).IsRequired();
-                entity.Property(e => e.LastUpdated).ValueGeneratedOnAddOrUpdate();
-            });
+            Schema.BotData.BuildModel(modelBuilder);
+            Schema.Channels.BuildModel(modelBuilder);
 
             //modelBuilder.Entity<Publisher>(entity =>
             //{
