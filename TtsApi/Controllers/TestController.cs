@@ -12,6 +12,7 @@ namespace TtsApi.Controllers
     public class TestController : ControllerBase
     {
         private readonly ILogger<TestController> _logger;
+        private readonly TtsDbContext _ttsDbContext;
 
         public TestController(ILogger<TestController> logger, TtsDbContext ttsDbContext)
         {
@@ -19,22 +20,19 @@ namespace TtsApi.Controllers
             _ttsDbContext = ttsDbContext;
         }
 
-        private readonly TtsDbContext _ttsDbContext;
-
         [HttpGet]
         [Authorize(Policy = Policies.Admin)]
-        public string Get()
+        public ActionResult Get()
         {
-            return "xd";
+            return Ok("xD");
         }
-        
+
         [HttpGet("GetDb")]
         [Authorize(Policy = Policies.Admin)]
-        public string GetDb()
+        public ActionResult GetDb()
         {
             _ttsDbContext.Database.EnsureCreated();
-            return _ttsDbContext.Database.GenerateCreateScript();
-            //return "xd";
+            return Ok(_ttsDbContext.Database.GenerateCreateScript());
         }
     }
 }
