@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
@@ -9,20 +10,42 @@ namespace TtsApi.Model.Schema
     [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
     public class Channels
     {
+        [Key]
+        [Required]
         public int RoomId { get; set; }
+
+        [Required]
         public string ChannelName { get; set; }
+
+        [Required]
         public bool Enabled { get; set; }
+
+        [Required]
         public bool IsTwitchPartner { get; set; }
+
+        [Required]
         public int MaxMessageLength { get; set; }
+
+        [Required]
         public int MinCooldown { get; set; }
+
+        [Required]
         public int TimeoutCheckTime { get; set; }
 
+        [Required]
         [Column(TypeName = "TIMESTAMP")]
         public DateTime AddDate { get; set; }
 
+        [Required]
         public bool IrcMuted { get; set; }
+
+        [Required]
         public bool IsQueueMessages { get; set; }
+
+        [Required]
         public int Volume { get; set; }
+
+        [Required]
         public bool AllModsAreEditors { get; set; }
 
 
@@ -30,20 +53,16 @@ namespace TtsApi.Model.Schema
         {
             modelBuilder.Entity<Channels>(entity =>
             {
-                entity.HasKey(e => e.RoomId);
-
-                entity.Property(e => e.RoomId).IsRequired();
-                entity.Property(e => e.ChannelName).IsRequired();
-                entity.Property(e => e.Enabled).IsRequired().HasDefaultValue(true);
-                entity.Property(e => e.IsTwitchPartner).IsRequired().HasDefaultValue(false);
-                entity.Property(e => e.MaxMessageLength).IsRequired().HasDefaultValue(450);
-                entity.Property(e => e.MinCooldown).IsRequired().HasDefaultValue(0);
-                entity.Property(e => e.TimeoutCheckTime).IsRequired().HasDefaultValue(2);
-                entity.Property(e => e.AddDate).IsRequired().ValueGeneratedOnAdd();
-                entity.Property(e => e.IrcMuted).IsRequired().HasDefaultValue(false);
-                entity.Property(e => e.IsQueueMessages).IsRequired().HasDefaultValue(true);
-                entity.Property(e => e.Volume).IsRequired().HasDefaultValue(100);
-                entity.Property(e => e.AllModsAreEditors).IsRequired().HasDefaultValue(true);
+                entity.Property(e => e.Enabled).HasDefaultValue(true);
+                entity.Property(e => e.IsTwitchPartner).HasDefaultValue(false);
+                entity.Property(e => e.MaxMessageLength).HasDefaultValue(450);
+                entity.Property(e => e.MinCooldown).HasDefaultValue(0);
+                entity.Property(e => e.TimeoutCheckTime).HasDefaultValue(2);
+                entity.Property(e => e.AddDate).ValueGeneratedOnAdd();
+                entity.Property(e => e.IrcMuted).HasDefaultValue(false);
+                entity.Property(e => e.IsQueueMessages).HasDefaultValue(true);
+                entity.Property(e => e.Volume).HasDefaultValue(100);
+                entity.Property(e => e.AllModsAreEditors).HasDefaultValue(true);
             });
         }
     }
