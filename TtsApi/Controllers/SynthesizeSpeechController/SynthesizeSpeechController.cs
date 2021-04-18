@@ -1,15 +1,13 @@
 ﻿using System.Threading.Tasks;
-using Amazon.Polly;
 using Amazon.Polly.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using TtsApi.Authentication.Policies;
 using TtsApi.ExternalApis.Aws;
 using TtsApi.Model;
 
-namespace TtsApi.Controllers
+namespace TtsApi.Controllers.SynthesizeSpeechController
 {
     [ApiController]
     [Route("[controller]")]
@@ -26,9 +24,9 @@ namespace TtsApi.Controllers
 
         [HttpGet]
         [Authorize(Policy = Policies.Admin)]
-        public async Task<ActionResult> Get()
+        public async Task<ActionResult> Get([FromQuery] SynthesizeSpeechInput input)
         {
-            SynthesizeSpeechResponse res = await Polly.Synthesize("test", VoiceId.Brian, Engine.Standard);
+            SynthesizeSpeechResponse res = await Polly.Synthesize(input.Text, input.GetVoiceId(), input.GetEngine());
             return Ok(res.AudioStream);
         }
     }
