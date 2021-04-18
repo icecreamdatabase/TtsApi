@@ -25,9 +25,16 @@ namespace TtsApi.Controllers
         [Authorize(Policy = Policies.Admin)]
         public string Get()
         {
-            //_ttsDbContext.Database.EnsureCreated();
-            //return _ttsDbContext.Database.GenerateCreateScript();
             return "xd";
+        }
+        
+        [HttpGet("GetDb")]
+        [Authorize(Policy = Policies.Admin)]
+        public string GetDb()
+        {
+            _ttsDbContext.Database.EnsureCreated();
+            return _ttsDbContext.Database.GenerateCreateScript();
+            //return "xd";
         }
     }
 }
