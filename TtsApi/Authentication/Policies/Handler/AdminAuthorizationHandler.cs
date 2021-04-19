@@ -15,7 +15,6 @@ namespace TtsApi.Authentication.Policies.Handler
             if (isInRequiredIDs)
                 context.Succeed(requirement);
 
-
             return Task.CompletedTask;
         }
     }

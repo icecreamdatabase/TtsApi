@@ -22,9 +22,17 @@ namespace TtsApi.Controllers
 
         [HttpGet]
         [Authorize(Policy = Policies.Admin)]
+        [Authorize(Policy = Policies.RedemptionsScopes)]
         public ActionResult Get()
         {
             return Ok("xD");
+        }
+
+        [HttpGet("{channelId}")]
+        [Authorize(Policy = Policies.Admin)]
+        public ActionResult Get([FromRoute] string channelId)
+        {
+            return Ok($"xD {channelId}");
         }
 
         [HttpGet("GetDb")]
