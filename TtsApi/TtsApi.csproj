@@ -10,4 +10,10 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="ExternalApis\Twitch\Gql" />
+    <Folder Include="ExternalApis\Twitch\Helix" />
+    <Folder Include="ExternalApis\Twitch\Kraken" />
+  </ItemGroup>
+
 </Project>

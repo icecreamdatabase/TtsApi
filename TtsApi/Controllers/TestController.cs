@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using TtsApi.Authentication.Policies;
 using TtsApi.Authentication.Roles;
+using TtsApi.ExternalApis.Discord;
 using TtsApi.Model;
 
 namespace TtsApi.Controllers
@@ -14,11 +15,13 @@ namespace TtsApi.Controllers
     {
         private readonly ILogger<TestController> _logger;
         private readonly TtsDbContext _ttsDbContext;
+        private readonly IDiscordLogger _discordLogger;
 
-        public TestController(ILogger<TestController> logger, TtsDbContext ttsDbContext)
+        public TestController(ILogger<TestController> logger, TtsDbContext ttsDbContext, IDiscordLogger discordLogger)
         {
             _logger = logger;
             _ttsDbContext = ttsDbContext;
+            _discordLogger = discordLogger;
         }
 
         [HttpGet]
@@ -33,6 +36,8 @@ namespace TtsApi.Controllers
         [Authorize(Policy = Policies.CanAccessQueue)]
         public ActionResult Get([FromRoute] string channelId)
         {
+            
+            _discordLogger.LogMain(LogLevel.Information, $"xD {channelId}");
             return Ok($"xD {channelId}");
         }
 

@@ -10,6 +10,7 @@ using TtsApi.Authentication;
 using TtsApi.Authentication.Policies;
 using TtsApi.Authentication.Policies.Handler;
 using TtsApi.Authentication.Policies.Requirements;
+using TtsApi.ExternalApis.Discord;
 using TtsApi.Model;
 
 namespace TtsApi
@@ -31,6 +32,8 @@ namespace TtsApi
             services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo {Title = "TtsApi", Version = "v1"}); });
 
             services.AddDbContext<TtsDbContext>(opt => opt.UseMySQL(Configuration.GetConnectionString("TtsDb")));
+
+            services.AddSingleton<IDiscordLogger, DiscordLogger>();
 
             //https://josef.codes/asp-net-core-protect-your-api-with-api-keys/
             services.AddAuthentication(options =>
