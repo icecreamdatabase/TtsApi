@@ -6,11 +6,20 @@ using TtsApi.Authentication.Policies.Requirements;
 
 namespace TtsApi.Authentication.Policies.Handler
 {
-    public class ChannelModHandler : AuthorizationHandler<ChannelModRequirements>
+    public class CanChangeSettingsHandler : AuthorizationHandler<CanChangeSettingsRequirements>
     {
         protected override Task HandleRequirementAsync(AuthorizationHandlerContext context,
-            ChannelModRequirements requirement)
+            CanChangeSettingsRequirements requirement)
         {
+            if (
+                context.User.IsInRole(Roles.Roles.ChannelBroadcaster) ||
+                context.User.IsInRole(Roles.Roles.Admin)
+            )
+            {
+                context.Succeed(requirement);
+                return Task.CompletedTask;
+            }
+
             RouteValueDictionary routeValues = (context.Resource as DefaultHttpContext)?.Request.RouteValues;
 
             if (routeValues == null)
@@ -21,7 +30,7 @@ namespace TtsApi.Authentication.Policies.Handler
             if (channelIdStr != null && int.TryParse(channelIdStr.ToString(), out int channelId))
             {
                 // Mod check
-                // TODO: Mod check
+                // TODO: Mod + ModAreEditors / Editor check
                 if (channelId == 1234)
                     context.Succeed(requirement);
             }

@@ -3,7 +3,7 @@ using Amazon.Polly.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using TtsApi.Authentication.Policies;
+using TtsApi.Authentication.Roles;
 using TtsApi.ExternalApis.Aws;
 using TtsApi.Model;
 
@@ -23,7 +23,7 @@ namespace TtsApi.Controllers.SynthesizeSpeechController
         }
 
         [HttpGet]
-        [Authorize(Policy = Policies.Admin)]
+        [Authorize(Roles = Roles.Admin)]
         public async Task<ActionResult> Get([FromQuery] SynthesizeSpeechInput input)
         {
             SynthesizeSpeechResponse res = await Polly.Synthesize(input.Text, input.GetVoiceId(), input.GetEngine());

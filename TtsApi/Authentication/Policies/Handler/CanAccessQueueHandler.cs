@@ -8,11 +8,20 @@ using TtsApi.Authentication.Policies.Requirements;
 
 namespace TtsApi.Authentication.Policies.Handler
 {
-    public class ChannelBroadcasterHandler : AuthorizationHandler<ChannelBroadcasterRequirements>
+    public class CanAccessQueueHandler : AuthorizationHandler<CanAccessQueueRequirements>
     {
         protected override Task HandleRequirementAsync(AuthorizationHandlerContext context,
-            ChannelBroadcasterRequirements requirement)
+            CanAccessQueueRequirements requirement)
         {
+            if (
+                context.User.IsInRole(Roles.Roles.ChannelBroadcaster) ||
+                context.User.IsInRole(Roles.Roles.Admin)
+            )
+            {
+                context.Succeed(requirement);
+                return Task.CompletedTask;
+            }
+
             RouteValueDictionary routeValues = (context.Resource as DefaultHttpContext)?.Request.RouteValues;
 
             if (routeValues == null)
@@ -26,8 +35,9 @@ namespace TtsApi.Authentication.Policies.Handler
                 Claim userIdClaim = context.User.Claims.FirstOrDefault(claim => claim.Type == AuthClaims.UserId);
                 if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
                 {
-                    // Broadcaster check
-                    if (channelId == userId)
+                    // Mod check
+                    // TODO: Mod / Editor check
+                    if (channelId == 1234)
                         context.Succeed(requirement);
                 }
             }

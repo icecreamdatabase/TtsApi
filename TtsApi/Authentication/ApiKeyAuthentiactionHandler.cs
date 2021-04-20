@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using TtsApi.Authentication.Twitch;
+using TtsApi.Model;
 
 // this disables the warning about not using async.
 // I'm overriding, so therefore can't change the return type to none Task<T>
@@ -18,14 +19,17 @@ namespace TtsApi.Authentication
     public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthenticationOptions>
     {
         private const string ApiKeyHeaderName = "Authorization";
+        private readonly TtsDbContext _ttsDbContext;
 
         public ApiKeyAuthenticationHandler(
             IOptionsMonitor<ApiKeyAuthenticationOptions> options,
             ILoggerFactory logger,
             UrlEncoder encoder,
-            ISystemClock clock
+            ISystemClock clock,
+            TtsDbContext ttsDbContext
         ) : base(options, logger, encoder, clock)
         {
+            _ttsDbContext = ttsDbContext;
         }
 
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -34,6 +38,7 @@ namespace TtsApi.Authentication
             {
                 return AuthenticateResult.NoResult();
             }
+
             string providedApiKey = apiKeyHeaderValues.FirstOrDefault();
             if (apiKeyHeaderValues.Count == 0 || string.IsNullOrWhiteSpace(providedApiKey))
             {
@@ -60,12 +65,45 @@ namespace TtsApi.Authentication
                 new Claim(AuthClaims.ExpiresIn, validate.ExpiresIn.ToString()),
             };
 
+            SetRoles(validate, claims);
+
             ClaimsIdentity identity = new(claims, ApiKeyAuthenticationOptions.AuthenticationType);
             List<ClaimsIdentity> identities = new() {identity};
             ClaimsPrincipal principal = new(identities);
             AuthenticationTicket ticket = new(principal, ApiKeyAuthenticationOptions.Scheme);
 
             return AuthenticateResult.Success(ticket);
+        }
+
+        private void SetRoles(TwitchValidateResult validate, ICollection<Claim> claims)
+        {
+            if (!int.TryParse(validate.UserId, out int userId))
+                return;
+
+            // Get channelId from Route and userId from validate
+            if (
+                !Request.RouteValues.TryGetValue("channelId", out object channelIdStr) ||
+                channelIdStr == null ||
+                !int.TryParse(channelIdStr.ToString(), out int channelId)
+            )
+                return;
+
+            // Bot check
+            if (new[] {1234}.Contains(userId))
+                claims.Add(new Claim(ClaimTypes.Role, Roles.Roles.ChatBot));
+
+            // Admin check
+            if (new[] {1234}.Contains(userId))
+                claims.Add(new Claim(ClaimTypes.Role, Roles.Roles.Admin));
+
+            // Broadcaster check
+            if (channelId == userId)
+                claims.Add(new Claim(ClaimTypes.Role, Roles.Roles.ChannelBroadcaster));
+
+            // Mod check
+            // TODO: Mod check
+            if (channelId == 1234)
+                claims.Add(new Claim(ClaimTypes.Role, Roles.Roles.ChannelMod));
         }
     }
 }

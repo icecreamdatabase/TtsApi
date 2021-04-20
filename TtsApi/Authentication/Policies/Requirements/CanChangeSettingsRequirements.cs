@@ -2,7 +2,7 @@
 
 namespace TtsApi.Authentication.Policies.Requirements
 {
-    public class ChannelModRequirements: IAuthorizationRequirement
+    public class CanChangeSettingsRequirements: IAuthorizationRequirement
     {
     }
 }

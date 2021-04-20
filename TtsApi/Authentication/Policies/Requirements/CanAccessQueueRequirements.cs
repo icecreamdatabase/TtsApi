@@ -2,7 +2,7 @@
 
 namespace TtsApi.Authentication.Policies.Requirements
 {
-    public class ChannelBroadcasterRequirements : IAuthorizationRequirement
+    public class CanAccessQueueRequirements : IAuthorizationRequirement
     {
     }
 }

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using TtsApi.Authentication.Policies;
+using TtsApi.Authentication.Roles;
 using TtsApi.Model;
 
 namespace TtsApi.Controllers
@@ -21,7 +22,7 @@ namespace TtsApi.Controllers
         }
 
         [HttpGet]
-        [Authorize(Policy = Policies.Admin)]
+        [Authorize(Roles = Roles.Admin)]
         [Authorize(Policy = Policies.RedemptionsScopes)]
         public ActionResult Get()
         {
@@ -29,14 +30,14 @@ namespace TtsApi.Controllers
         }
 
         [HttpGet("{channelId}")]
-        [Authorize(Policy = Policies.Admin)]
+        [Authorize(Policy = Policies.CanAccessQueue)]
         public ActionResult Get([FromRoute] string channelId)
         {
             return Ok($"xD {channelId}");
         }
 
         [HttpGet("GetDb")]
-        [Authorize(Policy = Policies.Admin)]
+        [Authorize(Roles = Roles.Admin)]
         public ActionResult GetDb()
         {
             _ttsDbContext.Database.EnsureCreated();

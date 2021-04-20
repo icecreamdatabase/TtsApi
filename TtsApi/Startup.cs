@@ -41,23 +41,17 @@ namespace TtsApi
                 .AddApiKeySupport(_ => { });
             services.AddAuthorization(options =>
             {
-                options.AddPolicy(Policies.ChatBot,
-                    policy => policy.Requirements.Add(new ChatBotRequirements()));
-                options.AddPolicy(Policies.Admin,
-                    policy => policy.Requirements.Add(new AdminRequirements()));
                 options.AddPolicy(Policies.RedemptionsScopes,
                     policy => policy.Requirements.Add(new RedemptionsScopesRequirements()));
-                options.AddPolicy(Policies.ChannelMod,
-                    policy => policy.Requirements.Add(new ChannelModRequirements()));
-                options.AddPolicy(Policies.ChannelBroadcaster,
-                    policy => policy.Requirements.Add(new ChannelBroadcasterRequirements()));
+                options.AddPolicy(Policies.CanChangeSettings,
+                    policy => policy.Requirements.Add(new CanChangeSettingsRequirements()));
+                options.AddPolicy(Policies.CanAccessQueue,
+                    policy => policy.Requirements.Add(new CanAccessQueueRequirements()));
             });
 
-            services.AddSingleton<IAuthorizationHandler, ChatBotAuthorizationHandler>();
-            services.AddSingleton<IAuthorizationHandler, AdminAuthorizationHandler>();
             services.AddSingleton<IAuthorizationHandler, RedemptionsScopesHandler>();
-            services.AddSingleton<IAuthorizationHandler, ChannelModHandler>();
-            services.AddSingleton<IAuthorizationHandler, ChannelBroadcasterHandler>();
+            services.AddSingleton<IAuthorizationHandler, CanChangeSettingsHandler>();
+            services.AddSingleton<IAuthorizationHandler, CanAccessQueueHandler>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
