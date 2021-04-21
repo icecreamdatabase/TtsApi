@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -33,7 +34,7 @@ namespace TtsApi
 
             services.AddDbContext<TtsDbContext>(opt => opt.UseMySQL(Configuration.GetConnectionString("TtsDb")));
 
-            services.AddSingleton<IDiscordLogger, DiscordLogger>();
+            //services.AddSingleton<IDiscordLogger, DiscordLogger>();
 
             //https://josef.codes/asp-net-core-protect-your-api-with-api-keys/
             services.AddAuthentication(options =>
@@ -66,6 +67,17 @@ namespace TtsApi
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "TtsApi v1"));
             }
+
+            app.UseExceptionHandler(appErr =>
+                appErr.Run(context =>
+                    {
+                        context.Response.StatusCode = 500;
+                        IExceptionHandlerPathFeature exception = context.Features.Get<IExceptionHandlerPathFeature>();
+                        DiscordLogger.LogError(exception.Error);
+                        return null;
+                    }
+                )
+            );
 
             app.UseHttpsRedirection();
 

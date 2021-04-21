@@ -80,6 +80,14 @@ namespace TtsApi.Authentication
             if (!int.TryParse(validate.UserId, out int userId))
                 return;
 
+            // Bot check
+            if (new[] {1234}.Contains(userId))
+                claims.Add(new Claim(ClaimTypes.Role, Roles.Roles.ChatBot));
+
+            // Admin check
+            if (new[] {38949074}.Contains(userId))
+                claims.Add(new Claim(ClaimTypes.Role, Roles.Roles.Admin));
+
             // Get channelId from Route and userId from validate
             if (
                 !Request.RouteValues.TryGetValue("channelId", out object channelIdStr) ||
@@ -87,14 +95,6 @@ namespace TtsApi.Authentication
                 !int.TryParse(channelIdStr.ToString(), out int channelId)
             )
                 return;
-
-            // Bot check
-            if (new[] {1234}.Contains(userId))
-                claims.Add(new Claim(ClaimTypes.Role, Roles.Roles.ChatBot));
-
-            // Admin check
-            if (new[] {1234}.Contains(userId))
-                claims.Add(new Claim(ClaimTypes.Role, Roles.Roles.Admin));
 
             // Broadcaster check
             if (channelId == userId)

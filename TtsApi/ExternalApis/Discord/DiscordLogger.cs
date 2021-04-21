@@ -7,34 +7,41 @@ using TtsApi.ExternalApis.Discord.WebhookObjects;
 
 namespace TtsApi.ExternalApis.Discord
 {
-    public class DiscordLogger : IDiscordLogger
+    public class DiscordLogger
     {
         private const int DiscordWebhookGroupingDelay = 2000;
+        private const int DiscordMaxEmbedsPerMessage = 10;
+
         private readonly Webhook _webhook;
-        private readonly Thread _queueRunnerThread;
         private readonly ConcurrentQueue<WebhookEmbeds> _messageQueue = new();
 
-        public DiscordLogger()
+        private static DiscordLogger GetInstance { get; } = new();
+
+        private DiscordLogger()
         {
             _webhook = new Webhook();
 
-            _queueRunnerThread = new Thread(ThreadRunner);
-            _queueRunnerThread.Start();
+            new Thread(ThreadRunner).Start();
         }
 
-        public void LogMain(LogLevel level, string message)
+        public static void Log(LogLevel level, params string[] messages)
         {
-            _messageQueue.Enqueue(new WebhookEmbeds
+            GetInstance._messageQueue.Enqueue(new WebhookEmbeds
             {
                 Title = level.ToString(),
                 Timestamp = DateTime.UtcNow.ToString("s", System.Globalization.CultureInfo.InvariantCulture),
-                Description = $"```\n{message}\n```",
+                Description = $"```\n{string.Join("\n```\n```\n", messages)}\n```",
                 Color = GetLogLevelColour(level),
-                Footer =
+                Footer = new WebhookFooter
                 {
                     Text = nameof(TtsApi)
                 }
             });
+        }
+
+        public static void LogError(Exception e)
+        {
+            Log(LogLevel.Error, e.Message, e.StackTrace?.Replace("\r", ""));
         }
 
         private static int GetDecimalFromHexString(string hex)
@@ -67,7 +74,7 @@ namespace TtsApi.ExternalApis.Discord
                     continue;
 
                 List<WebhookEmbeds> embedsList = new();
-                while (!_messageQueue.IsEmpty && embedsList.Count <= 10)
+                while (!_messageQueue.IsEmpty && embedsList.Count < DiscordMaxEmbedsPerMessage)
                 {
                     //TODO: custom runner object containing some sort of "to which channel to log" value
                     if (_messageQueue.TryDequeue(out WebhookEmbeds content))
