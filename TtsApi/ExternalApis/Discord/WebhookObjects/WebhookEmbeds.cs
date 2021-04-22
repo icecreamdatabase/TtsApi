@@ -5,24 +5,24 @@ namespace TtsApi.ExternalApis.Discord.WebhookObjects
     public class WebhookEmbeds
     {
         [JsonPropertyName("title")]
-        public string Title;
+        public string Title { get; set; }
 
         [JsonPropertyName("description")]
-        public string Description;
+        public string Description { get; set; }
 
         [JsonPropertyName("url")]
-        public string Url;
+        public string Url { get; set; }
 
         [JsonPropertyName("timestamp")]
-        public string Timestamp;
+        public string Timestamp { get; set; }
 
         [JsonPropertyName("color")]
-        public int Color;
+        public int Color { get; set; }
 
         [JsonPropertyName("footer")]
-        public WebhookFooter Footer;
+        public WebhookFooter Footer { get; set; }
 
         [JsonPropertyName("author")]
-        public WebhookAuthor Author;
+        public WebhookAuthor Author { get; set; }
     }
 }

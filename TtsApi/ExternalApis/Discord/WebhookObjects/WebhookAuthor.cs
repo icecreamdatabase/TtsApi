@@ -5,12 +5,12 @@ namespace TtsApi.ExternalApis.Discord.WebhookObjects
     public class WebhookAuthor
     {
         [JsonPropertyName("name")]
-        public string Name;
+        public string Name { get; set; }
 
         [JsonPropertyName("url")]
-        public string Url;
+        public string Url { get; set; }
 
         [JsonPropertyName("icon_url")]
-        public string IconUrl;
+        public string IconUrl { get; set; }
     }
 }

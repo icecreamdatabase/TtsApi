@@ -5,13 +5,22 @@ namespace TtsApi.ExternalApis.Discord.WebhookObjects
 {
     public class WebhookPostContent
     {
+        [JsonIgnore]
+        public LogChannel LogChannel { get; set; }
+
         [JsonPropertyName("username")]
-        public string Username;
+        public string Username { get; set; }
 
         [JsonPropertyName("avatar_url")]
-        public string AvatarUrl;
+        public string AvatarUrl { get; set; }
 
-        [JsonPropertyName("postContent")]
-        public List<WebhookEmbeds> PostContent;
+        [JsonPropertyName("file")]
+        public string FileContent { get; set; }
+
+        [JsonPropertyName("embeds")]
+        public List<WebhookEmbeds> Embeds { get; set; }
+
+        [JsonPropertyName("payload_json")]
+        public string PayloadJson { get; set; }
     }
 }

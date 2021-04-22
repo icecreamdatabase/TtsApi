@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading;
 using Microsoft.Extensions.Logging;
 using TtsApi.ExternalApis.Discord.WebhookObjects;
@@ -10,38 +11,42 @@ namespace TtsApi.ExternalApis.Discord
     public class DiscordLogger
     {
         private const int DiscordWebhookGroupingDelay = 2000;
-        private const int DiscordMaxEmbedsPerMessage = 10;
-
-        private readonly Webhook _webhook;
-        private readonly ConcurrentQueue<WebhookEmbeds> _messageQueue = new();
+        private readonly ConcurrentQueue<WebhookPostContent> _messageQueue = new();
 
         private static DiscordLogger GetInstance { get; } = new();
 
         private DiscordLogger()
         {
-            _webhook = new Webhook();
-
             new Thread(ThreadRunner).Start();
         }
 
         public static void Log(LogLevel level, params string[] messages)
         {
-            GetInstance._messageQueue.Enqueue(new WebhookEmbeds
-            {
-                Title = level.ToString(),
-                Timestamp = DateTime.UtcNow.ToString("s", System.Globalization.CultureInfo.InvariantCulture),
-                Description = $"```\n{string.Join("\n```\n```\n", messages)}\n```",
-                Color = GetLogLevelColour(level),
-                Footer = new WebhookFooter
-                {
-                    Text = nameof(TtsApi)
-                }
-            });
         }
 
         public static void LogError(Exception e)
         {
-            Log(LogLevel.Error, e.Message, e.StackTrace?.Replace("\r", ""));
+            WebhookEmbeds embed = new()
+            {
+                Title = LogLevel.Error.ToString(),
+                Timestamp = DateTime.UtcNow.ToString("s", System.Globalization.CultureInfo.InvariantCulture),
+                Description = $"`{e.GetType().FullName}: {e.Message}`",
+                Color = GetLogLevelColour(LogLevel.Error),
+                Footer = new WebhookFooter
+                {
+                    Text = nameof(TtsApi)
+                }
+            };
+            WebhookCreateMessage create = new() {
+                Embed = new List<WebhookEmbeds> {embed}
+            };
+            WebhookPostContent content = new()
+            {
+                Username = nameof(TtsApi),
+                PayloadJson = JsonSerializer.Serialize(create, new JsonSerializerOptions {IgnoreNullValues = true}),
+                FileContent = e.ToString()
+            };
+            GetInstance._messageQueue.Enqueue(content);
         }
 
         private static int GetDecimalFromHexString(string hex)
@@ -73,21 +78,22 @@ namespace TtsApi.ExternalApis.Discord
                 if (_messageQueue.IsEmpty)
                     continue;
 
-                List<WebhookEmbeds> embedsList = new();
-                while (!_messageQueue.IsEmpty && embedsList.Count < DiscordMaxEmbedsPerMessage)
+                if (_messageQueue.TryDequeue(out WebhookPostContent content))
                 {
-                    //TODO: custom runner object containing some sort of "to which channel to log" value
-                    if (_messageQueue.TryDequeue(out WebhookEmbeds content))
+                    if (string.IsNullOrEmpty(content.FileContent))
                     {
-                        embedsList.Add(content);
+                        DiscordWebhook.SendEmbedsWebhook(content.LogChannel, content);
+                    }
+                    else
+                    {
+                        Dictionary<string, string> files = new()
+                        {
+                            {"Stacktrace", content.FileContent}
+                        };
+
+                        DiscordWebhook.SendFilesWebhook(content.LogChannel, content.Username, files, content.PayloadJson);
                     }
                 }
-
-                _webhook.ExecuteWebhook(new WebhookPostContent()
-                {
-                    Username = nameof(TtsApi),
-                    PostContent = embedsList
-                });
             }
         }
     }

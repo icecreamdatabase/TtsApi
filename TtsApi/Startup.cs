@@ -1,3 +1,4 @@
+using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
@@ -23,6 +24,7 @@ namespace TtsApi
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+            DiscordWebhook.SetWebhooks(Configuration.GetSection("DiscordWebhooks"));
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
