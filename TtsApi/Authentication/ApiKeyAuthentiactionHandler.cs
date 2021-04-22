@@ -10,10 +10,6 @@ using Microsoft.Extensions.Primitives;
 using TtsApi.Authentication.Twitch;
 using TtsApi.Model;
 
-// this disables the warning about not using async.
-// I'm overriding, so therefore can't change the return type to none Task<T>
-#pragma warning disable 1998
-
 namespace TtsApi.Authentication
 {
     public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthenticationOptions>
@@ -45,7 +41,7 @@ namespace TtsApi.Authentication
                 return AuthenticateResult.NoResult();
             }
 
-            TwitchValidateResult validate = TwitchOAuthHandler.Validate(providedApiKey);
+            TwitchValidateResult validate = await TwitchOAuthHandler.Validate(providedApiKey);
 
             if (string.IsNullOrEmpty(validate.UserId))
             {
