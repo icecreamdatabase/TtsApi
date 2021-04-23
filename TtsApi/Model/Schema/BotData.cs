@@ -7,6 +7,7 @@ namespace TtsApi.Model.Schema
 {
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
     [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
+    [SuppressMessage("ReSharper", "ClassNeverInstantiated.Global")]
     public class BotData
     {
         [Key]

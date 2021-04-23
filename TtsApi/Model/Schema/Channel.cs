@@ -8,7 +8,8 @@ namespace TtsApi.Model.Schema
 {
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
     [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
-    public class Channels
+    [SuppressMessage("ReSharper", "ClassNeverInstantiated.Global")]
+    public class Channel
     {
         [Key]
         [Required]
@@ -51,7 +52,7 @@ namespace TtsApi.Model.Schema
 
         protected internal static void BuildModel(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Channels>(entity =>
+            modelBuilder.Entity<Channel>(entity =>
             {
                 entity.Property(e => e.Enabled).HasDefaultValue(true);
                 entity.Property(e => e.IsTwitchPartner).HasDefaultValue(false);

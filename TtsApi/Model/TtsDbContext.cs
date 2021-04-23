@@ -6,7 +6,9 @@ namespace TtsApi.Model
     public class TtsDbContext : DbContext
     {
         public DbSet<BotData> BotData { get; set; }
-        public DbSet<Channels> Channels { get; set; }
+        public DbSet<Channel> Channels { get; set; }
+        public DbSet<Voice> Voices { get; set; }
+        public DbSet<VoiceLanguage> VoicesLanguages { get; set; }
 
         public TtsDbContext(DbContextOptions<TtsDbContext> options) : base(options)
         {
@@ -21,21 +23,7 @@ namespace TtsApi.Model
             base.OnModelCreating(modelBuilder);
 
             Schema.BotData.BuildModel(modelBuilder);
-            Schema.Channels.BuildModel(modelBuilder);
-
-            //modelBuilder.Entity<Publisher>(entity =>
-            //{
-            //    entity.HasKey(e => e.ID);
-            //    entity.Property(e => e.Name).IsRequired();
-            //});
-
-            //modelBuilder.Entity<Book>(entity =>
-            //{
-            //    entity.HasKey(e => e.ISBN);
-            //    entity.Property(e => e.Title).IsRequired();
-            //    entity.HasOne(d => d.Publisher)
-            //        .WithMany(p => p.Books);
-            //});
+            Schema.Channel.BuildModel(modelBuilder);
         }
     }
 }
