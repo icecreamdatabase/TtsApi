@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Text.Json;
+using System.Linq;
 using System.Threading;
 using Microsoft.Extensions.Logging;
 using TtsApi.ExternalApis.Discord.WebhookObjects;
@@ -20,31 +20,57 @@ namespace TtsApi.ExternalApis.Discord
             new Thread(ThreadRunner).Start();
         }
 
-        public static void Log(LogLevel level, params string[] messages)
+        public static void LogException(Exception e)
         {
+            Log(
+                LogLevel.Error,
+                e.ToString().Split(Environment.NewLine).Select(s => s.Trim()).Take(2).ToArray()
+            );
         }
 
-        public static void LogError(Exception e)
+        public static void Log(LogLevel logLevel, params string[] messages) => Log(logLevel, LogChannel.Main, messages);
+
+        public static void Log(LogLevel logLevel, LogChannel logChannel, params string[] messages)
+        {
+            Manual(
+                logLevel.ToString(),
+                $"```\n{string.Join("\n``` ```\n", messages)}\n```",
+                GetLogLevelColour(logLevel),
+                logChannel
+            );
+        }
+
+        private static void Manual(string title, string description, int color, LogChannel logChannel = LogChannel.Main)
         {
             WebhookEmbeds embed = new()
             {
-                Title = LogLevel.Error.ToString(),
+                Title = title,
                 Timestamp = DateTime.UtcNow.ToString("s", System.Globalization.CultureInfo.InvariantCulture),
-                Description = $"`{e.GetType().FullName}: {e.Message}`",
-                Color = GetLogLevelColour(LogLevel.Error),
+                Description = description,
+                Color = color,
                 Footer = new WebhookFooter
                 {
                     Text = nameof(TtsApi)
                 }
             };
-            WebhookCreateMessage create = new() {
-                Embed = new List<WebhookEmbeds> {embed}
-            };
             WebhookPostContent content = new()
             {
                 Username = nameof(TtsApi),
-                PayloadJson = JsonSerializer.Serialize(create, new JsonSerializerOptions {IgnoreNullValues = true}),
-                FileContent = e.ToString()
+                Embeds = new List<WebhookEmbeds> {embed},
+                LogChannel = logChannel
+            };
+            GetInstance._messageQueue.Enqueue(content);
+        }
+
+        private static void ManualFile(string fileContent)
+        {
+            WebhookPostContent content = new()
+            {
+                Username = nameof(TtsApi),
+                FileContent = fileContent,
+                //PayloadJson = JsonSerializer.Serialize(
+                //    new WebhookCreateMessage {Embed = new List<WebhookEmbeds> {embed}},
+                //    new JsonSerializerOptions {IgnoreNullValues = true}),
             };
             GetInstance._messageQueue.Enqueue(content);
         }
@@ -91,7 +117,8 @@ namespace TtsApi.ExternalApis.Discord
                             {"Stacktrace", content.FileContent}
                         };
 
-                        DiscordWebhook.SendFilesWebhook(content.LogChannel, content.Username, files, content.PayloadJson);
+                        DiscordWebhook.SendFilesWebhook(content.LogChannel, content.Username, files,
+                            content.PayloadJson);
                     }
                 }
             }

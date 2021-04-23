@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -26,8 +25,9 @@ namespace TtsApi.Controllers
         [Authorize(Roles = Roles.Admin)]
         public ActionResult Get()
         {
-            throw new Exception("xD");
-            return Ok("xD");
+            // Triggering IndexOutOfRangeException on purpose
+            int[] a = new int[1];
+            return Ok(a[2]);
         }
 
         [HttpGet("{channelId}")]

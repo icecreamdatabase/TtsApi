@@ -6,7 +6,7 @@ namespace TtsApi.ExternalApis.Discord.WebhookObjects
     public class WebhookPostContent
     {
         [JsonIgnore]
-        public LogChannel LogChannel { get; set; }
+        public LogChannel LogChannel { get; set; } = LogChannel.Main;
 
         [JsonPropertyName("username")]
         public string Username { get; set; }

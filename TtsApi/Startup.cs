@@ -1,4 +1,3 @@
-using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
@@ -75,7 +74,7 @@ namespace TtsApi
                     {
                         context.Response.StatusCode = 500;
                         IExceptionHandlerPathFeature exception = context.Features.Get<IExceptionHandlerPathFeature>();
-                        DiscordLogger.LogError(exception.Error);
+                        DiscordLogger.LogException(exception.Error);
                         return null;
                     }
                 )

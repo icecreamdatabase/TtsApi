@@ -9,11 +9,6 @@ using TtsApi.ExternalApis.Discord.WebhookObjects;
 
 namespace TtsApi.ExternalApis.Discord
 {
-    public enum LogChannel
-    {
-        Main,
-    }
-
     public static class DiscordWebhook
     {
         private static readonly HttpClient Client = new();
@@ -21,11 +16,18 @@ namespace TtsApi.ExternalApis.Discord
 
         public static void SetWebhooks(IConfigurationSection configurationSection)
         {
-            Dictionary<string, string> webhookLinks = configurationSection.GetChildren().ToDictionary(section => section.Key, section => section.Value);
-            //TODO
+            Dictionary<string, string> webhookLinks = configurationSection.GetChildren()
+                .ToDictionary(section => section.Key, section => section.Value);
+
+            foreach ((string key, string value) in webhookLinks)
+            {
+                if (Enum.IsDefined(typeof(LogChannel), key))
+                    WebhookLinks.Add(Enum.Parse<LogChannel>(key), value);
+            }
         }
 
-        internal static async void SendFilesWebhook(LogChannel logChannel, string username, Dictionary<string, string> files,
+        internal static async void SendFilesWebhook(LogChannel logChannel, string username,
+            Dictionary<string, string> files,
             string payloadJson = "")
         {
             if (!WebhookLinks.ContainsKey(logChannel))
