@@ -12,7 +12,7 @@ namespace TtsApi.Model.Schema
     {
         [Key]
         [Required]
-        public int VoicesId { get; set; }
+        public string VoiceId { get; set; }
 
         [Required]
         public string Name { get; set; }
@@ -27,5 +27,9 @@ namespace TtsApi.Model.Schema
         public VoiceLanguage VoiceLanguage { get; set; }
 
         public List<VoiceEngine> VoiceEngines { get; set; }
+        
+        public List<Reward> Rewards { get; set; }
+        
+        public List<AllowedConversationVoice> AllowedConversationVoices { get; set; }
     }
 }

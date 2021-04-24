@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
@@ -49,6 +50,9 @@ namespace TtsApi.Model.Schema
         [Required]
         public bool AllModsAreEditors { get; set; }
 
+        public List<Reward> Rewards { get; set; }
+
+        public List<AllowedConversationVoice> AllowedConversationVoices { get; set; }
 
         protected internal static void BuildModel(ModelBuilder modelBuilder)
         {
