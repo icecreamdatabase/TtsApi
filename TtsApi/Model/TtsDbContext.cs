@@ -11,6 +11,7 @@ namespace TtsApi.Model
         public DbSet<VoiceLanguage> VoicesLanguages { get; set; }
         public DbSet<Reward> Rewards { get; set; }
         public DbSet<AllowedConversationVoice> AllowedConversationVoices { get; set; }
+        public DbSet<ChannelEditor> ChannelEditors { get; set; }
 
         public TtsDbContext(DbContextOptions<TtsDbContext> options) : base(options)
         {
@@ -28,6 +29,7 @@ namespace TtsApi.Model
             Schema.Channel.BuildModel(modelBuilder);
             Schema.Reward.BuildModel(modelBuilder);
             Schema.AllowedConversationVoice.BuildModel(modelBuilder);
+            Schema.ChannelEditor.BuildModel(modelBuilder);
         }
     }
 }

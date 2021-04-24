@@ -53,6 +53,8 @@ namespace TtsApi.Model.Schema
         public List<Reward> Rewards { get; set; }
 
         public List<AllowedConversationVoice> AllowedConversationVoices { get; set; }
+        
+        public List<ChannelEditor> ChannelEditors { get; set; }
 
         protected internal static void BuildModel(ModelBuilder modelBuilder)
         {
