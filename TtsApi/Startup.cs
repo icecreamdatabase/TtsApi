@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,6 +13,7 @@ using TtsApi.Authentication.Policies;
 using TtsApi.Authentication.Policies.Handler;
 using TtsApi.Authentication.Policies.Requirements;
 using TtsApi.ExternalApis.Discord;
+using TtsApi.Hubs;
 using TtsApi.Model;
 
 namespace TtsApi
@@ -57,6 +59,21 @@ namespace TtsApi
             services.AddSingleton<IAuthorizationHandler, RedemptionsScopesHandler>();
             services.AddSingleton<IAuthorizationHandler, CanChangeSettingsHandler>();
             services.AddSingleton<IAuthorizationHandler, CanAccessQueueHandler>();
+
+
+            services.AddCors(options =>
+                {
+                    options.AddDefaultPolicy(builder =>
+                    {
+                        builder.WithOrigins("http://localhost:63343")
+                            .AllowAnyHeader()
+                            .AllowAnyMethod()
+                            .AllowCredentials()
+                            .SetIsOriginAllowedToAllowWildcardSubdomains();
+                    });
+                }
+            );
+            services.AddSignalR();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -80,13 +97,14 @@ namespace TtsApi
                 )
             );
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection(); //This breaks UseCors
 
+            app.UseWebSockets();
+            app.UseCors();
             app.UseRouting();
-
             app.UseAuthentication();
             app.UseAuthorization();
-
+            app.UseEndpoints(endpoints => { endpoints.MapHub<TtsHub>("/TtsHub"); });
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
         }
     }

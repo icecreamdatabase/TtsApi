@@ -1,9 +1,12 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using TtsApi.Authentication.Policies;
 using TtsApi.Authentication.Roles;
+using TtsApi.Hubs;
 using TtsApi.Model;
 
 namespace TtsApi.Controllers
@@ -14,11 +17,13 @@ namespace TtsApi.Controllers
     {
         private readonly ILogger<TestController> _logger;
         private readonly TtsDbContext _ttsDbContext;
+        private readonly IHubContext<TtsHub> _hubContext;
 
-        public TestController(ILogger<TestController> logger, TtsDbContext ttsDbContext)
+        public TestController(ILogger<TestController> logger, TtsDbContext ttsDbContext, IHubContext<TtsHub> hubContext)
         {
             _logger = logger;
             _ttsDbContext = ttsDbContext;
+            _hubContext = hubContext;
         }
 
         [HttpGet]
@@ -32,8 +37,9 @@ namespace TtsApi.Controllers
 
         [HttpGet("{channelId}")]
         [Authorize(Policy = Policies.CanAccessQueue)]
-        public ActionResult Get([FromRoute] string channelId)
+        public async Task<ActionResult> Get([FromRoute] string channelId)
         {
+            await TtsHub.SendToChannel(_hubContext, channelId, "Pog");
             return Ok($"xD {channelId}");
         }
 
