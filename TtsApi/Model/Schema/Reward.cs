@@ -12,7 +12,7 @@ namespace TtsApi.Model.Schema
     {
         [Key]
         [Required]
-        public int Id { get; set; }
+        public string RewardId { get; set; }
 
         [Required]
         [ForeignKey("Channel")]
@@ -20,8 +20,6 @@ namespace TtsApi.Model.Schema
 
         public Channel Channel { get; set; }
 
-        [Required]
-        public string RewardId { get; set; }
 
         [Required]
         [ForeignKey("Voice")]
@@ -37,7 +35,7 @@ namespace TtsApi.Model.Schema
 
         [Required]
         public int Cooldown { get; set; }
-        
+
         protected internal static void BuildModel(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Reward>(entity =>

@@ -12,6 +12,7 @@ namespace TtsApi.Model
         public DbSet<Reward> Rewards { get; set; }
         public DbSet<AllowedConversationVoice> AllowedConversationVoices { get; set; }
         public DbSet<ChannelEditor> ChannelEditors { get; set; }
+        public DbSet<RequestQueueIngest> RequestQueueIngest { get; set; }
 
         public TtsDbContext(DbContextOptions<TtsDbContext> options) : base(options)
         {
