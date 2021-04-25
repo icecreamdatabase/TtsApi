@@ -8,6 +8,10 @@ namespace TtsApi.Hubs.TransferClasses
 
         public float PlaybackRate { get; set; }
 
+        public TtsIndividualSynthesize()
+        {
+        }
+
         public TtsIndividualSynthesize(Stream input, float playbackRate)
         {
             using MemoryStream ms = new();

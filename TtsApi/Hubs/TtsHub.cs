@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Security.Claims;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
+using TtsApi.Hubs.TransferClasses;
 using TtsApi.Model;
 
 namespace TtsApi.Hubs
@@ -19,38 +18,26 @@ namespace TtsApi.Hubs
             _ttsDbContext = ttsDbContext;
         }
 
-        public override Task OnConnectedAsync()
+        public override async Task<Task> OnConnectedAsync()
         {
-            HttpContext httpContext = Context.GetHttpContext();
-            Console.WriteLine($"--> Connection Opened: {Context.ConnectionId} ({Context.UserIdentifier})") ;
-            Clients.Client(Context.ConnectionId).SendAsync("ReceiveConnID", Context.ConnectionId);
+            if (!string.IsNullOrEmpty(Context.UserIdentifier))
+                await Groups.AddToGroupAsync(Context.ConnectionId, Context.UserIdentifier);
             _connectedIds.Add(Context.ConnectionId);
+            Console.WriteLine($"--> Connection Opened: {Context.ConnectionId} (roomId: {Context.UserIdentifier})");
+            await Clients.Client(Context.ConnectionId).SendAsync("ReceiveConnID", Context.ConnectionId);
             return base.OnConnectedAsync();
         }
 
         public override Task OnDisconnectedAsync(Exception exception)
         {
-            ClaimsIdentity identity = (ClaimsIdentity)Context.User?.Identity;
-            Console.WriteLine($"--> Connection Closed: {Context.ConnectionId} ({Context.UserIdentifier})") ;
-            Console.WriteLine(identity?.Name);
+            Console.WriteLine($"--> Connection Closed: {Context.ConnectionId} (roomId: {Context.UserIdentifier})");
             _connectedIds.Remove(Context.ConnectionId);
             return base.OnDisconnectedAsync(exception);
         }
 
-        public async Task Register(string roomId)
+        public static async Task SendTtsRequest(IHubContext<TtsHub> context, string roomId, TtsRequest request)
         {
-            await Groups.AddToGroupAsync(Context.ConnectionId, roomId);
-            await Clients.Caller.SendAsync("ReceiveMessage", "ok");
-        }
-
-        public async Task SendMessageAsync(string message)
-        {
-            await Clients.All.SendAsync("ReceiveMessage", message);
-        }
-
-        public static async Task SendToChannel(IHubContext<TtsHub> context, string roomId, string message)
-        {
-            await context.Clients.Group(roomId).SendAsync("ReceiveMessage", message);
+            await context.Clients.Group(roomId).SendAsync("ReceiveTtsRequest", request);
         }
     }
 }

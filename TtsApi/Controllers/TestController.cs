@@ -1,4 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
+using Amazon.Polly;
+using Amazon.Polly.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -6,7 +10,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using TtsApi.Authentication.Policies;
 using TtsApi.Authentication.Roles;
+using TtsApi.ExternalApis.Aws;
 using TtsApi.Hubs;
+using TtsApi.Hubs.TransferClasses;
 using TtsApi.Model;
 
 namespace TtsApi.Controllers
@@ -39,7 +45,18 @@ namespace TtsApi.Controllers
         [Authorize(Policy = Policies.CanAccessQueue)]
         public async Task<ActionResult> Get([FromRoute] string channelId)
         {
-            await TtsHub.SendToChannel(_hubContext, channelId, "Pog");
+            SynthesizeSpeechResponse synthResp = await Polly.Synthesize("test", VoiceId.Brian, Engine.Standard);
+            TtsRequest ttsRequest = new()
+            {
+                Id = "xD",
+                Volume = 1f,
+                MaxMessageTime = 0f,
+                TtsIndividualSynthesizes = new List<TtsIndividualSynthesize>
+                {
+                    new(synthResp.AudioStream, 1f)
+                }
+            };
+            await TtsHub.SendTtsRequest(_hubContext, channelId, ttsRequest);
             return Ok($"xD {channelId}");
         }
 
