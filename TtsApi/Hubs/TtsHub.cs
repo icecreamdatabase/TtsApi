@@ -34,6 +34,16 @@ namespace TtsApi.Hubs
             _connectedIds.Remove(Context.ConnectionId);
             return base.OnDisconnectedAsync(exception);
         }
+        
+        public void ConfirmTtsFullyPlayed(string id)
+        {
+            Console.WriteLine($"Confirmed {Context.UserIdentifier} has fully played tts {id}");
+        }
+        
+        public void ConfirmTtsSkipped(string id)
+        {
+            Console.WriteLine($"Confirmed {Context.UserIdentifier} has skipped tts {id}");
+        }
 
         public static async Task SendTtsRequest(IHubContext<TtsHub> context, string roomId, TtsRequest request)
         {

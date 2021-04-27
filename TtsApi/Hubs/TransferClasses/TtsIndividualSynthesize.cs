@@ -9,17 +9,20 @@ namespace TtsApi.Hubs.TransferClasses
 
         public float PlaybackRate { get; set; }
 
+        public float Volume { get; set; }
+
         public TtsIndividualSynthesize()
         {
         }
 
-        public TtsIndividualSynthesize(Stream input, float playbackRate)
+        public TtsIndividualSynthesize(Stream input, float playbackRate, float volume)
         {
             using MemoryStream ms = new();
             input.CopyTo(ms);
             VoiceDataWavBase64 = Convert.ToBase64String(ms.ToArray());
 
             PlaybackRate = playbackRate;
+            Volume = volume;
         }
     }
 }

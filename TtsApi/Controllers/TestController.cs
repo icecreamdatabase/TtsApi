@@ -45,15 +45,17 @@ namespace TtsApi.Controllers
         [Authorize(Policy = Policies.CanAccessQueue)]
         public async Task<ActionResult> Get([FromRoute] string channelId)
         {
-            SynthesizeSpeechResponse synthResp = await Polly.Synthesize("test", VoiceId.Brian, Engine.Standard);
+            SynthesizeSpeechResponse synthResp1 = await Polly.Synthesize("test 1 lllll", VoiceId.Brian, Engine.Standard);
+            SynthesizeSpeechResponse synthResp2 = await Polly.Synthesize("test 2 lllll", VoiceId.Brian, Engine.Standard);
+
             TtsRequest ttsRequest = new()
             {
                 Id = "xD",
-                Volume = 1f,
                 MaxMessageTime = 0f,
                 TtsIndividualSynthesizes = new List<TtsIndividualSynthesize>
                 {
-                    new(synthResp.AudioStream, 1f)
+                    new(synthResp1.AudioStream, 1f, 1f),
+                    new(synthResp2.AudioStream, 1f, 1f),
                 }
             };
             await TtsHub.SendTtsRequest(_hubContext, channelId, ttsRequest);
