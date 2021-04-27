@@ -1,10 +1,11 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace TtsApi.Hubs.TransferClasses
 {
     public class TtsIndividualSynthesize
     {
-        public byte[] VoiceData { get; set; }
+        public string VoiceDataWavBase64 { get; set; }
 
         public float PlaybackRate { get; set; }
 
@@ -16,7 +17,7 @@ namespace TtsApi.Hubs.TransferClasses
         {
             using MemoryStream ms = new();
             input.CopyTo(ms);
-            VoiceData = ms.ToArray();
+            VoiceDataWavBase64 = Convert.ToBase64String(ms.ToArray());
 
             PlaybackRate = playbackRate;
         }
