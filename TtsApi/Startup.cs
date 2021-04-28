@@ -68,13 +68,21 @@ namespace TtsApi
                 {
                     options.AddDefaultPolicy(builder =>
                     {
-                        builder.WithOrigins("https://obs.icdb.dev")
-                            .AllowAnyHeader()
-                            .AllowAnyMethod()
-                            .AllowCredentials()
-                            .SetIsOriginAllowedToAllowWildcardSubdomains();
                         if (HostingEnvironment.IsDevelopment())
-                            builder.SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost");
+                        {
+                            builder.SetIsOriginAllowed(_ => true)
+                                .AllowAnyHeader()
+                                .AllowAnyMethod()
+                                .AllowCredentials();
+                        }
+                        else
+                        {
+                            builder.WithOrigins("https://*.icdb.dev")
+                                .AllowAnyHeader()
+                                .AllowAnyMethod()
+                                .AllowCredentials()
+                                .SetIsOriginAllowedToAllowWildcardSubdomains();
+                        }
                     });
                 }
             );
