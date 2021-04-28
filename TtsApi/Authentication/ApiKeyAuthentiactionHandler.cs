@@ -14,6 +14,7 @@ namespace TtsApi.Authentication
 {
     public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthenticationOptions>
     {
+        private const string RoomIdQueryStringName = "roomId";
         private const string AccessTokenQueryStringName = "access_token";
         private const string ApiKeyHeaderName = "Authorization";
         private readonly TtsDbContext _ttsDbContext;
@@ -31,13 +32,24 @@ namespace TtsApi.Authentication
 
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
         {
+            List<Claim> claims = new();
+            // get roomId query parameter. We cannot use custom headers for websockets. Using query parameters instead
+            if (Context.Request.Query.TryGetValue(RoomIdQueryStringName, out StringValues roomIdStringValues))
+            {
+                string roomId = roomIdStringValues.FirstOrDefault();
+                if (!string.IsNullOrEmpty(roomId))
+                    claims.Add(new Claim(ClaimTypes.NameIdentifier, roomId));
+            }
+
             StringValues oAuthHeader = "";
             if (
                 !Context.Request.Query.TryGetValue(AccessTokenQueryStringName, out StringValues accessToken) &&
-                !Request.Headers.TryGetValue(ApiKeyHeaderName, out oAuthHeader)
+                !Request.Headers.TryGetValue(ApiKeyHeaderName, out oAuthHeader) &&
+                claims.Count == 0
             )
             {
-                // If neither accessToken, nor oAuthHeader are available we can't authenticate --> No result
+                // If neither accessToken, nor oAuthHeader are available, nor we got a roomId claim
+                // we can't authenticate at all --> No result
                 return AuthenticateResult.NoResult();
             }
 
@@ -47,44 +59,34 @@ namespace TtsApi.Authentication
                 providedApiKey = accessToken.FirstOrDefault();
 
             // If we got an OAuth or Bearer token but it's empty we can't authenticate --> No result
-            if (string.IsNullOrWhiteSpace(providedApiKey))
+            if (!string.IsNullOrWhiteSpace(providedApiKey))
+            {
+                // Get claims based on the provided api key
+                List<Claim> oAuthClaims = await CheckTwitchOAuth(providedApiKey);
+                if (oAuthClaims != null)
+                    claims.AddRange(oAuthClaims);
+            }
+
+            // No claims means we can't authenticate --> No result
+            if (claims.Count == 0)
                 return AuthenticateResult.NoResult();
 
-            // Try Bearer, then OAuth until one of them returns a ticket
-            AuthenticationTicket ticket = WebsocketBearer(providedApiKey) ?? await OAuth(providedApiKey);
+            // Generate ticket based on the claims
+            ClaimsIdentity identity = new(claims, ApiKeyAuthenticationOptions.AuthenticationType);
+            List<ClaimsIdentity> identities = new() {identity};
+            ClaimsPrincipal principal = new(identities);
+            AuthenticationTicket ticket = new(principal, ApiKeyAuthenticationOptions.Scheme);
 
-            // No ticket means we can't authenticate --> No result
-            return ticket is null
-                ? AuthenticateResult.NoResult()
-                : AuthenticateResult.Success(ticket);
+            return AuthenticateResult.Success(ticket);
         }
 
-        private AuthenticationTicket WebsocketBearer(string providedApiKey)
-        {
-            if (!Context.WebSockets.IsWebSocketRequest &&
-                (Context.WebSockets.IsWebSocketRequest || !providedApiKey.StartsWith("Bearer"))) return null;
-
-            if (!Context.WebSockets.IsWebSocketRequest && providedApiKey.StartsWith("Bearer"))
-                providedApiKey = providedApiKey[7..];
-
-            List<Claim> signalRClaims = new()
-            {
-                //new Claim(ClaimTypes.Name, providedApiKey),
-                new Claim(ClaimTypes.NameIdentifier, providedApiKey),
-            };
-
-            ClaimsIdentity claimsIdentity = new(signalRClaims, ApiKeyAuthenticationOptions.AuthenticationType);
-            List<ClaimsIdentity> claimsIdentities = new() {claimsIdentity};
-            ClaimsPrincipal claimsPrincipal = new(claimsIdentities);
-            return new AuthenticationTicket(claimsPrincipal, ApiKeyAuthenticationOptions.Scheme);
-        }
-
-        private async Task<AuthenticationTicket> OAuth(string providedApiKey)
+        private async Task<List<Claim>> CheckTwitchOAuth(string providedApiKey)
         {
             if (!providedApiKey.StartsWith("OAuth")) return null;
 
             TwitchValidateResult validate = await TwitchOAuthHandler.Validate(providedApiKey);
 
+            // if the userId is missing it must mean we got an error back from twitch validate.
             if (string.IsNullOrEmpty(validate.UserId))
             {
                 //Response.StatusCode = validate.Status;
@@ -92,10 +94,10 @@ namespace TtsApi.Authentication
                 return null;
             }
 
+            // Generate all possible claims from the TwitchValidateResult
             List<Claim> claims = new()
             {
                 //new Claim(ClaimTypes.Name, validate.Login),
-
                 new Claim(AuthClaims.ClientId, validate.ClientId),
                 new Claim(AuthClaims.Login, validate.Login),
                 new Claim(AuthClaims.Scopes, string.Join(',', validate.Scopes)),
@@ -105,10 +107,7 @@ namespace TtsApi.Authentication
 
             SetRoles(validate, claims);
 
-            ClaimsIdentity identity = new(claims, ApiKeyAuthenticationOptions.AuthenticationType);
-            List<ClaimsIdentity> identities = new() {identity};
-            ClaimsPrincipal principal = new(identities);
-            return new AuthenticationTicket(principal, ApiKeyAuthenticationOptions.Scheme);
+            return claims;
         }
 
         private void SetRoles(TwitchValidateResult validate, ICollection<Claim> claims)
@@ -117,10 +116,12 @@ namespace TtsApi.Authentication
                 return;
 
             // Bot check
+            // TODO: Bot check from DB
             if (new[] {1234}.Contains(userId))
                 claims.Add(new Claim(ClaimTypes.Role, Roles.Roles.ChatBot));
 
             // Admin check
+            // TODO: Admin check from DB
             if (new[] {38949074}.Contains(userId))
                 claims.Add(new Claim(ClaimTypes.Role, Roles.Roles.Admin));
 
@@ -137,7 +138,7 @@ namespace TtsApi.Authentication
                 claims.Add(new Claim(ClaimTypes.Role, Roles.Roles.ChannelBroadcaster));
 
             // Mod check
-            // TODO: Mod check
+            // TODO: Mod check from ThreeLetterApi 
             if (channelId == 1234)
                 claims.Add(new Claim(ClaimTypes.Role, Roles.Roles.ChannelMod));
         }

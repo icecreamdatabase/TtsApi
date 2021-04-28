@@ -1,9 +1,7 @@
-using System;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -40,8 +38,6 @@ namespace TtsApi
 
             services.AddDbContext<TtsDbContext>(opt => opt.UseMySQL(Configuration.GetConnectionString("TtsDb")));
 
-            //services.AddSingleton<IDiscordLogger, DiscordLogger>();
-
             //https://josef.codes/asp-net-core-protect-your-api-with-api-keys/
             services.AddAuthentication(options =>
                 {
@@ -69,20 +65,16 @@ namespace TtsApi
                     options.AddDefaultPolicy(builder =>
                     {
                         if (HostingEnvironment.IsDevelopment())
-                        {
                             builder.SetIsOriginAllowed(_ => true)
                                 .AllowAnyHeader()
                                 .AllowAnyMethod()
                                 .AllowCredentials();
-                        }
                         else
-                        {
                             builder.WithOrigins("https://*.icdb.dev")
                                 .AllowAnyHeader()
                                 .AllowAnyMethod()
                                 .AllowCredentials()
                                 .SetIsOriginAllowedToAllowWildcardSubdomains();
-                        }
                     });
                 }
             );
