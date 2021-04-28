@@ -51,7 +51,7 @@ namespace TtsApi.Controllers
             TtsRequest ttsRequest = new()
             {
                 Id = "xD",
-                MaxMessageTime = 0f,
+                MaxMessageTimeSeconds = 0f,
                 TtsIndividualSynthesizes = new List<TtsIndividualSynthesize>
                 {
                     new(synthResp1.AudioStream, 1f, 1f),

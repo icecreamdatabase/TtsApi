@@ -1,7 +1,9 @@
+using System;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,10 +22,12 @@ namespace TtsApi
     public class Startup
     {
         private IConfiguration Configuration { get; }
+        private IHostEnvironment HostingEnvironment { get; }
 
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, IHostEnvironment hostingEnvironment)
         {
             Configuration = configuration;
+            HostingEnvironment = hostingEnvironment;
             DiscordWebhook.SetWebhooks(Configuration.GetSection("DiscordWebhooks"));
         }
 
@@ -64,11 +68,13 @@ namespace TtsApi
                 {
                     options.AddDefaultPolicy(builder =>
                     {
-                        builder.WithOrigins("http://localhost:63343")
+                        builder.WithOrigins("https://obs.icdb.dev")
                             .AllowAnyHeader()
                             .AllowAnyMethod()
                             .AllowCredentials()
                             .SetIsOriginAllowedToAllowWildcardSubdomains();
+                        if (HostingEnvironment.IsDevelopment())
+                            builder.SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost");
                     });
                 }
             );
@@ -103,7 +109,14 @@ namespace TtsApi
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
-            app.UseEndpoints(endpoints => { endpoints.MapHub<TtsHub>("/TtsHub"); });
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapHub<TtsHub>("/TtsHub", options =>
+                {
+                    // Not sure if we even need this
+                    // options.ApplicationMaxBufferSize = 30 * 1024; // * 1000;
+                });
+            });
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
         }
     }

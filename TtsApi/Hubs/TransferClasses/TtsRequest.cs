@@ -6,7 +6,7 @@ namespace TtsApi.Hubs.TransferClasses
     {
         public string Id { get; set; }
 
-        public float MaxMessageTime { get; set; }
+        public float MaxMessageTimeSeconds { get; set; }
 
         public List<TtsIndividualSynthesize> TtsIndividualSynthesizes { get; set; }
     }
