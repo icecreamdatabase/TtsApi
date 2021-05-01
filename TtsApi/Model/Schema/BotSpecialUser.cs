@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,22 +7,28 @@ namespace TtsApi.Model.Schema
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
     [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
     [SuppressMessage("ReSharper", "ClassNeverInstantiated.Global")]
-    public class ChannelEditor
+    public class BotSpecialUser
     {
-        [Required]
-        [ForeignKey("Channel")]
-        public int ChannelId { get; set; }
-
-        public Channel Channel { get; set; }
-
+        [Key]
         [Required]
         public int UserId { get; set; }
 
+        [Required]
+        public bool IsIrcBot { get; set; }
+
+        [Required]
+        public bool IsBotOwner { get; set; }
+
+        [Required]
+        public bool IsBotAdmin { get; set; }
+
         protected internal static void BuildModel(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<ChannelEditor>(entity =>
+            modelBuilder.Entity<BotSpecialUser>(entity =>
             {
-                entity.HasKey(nameof(ChannelId), nameof(UserId));
+                entity.Property(e => e.IsIrcBot).HasDefaultValue(false);
+                entity.Property(e => e.IsBotOwner).HasDefaultValue(false);
+                entity.Property(e => e.IsBotAdmin).HasDefaultValue(false);
             });
         }
     }

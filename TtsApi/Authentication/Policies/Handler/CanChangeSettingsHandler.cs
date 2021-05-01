@@ -13,7 +13,8 @@ namespace TtsApi.Authentication.Policies.Handler
         {
             if (
                 context.User.IsInRole(Roles.Roles.ChannelBroadcaster) ||
-                context.User.IsInRole(Roles.Roles.Admin)
+                context.User.IsInRole(Roles.Roles.BotOwner) ||
+                context.User.IsInRole(Roles.Roles.BotAdmin)
             )
             {
                 context.Succeed(requirement);

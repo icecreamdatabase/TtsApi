@@ -19,6 +19,11 @@ namespace TtsApi
 {
     public class Startup
     {
+        /// <summary>
+        /// <c>TreatTinyAsBoolean=false</c> results in using bit(1) instead of tinyint(1) for <see cref="bool"/>.
+        /// </summary>
+        private const string AdditionalMySqlConfigurationParameters = ";TreatTinyAsBoolean=false";
+
         private IConfiguration Configuration { get; }
         private IHostEnvironment HostingEnvironment { get; }
 
@@ -36,7 +41,8 @@ namespace TtsApi
             //services.AddRouting(options => options.LowercaseUrls = true);
             services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo {Title = "TtsApi", Version = "v1"}); });
 
-            services.AddDbContext<TtsDbContext>(opt => opt.UseMySQL(Configuration.GetConnectionString("TtsDb")));
+            services.AddDbContext<TtsDbContext>(opt =>
+                opt.UseMySQL(Configuration.GetConnectionString("TtsDb") + AdditionalMySqlConfigurationParameters));
 
             //https://josef.codes/asp-net-core-protect-your-api-with-api-keys/
             services.AddAuthentication(options =>

@@ -1,8 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Diagnostics.CodeAnalysis;
+using Microsoft.EntityFrameworkCore;
 using TtsApi.Model.Schema;
 
 namespace TtsApi.Model
 {
+    [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")] // They are used by DbContext
     public class TtsDbContext : DbContext
     {
         public DbSet<BotData> BotData { get; set; }
@@ -13,6 +15,7 @@ namespace TtsApi.Model
         public DbSet<AllowedConversationVoice> AllowedConversationVoices { get; set; }
         public DbSet<ChannelEditor> ChannelEditors { get; set; }
         public DbSet<RequestQueueIngest> RequestQueueIngest { get; set; }
+        public DbSet<BotSpecialUser> BotSpecialUsers { get; set; }
 
         public TtsDbContext(DbContextOptions<TtsDbContext> options) : base(options)
         {
@@ -31,6 +34,7 @@ namespace TtsApi.Model
             Schema.Reward.BuildModel(modelBuilder);
             Schema.AllowedConversationVoice.BuildModel(modelBuilder);
             Schema.ChannelEditor.BuildModel(modelBuilder);
+            Schema.BotSpecialUser.BuildModel(modelBuilder);
         }
     }
 }

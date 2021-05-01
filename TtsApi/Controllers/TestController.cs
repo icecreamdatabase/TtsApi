@@ -32,7 +32,7 @@ namespace TtsApi.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = Roles.Admin)]
+        [Authorize(Roles = Roles.BotAdmin)]
         public ActionResult Get()
         {
             // Triggering IndexOutOfRangeException on purpose
@@ -62,7 +62,7 @@ namespace TtsApi.Controllers
         }
 
         [HttpGet("GetDb")]
-        [Authorize(Roles = Roles.Admin)]
+        [Authorize(Roles = Roles.BotOwner)]
         public ActionResult GetDb()
         {
             _ttsDbContext.Database.EnsureCreated();

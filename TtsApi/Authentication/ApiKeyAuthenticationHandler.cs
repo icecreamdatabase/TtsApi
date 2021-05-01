@@ -1,14 +1,18 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using TtsApi.Authentication.Twitch;
 using TtsApi.Model;
+using TtsApi.Model.Schema;
 
 namespace TtsApi.Authentication
 {
@@ -41,7 +45,7 @@ namespace TtsApi.Authentication
                     claims.Add(new Claim(ClaimTypes.NameIdentifier, roomId));
             }
 
-            StringValues oAuthHeader = "";
+            StringValues oAuthHeader = StringValues.Empty;
             if (
                 !Context.Request.Query.TryGetValue(AccessTokenQueryStringName, out StringValues accessToken) &&
                 !Request.Headers.TryGetValue(ApiKeyHeaderName, out oAuthHeader) &&
@@ -112,35 +116,38 @@ namespace TtsApi.Authentication
 
         private void SetRoles(TwitchValidateResult validate, ICollection<Claim> claims)
         {
+            // userId from validate
             if (!int.TryParse(validate.UserId, out int userId))
                 return;
 
-            // Bot check
-            // TODO: Bot check from DB
-            if (new[] {1234}.Contains(userId))
-                claims.Add(new Claim(ClaimTypes.Role, Roles.Roles.ChatBot));
+            string claimRole = string.Empty;
+            BotSpecialUser dbUser = _ttsDbContext.BotSpecialUsers.Find(userId);
 
-            // Admin check
-            // TODO: Admin check from DB
-            if (new[] {38949074}.Contains(userId))
-                claims.Add(new Claim(ClaimTypes.Role, Roles.Roles.Admin));
+            if (dbUser?.IsIrcBot ?? false)
+                claimRole = Roles.Roles.IrcBot;
+            else if (dbUser?.IsBotOwner ?? false)
+                claimRole = Roles.Roles.BotOwner;
+            else if (dbUser?.IsBotAdmin ?? false)
+                claimRole = Roles.Roles.BotAdmin;
 
-            // Get channelId from Route and userId from validate
-            if (
-                !Request.RouteValues.TryGetValue("channelId", out object channelIdStr) ||
-                channelIdStr == null ||
-                !int.TryParse(channelIdStr.ToString(), out int channelId)
+            // Get channelId from Route 
+            else if (Request.RouteValues.TryGetValue("channelId", out object channelIdStr) &&
+                     channelIdStr != null &&
+                     int.TryParse(channelIdStr.ToString(), out int channelId)
             )
-                return;
+            {
+                // Broadcaster check
+                if (channelId == userId)
+                    claimRole = Roles.Roles.ChannelBroadcaster;
 
-            // Broadcaster check
-            if (channelId == userId)
-                claims.Add(new Claim(ClaimTypes.Role, Roles.Roles.ChannelBroadcaster));
+                // Mod check
+                // TODO: Mod check from ThreeLetterApi 
+                else if (channelId == 1234)
+                    claimRole = Roles.Roles.ChannelMod;
+            }
 
-            // Mod check
-            // TODO: Mod check from ThreeLetterApi 
-            if (channelId == 1234)
-                claims.Add(new Claim(ClaimTypes.Role, Roles.Roles.ChannelMod));
+            if (!string.IsNullOrEmpty(claimRole))
+                claims.Add(new Claim(ClaimTypes.Role, claimRole));
         }
     }
 }

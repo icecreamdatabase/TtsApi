@@ -23,7 +23,7 @@ namespace TtsApi.Controllers.SynthesizeSpeechController
         }
 
         [HttpGet]
-        [Authorize(Roles = Roles.Admin)]
+        [Authorize(Roles = Roles.BotAdmin)]
         public async Task<ActionResult> Get([FromQuery] SynthesizeSpeechInput input)
         {
             SynthesizeSpeechResponse res = await Polly.Synthesize(input.Text, input.GetVoiceId(), input.GetEngine());
