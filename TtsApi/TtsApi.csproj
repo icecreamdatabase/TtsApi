@@ -5,8 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.Polly" Version="3.7.0.12" />
-    <PackageReference Include="MySql.EntityFrameworkCore" Version="5.0.0" />
+    <PackageReference Include="AWSSDK.Polly" Version="3.7.0.16" />
+    <PackageReference Include="MySql.EntityFrameworkCore" Version="5.0.3" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3" />
   </ItemGroup>
 

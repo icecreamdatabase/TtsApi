@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 using TtsApi.Hubs.TransferClasses;
 using TtsApi.Model;
+using TtsApi.Model.Schema;
 
 namespace TtsApi.Hubs
 {
@@ -34,12 +35,12 @@ namespace TtsApi.Hubs
             _connectedIds.Remove(Context.ConnectionId);
             return base.OnDisconnectedAsync(exception);
         }
-        
+
         public void ConfirmTtsFullyPlayed(string id)
         {
             Console.WriteLine($"Confirmed {Context.UserIdentifier} has fully played tts {id}");
         }
-        
+
         public void ConfirmTtsSkipped(string id)
         {
             Console.WriteLine($"Confirmed {Context.UserIdentifier} has skipped tts {id}");
@@ -48,6 +49,10 @@ namespace TtsApi.Hubs
         public static async Task SendTtsRequest(IHubContext<TtsHub> context, string roomId, TtsRequest request)
         {
             await context.Clients.Group(roomId).SendAsync("ReceiveTtsRequest", request);
+        }
+
+        public static async Task SendTtsRequest(IHubContext<TtsHub> context, RequestQueueIngest request)
+        {
         }
     }
 }

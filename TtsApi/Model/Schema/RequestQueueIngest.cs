@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.EntityFrameworkCore;
 
 namespace TtsApi.Model.Schema
 {
@@ -17,7 +18,7 @@ namespace TtsApi.Model.Schema
         [ForeignKey("Reward")]
         public string RewardId { get; set; }
 
-        public Reward Reward { get; set; }
+        public virtual Reward Reward { get; set; }
 
         [Required]
         public string RequesterId { get; set; }

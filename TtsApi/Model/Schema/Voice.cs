@@ -24,12 +24,12 @@ namespace TtsApi.Model.Schema
         [ForeignKey("VoiceLanguage")]
         public string LanguageCode { get; set; }
 
-        public VoiceLanguage VoiceLanguage { get; set; }
+        public virtual VoiceLanguage VoiceLanguage { get; set; }
 
-        public List<VoiceEngine> VoiceEngines { get; set; }
-        
-        public List<Reward> Rewards { get; set; }
-        
-        public List<AllowedConversationVoice> AllowedConversationVoices { get; set; }
+        public virtual List<VoiceEngine> VoiceEngines { get; set; }
+
+        public virtual List<Reward> Rewards { get; set; }
+
+        public virtual List<AllowedConversationVoice> AllowedConversationVoices { get; set; }
     }
 }

@@ -50,11 +50,11 @@ namespace TtsApi.Model.Schema
         [Required]
         public bool AllModsAreEditors { get; set; }
 
-        public List<Reward> Rewards { get; set; }
+        public virtual List<Reward> Rewards { get; set; }
 
-        public List<AllowedConversationVoice> AllowedConversationVoices { get; set; }
+        public virtual List<AllowedConversationVoice> AllowedConversationVoices { get; set; }
         
-        public List<ChannelEditor> ChannelEditors { get; set; }
+        public virtual List<ChannelEditor> ChannelEditors { get; set; }
 
         protected internal static void BuildModel(ModelBuilder modelBuilder)
         {

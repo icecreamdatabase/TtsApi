@@ -14,13 +14,13 @@ namespace TtsApi.Model.Schema
         [ForeignKey("Channel")]
         public int ChannelId { get; set; }
 
-        public Channel Channel { get; set; }
+        public virtual Channel Channel { get; set; }
 
         [Required]
         [ForeignKey("Voice")]
         public string VoiceId { get; set; }
 
-        public Voice Voice { get; set; }
+        public virtual Voice Voice { get; set; }
 
         protected internal static void BuildModel(ModelBuilder modelBuilder)
         {

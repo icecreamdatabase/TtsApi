@@ -14,7 +14,7 @@ namespace TtsApi.Model.Schema
         [ForeignKey("Channel")]
         public int ChannelId { get; set; }
 
-        public Channel Channel { get; set; }
+        public virtual Channel Channel { get; set; }
 
         [Required]
         public int UserId { get; set; }

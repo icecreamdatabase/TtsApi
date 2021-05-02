@@ -16,6 +16,6 @@ namespace TtsApi.Model.Schema
         [Required]
         public string LanguageName { get; set; }
 
-        public List<Voice> Voices { get; set; }
+        public virtual List<Voice> Voices { get; set; }
     }
 }

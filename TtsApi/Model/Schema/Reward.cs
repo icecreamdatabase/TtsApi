@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
@@ -18,14 +19,14 @@ namespace TtsApi.Model.Schema
         [ForeignKey("Channel")]
         public int ChannelId { get; set; }
 
-        public Channel Channel { get; set; }
+        public virtual Channel Channel { get; set; }
 
 
         [Required]
         [ForeignKey("Voice")]
         public string VoiceId { get; set; }
 
-        public Voice Voice { get; set; }
+        public virtual Voice Voice { get; set; }
 
         [Required]
         public bool IsConversation { get; set; }
@@ -35,6 +36,8 @@ namespace TtsApi.Model.Schema
 
         [Required]
         public int Cooldown { get; set; }
+
+        public virtual List<RequestQueueIngest> RequestQueueIngests { get; set; }
 
         protected internal static void BuildModel(ModelBuilder modelBuilder)
         {

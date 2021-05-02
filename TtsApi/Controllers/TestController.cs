@@ -13,6 +13,7 @@ using TtsApi.ExternalApis.Aws;
 using TtsApi.Hubs;
 using TtsApi.Hubs.TransferClasses;
 using TtsApi.Model;
+using TtsApi.Model.Schema;
 
 namespace TtsApi.Controllers
 {
