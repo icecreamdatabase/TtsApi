@@ -26,7 +26,7 @@ namespace TtsApi.Model.Schema
         public bool IsTwitchPartner { get; set; }
 
         [Required]
-        public int MaxMessageLength { get; set; }
+        public int MaxMessageLength { get; set; } // TODO rename this into MaxMessageTimeSeconds
 
         [Required]
         public int MinCooldown { get; set; }

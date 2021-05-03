@@ -13,7 +13,8 @@ using TtsApi.Authentication.Policies.Handler;
 using TtsApi.Authentication.Policies.Requirements;
 using TtsApi.BackgroundServices;
 using TtsApi.ExternalApis.Discord;
-using TtsApi.Hubs;
+using TtsApi.Hubs.TtsHub;
+using TtsApi.Hubs.TtsHub.TransformationClasses;
 using TtsApi.Model;
 
 namespace TtsApi
@@ -88,6 +89,7 @@ namespace TtsApi
             services.AddSignalR();
 
             services.AddHostedService<IngestQueueHandler>();
+            services.AddTransient<TtsHandler>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace TtsApi.Hubs.TransferClasses
+namespace TtsApi.Hubs.TtsHub.TransferClasses
 {
     public class TtsRequest
     {

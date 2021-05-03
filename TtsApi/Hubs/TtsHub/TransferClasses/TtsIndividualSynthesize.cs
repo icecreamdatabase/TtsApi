@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace TtsApi.Hubs.TransferClasses
+namespace TtsApi.Hubs.TtsHub.TransferClasses
 {
     public class TtsIndividualSynthesize
     {
