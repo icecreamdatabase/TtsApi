@@ -26,13 +26,16 @@ namespace TtsApi.Model.Schema
         public string RequesterDisplayName { get; set; }
 
         [Required]
-        public bool IsSubOrMod { get; set; }
+        public bool IsSubOrHigher { get; set; }
 
         [Required]
         public string RawMessage { get; set; }
 
         [Required]
         public string MessageId { get; set; }
+        
+        [Required]
+        public bool WasTimedOut { get; set; }
 
         [Required]
         [Column(TypeName = "TIMESTAMP")]

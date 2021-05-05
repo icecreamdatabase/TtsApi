@@ -8,6 +8,8 @@ namespace TtsApi.Model
     public class TtsDbContext : DbContext
     {
         public DbSet<BotData> BotData { get; set; }
+        public DbSet<GlobalUserBlacklist> GlobalUserBlacklist { get; set; }
+
         public DbSet<Channel> Channels { get; set; }
         public DbSet<Voice> Voices { get; set; }
         public DbSet<VoiceLanguage> VoicesLanguages { get; set; }
@@ -30,6 +32,7 @@ namespace TtsApi.Model
             base.OnModelCreating(modelBuilder);
 
             Schema.BotData.BuildModel(modelBuilder);
+            Schema.GlobalUserBlacklist.BuildModel(modelBuilder);
             Schema.Channel.BuildModel(modelBuilder);
             Schema.Reward.BuildModel(modelBuilder);
             Schema.AllowedConversationVoice.BuildModel(modelBuilder);

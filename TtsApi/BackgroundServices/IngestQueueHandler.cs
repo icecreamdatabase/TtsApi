@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,8 +20,6 @@ namespace TtsApi.BackgroundServices
 
         protected override async Task RunJobAsync(IServiceProvider serviceProvider, CancellationToken stoppingToken)
         {
-            Console.WriteLine("running");
-            Stopwatch sw = Stopwatch.StartNew();
             TtsDbContext db = serviceProvider.GetService<TtsDbContext>();
             TtsHandler ttsHandler = serviceProvider.GetService<TtsHandler>();
             if (db is null || ttsHandler is null)
@@ -31,19 +28,18 @@ namespace TtsApi.BackgroundServices
             db.RequestQueueIngest
                 .Include(r => r.Reward)
                 .Include(r => r.Reward.Channel)
+                .Include(r => r.Reward.Voice)
+                .Include(r => r.Reward.Voice.VoiceEngines)
                 .ToList()
                 .GroupBy(req => req.Reward.ChannelId)
                 .Select(ingests => ingests.FirstOrDefault())
                 .Where(rqi =>
-                    rqi != null //&&
-                    // listOfConnectedChannelIds.Contains(rqi.Reward.ChannelId) && 
+                    rqi != null &&
+                    TtsHandler.ConnectClients.Values.Contains(rqi.Reward.ChannelId.ToString())
                     // rqi.RewardId is already being checked
                 )
                 .ToList()
                 .ForEach(async rqi => await ttsHandler.SendTtsRequest(rqi));
-
-            sw.Stop();
-            Console.WriteLine($"Ran in: {sw.Elapsed.TotalMilliseconds}");
         }
     }
 }
