@@ -29,11 +29,11 @@ namespace TtsApi.Controllers
             string clientSecret = BotDataAccess.GetClientSecret(_db.BotData);
             TwitchTokenResult tokenResult = await GenerateAccessToken(clientId, clientSecret, code);
             if (string.IsNullOrEmpty(tokenResult.AccessToken))
-                return null;
+                return Forbid();
 
             TwitchValidateResult validateResult = await Validate(tokenResult.AccessToken);
             if (string.IsNullOrEmpty(validateResult.UserId))
-                return null;
+                return Forbid();
 
             Channel entity = _db.Channels.FirstOrDefault(channel => channel.RoomId == int.Parse(validateResult.UserId));
 
@@ -52,12 +52,13 @@ namespace TtsApi.Controllers
                 if (!string.IsNullOrEmpty(entity.AccessToken))
                     await Revoke(clientId, entity.AccessToken);
             }
+
             entity.RefreshToken = tokenResult.RefreshToken;
             entity.AccessToken = tokenResult.AccessToken;
-            
+
             await _db.SaveChangesAsync();
-            
-            return Ok();
+
+            return NoContent();
         }
     }
 }
