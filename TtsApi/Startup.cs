@@ -1,3 +1,6 @@
+using System;
+using System.IO;
+using System.Reflection;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
@@ -41,7 +44,15 @@ namespace TtsApi
         {
             services.AddControllers();
             //services.AddRouting(options => options.LowercaseUrls = true);
-            services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo {Title = "TtsApi", Version = "v1"}); });
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo {Title = "TtsApi", Version = "v1"});
+
+                string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+                string commentsFileName = Assembly.GetExecutingAssembly().GetName().Name + ".XML";
+                string commentsFile = Path.Combine(baseDirectory, commentsFileName);
+                c.IncludeXmlComments(commentsFile);
+            });
 
             services.AddDbContext<TtsDbContext>(opt =>
                 opt.UseMySQL(Configuration.GetConnectionString("TtsDb") + AdditionalMySqlConfigurationParameters));
