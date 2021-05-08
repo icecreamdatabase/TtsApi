@@ -47,11 +47,32 @@ namespace TtsApi
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo {Title = "TtsApi", Version = "v1"});
+                c.AddSecurityDefinition("OAuth", new OpenApiSecurityScheme
+                {
+                    Description = "Standard Twitch OAuth header. Example: \"OAuth 0123456789abcdefghijABCDEFGHIJ\"",
+                    Name = "Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.ApiKey
+                });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "OAuth"
+                            }
+                        },
+                        Array.Empty<string>()
+                    }
+                });
 
                 string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
                 string commentsFileName = Assembly.GetExecutingAssembly().GetName().Name + ".XML";
                 string commentsFile = Path.Combine(baseDirectory, commentsFileName);
-                if(File.Exists(commentsFile))
+                if (File.Exists(commentsFile))
                     c.IncludeXmlComments(commentsFile);
             });
 
@@ -111,7 +132,13 @@ namespace TtsApi
             {
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "TtsApi v1"));
+                app.UseSwaggerUI(c =>
+                {
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "TtsApi v1");
+                    //This garbage doesn't work and therefore the authorization is lost after every reload.
+                    //Making swagger completely useless for this project.
+                    //c.ConfigObject.AdditionalItems.Add("persistAuthorization", "true");
+                });
             }
 
             app.UseExceptionHandler(appErr =>
