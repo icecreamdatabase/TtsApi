@@ -1,24 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
+using Amazon.Polly;
 
 namespace TtsApi.Controllers.RedemptionController
 {
-    [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
     public class RedemptionCreateInput : IValidatableObject
     {
-        [JsonIgnore]
-        private const string HexColourRegexPattern = @"^#(?:[0-9a-fA-F]{3}){1,2}$";
-
-        private static readonly Regex HexColourRegex = new(
-            HexColourRegexPattern,
-            RegexOptions.Compiled,
-            TimeSpan.FromMilliseconds(100)
-        );
-
         [JsonPropertyName("title")]
         public string Title { get; set; }
 
@@ -28,37 +17,19 @@ namespace TtsApi.Controllers.RedemptionController
         [JsonPropertyName("cost")]
         public int Cost { get; set; }
 
-        [JsonPropertyName("is_enabled")]
-        public bool IsEnabled { get; set; } = true;
-
-        [JsonPropertyName("background_color")]
-        public string BackgroundColour { get; set; }
-
-        [JsonPropertyName("is_user_input_required")]
-        public bool IsUserInputRequired { get; set; } = true;
-
-        [JsonPropertyName("is_max_per_stream_enabled")]
-        public bool IsMaxPerStreamEnabled { get; set; }
-
-        [JsonPropertyName("max_per_user_per_stream")]
-        public int MaxPerUserPerStream { get; set; }
-
-        [JsonPropertyName("is_global_cooldown_enabled")]
-        public bool IsGlobalCooldownEnabled { get; set; }
-
-        [JsonPropertyName("global_cooldown_seconds")]
-        public int GlobalCooldownSeconds { get; set; }
-
-        [JsonPropertyName("should_redemptions_skip_request_queue")]
-        public bool ShouldRedemptionsSkipRequestQueue { get; set; }
+        public string VoiceId { get; set; }
+        public VoiceId GetVoiceId() => Amazon.Polly.VoiceId.FindValue(VoiceId);
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
-            if (!string.IsNullOrEmpty(BackgroundColour) && !HexColourRegex.IsMatch(BackgroundColour))
+            if (typeof(VoiceId).GetFields().All(info => info.Name != VoiceId))
+            {
+                string valid = string.Join(", ", typeof(VoiceId).GetFields().Select(info => info.Name));
                 yield return new ValidationResult(
-                    $"Not a valid HEX colour string: {BackgroundColour}",
-                    new[] {nameof(BackgroundColour)}
+                    $"Not a valid {nameof(VoiceId)}. Options are: {valid}",
+                    new[] {nameof(VoiceId)}
                 );
+            }
         }
     }
 }

@@ -4,6 +4,8 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.WebUtilities;
+using TtsApi.Model;
+using TtsApi.Model.Schema;
 
 namespace TtsApi.ExternalApis.Twitch.Helix.Auth
 {
@@ -47,6 +49,21 @@ namespace TtsApi.ExternalApis.Twitch.Helix.Auth
             return JsonSerializer.Deserialize<TwitchValidateResult>(responseFromServer);
         }
 
+        public static async Task<bool> Refresh(TtsDbContext db, Channel channel)
+        {
+            TwitchTokenResult result = await Refresh(
+                BotDataAccess.GetClientId(db.BotData),
+                BotDataAccess.GetClientSecret(db.BotData),
+                channel.RefreshToken
+            );
+            if (string.IsNullOrEmpty(result.AccessToken))
+                return false;
+
+            channel.AccessToken = result.AccessToken;
+            channel.RefreshToken = result.RefreshToken;
+            await db.SaveChangesAsync();
+            return true;
+        }
 
         public static async Task<TwitchTokenResult> Refresh(string clientId, string clientSecret, string refreshToken)
         {
