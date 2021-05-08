@@ -13,7 +13,6 @@
 
   <ItemGroup>
     <Folder Include="ExternalApis\Twitch\Gql" />
-    <Folder Include="ExternalApis\Twitch\Helix" />
     <Folder Include="ExternalApis\Twitch\Kraken" />
   </ItemGroup>
 

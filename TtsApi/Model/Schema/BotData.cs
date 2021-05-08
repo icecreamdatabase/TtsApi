@@ -27,6 +27,7 @@ namespace TtsApi.Model.Schema
         {
             modelBuilder.Entity<BotData>(entity =>
             {
+                entity.HasIndex(e => e.Key).IsUnique();
                 entity.Property(e => e.LastUpdated).ValueGeneratedOnAddOrUpdate();
             });
         }

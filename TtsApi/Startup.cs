@@ -51,7 +51,8 @@ namespace TtsApi
                 string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
                 string commentsFileName = Assembly.GetExecutingAssembly().GetName().Name + ".XML";
                 string commentsFile = Path.Combine(baseDirectory, commentsFileName);
-                c.IncludeXmlComments(commentsFile);
+                if(File.Exists(commentsFile))
+                    c.IncludeXmlComments(commentsFile);
             });
 
             services.AddDbContext<TtsDbContext>(opt =>
