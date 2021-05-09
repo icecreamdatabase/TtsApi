@@ -1,13 +1,28 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using TtsApi.Authentication.Policies.Requirements;
+using TtsApi.Model;
+using TtsApi.Model.Schema;
 
 namespace TtsApi.Authentication.Policies.Handler
 {
     public class CanChangeSettingsHandler : AuthorizationHandler<CanChangeSettingsRequirements>
     {
+        private readonly ILogger<CanChangeSettingsHandler> _logger;
+        private readonly TtsDbContext _ttsDbContext;
+
+        public CanChangeSettingsHandler(ILogger<CanChangeSettingsHandler> logger, TtsDbContext ttsDbContext)
+        {
+            _logger = logger;
+            _ttsDbContext = ttsDbContext;
+        }
+
         protected override Task HandleRequirementAsync(AuthorizationHandlerContext context,
             CanChangeSettingsRequirements requirement)
         {
@@ -21,19 +36,24 @@ namespace TtsApi.Authentication.Policies.Handler
                 return Task.CompletedTask;
             }
 
-            RouteValueDictionary routeValues = (context.Resource as DefaultHttpContext)?.Request.RouteValues;
-
-            if (routeValues == null)
-                return Task.CompletedTask;
-
-            // Get channelId from Route
-            routeValues.TryGetValue("channelId", out object channelIdStr);
-            if (channelIdStr != null && int.TryParse(channelIdStr.ToString(), out int channelId))
+            string roomIdStr = context.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(roomIdStr) || !int.TryParse(roomIdStr, out int roomId)) return Task.CompletedTask;
             {
                 // Mod check
                 // TODO: Mod + ModAreEditors / Editor check
-                if (channelId == 1234)
-                    context.Succeed(requirement);
+                Channel channel = _ttsDbContext.Channels
+                    .Include(c => c.ChannelEditors)
+                    .FirstOrDefault(c => c.RoomId == roomId);
+                if (channel is not null)
+                {
+                    string userIdStr = context.User.Claims.FirstOrDefault(c => c.Type == AuthClaims.UserId)?.Value;
+                    if (string.IsNullOrEmpty(userIdStr) && int.TryParse(roomIdStr, out int userId))
+                        if (channel.ChannelEditors.Any(ce => ce.UserId == userId) || 
+                            channel.AllModsAreEditors &&
+                            /*checkIf mode*/ true
+                        )
+                            context.Succeed(requirement);
+                }
             }
 
             return Task.CompletedTask;

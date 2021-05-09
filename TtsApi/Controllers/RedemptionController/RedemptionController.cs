@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using TtsApi.Authentication;
 using TtsApi.Authentication.Policies;
 using TtsApi.ExternalApis.Twitch.Helix;
 using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints;
@@ -36,10 +37,11 @@ namespace TtsApi.Controllers.RedemptionController
         /// <summary>
         /// Get a specific reward of a specific channel.
         /// </summary>
-        /// <param name="roomId">Id of the channel. Must match auth permissions</param>
+        /// <param name="roomId">Id of the channel. Must match auth permissions.
+        ///     Parameter name defined by <see cref="ApiKeyAuthenticationHandler.RoomIdQueryStringName"/>.</param>
         /// <param name="rewardId">Id of the reward. Must match roomId.</param>
         /// <returns></returns>
-        [HttpGet("")]
+        [HttpGet]
         public async Task<ActionResult> Get([FromQuery] int roomId, [FromQuery] string rewardId)
         {
             Reward dbReward = _ttsDbContext.Rewards.FirstOrDefault(r => r.RewardId == rewardId);
@@ -51,7 +53,8 @@ namespace TtsApi.Controllers.RedemptionController
         /// <summary>
         /// Get all rewards of a specific channel.
         /// </summary>
-        /// <param name="roomId">Id of the channel. Must match auth permissions</param>
+        /// <param name="roomId">Id of the channel. Must match auth permissions
+        ///     Parameter name defined by <see cref="ApiKeyAuthenticationHandler.RoomIdQueryStringName"/>.</param>
         /// <returns></returns>
         [HttpGet("All")]
         public async Task<ActionResult> GetAll([FromQuery] int roomId)
@@ -64,10 +67,11 @@ namespace TtsApi.Controllers.RedemptionController
         /// <summary>
         /// Create a new reward for a specific channel.
         /// </summary>
-        /// <param name="roomId">Id of the channel. Must match auth permissions</param>
+        /// <param name="roomId">Id of the channel. Must match auth permissions
+        ///     Parameter name defined by <see cref="ApiKeyAuthenticationHandler.RoomIdQueryStringName"/>.</param>
         /// <param name="input"></param>
         /// <returns></returns>
-        [HttpPost("")]
+        [HttpPost]
         public async Task<ActionResult> Create([FromQuery] int roomId, [FromForm] RedemptionCreateInput input)
         {
             Channel channel = _ttsDbContext.Channels.FirstOrDefault(c => c.RoomId == roomId);
@@ -109,10 +113,11 @@ namespace TtsApi.Controllers.RedemptionController
         /// <summary>
         /// Update settings of a specific reward in a specific channel.
         /// </summary>
-        /// <param name="roomId">Id of the channel. Must match auth permissions</param>
+        /// <param name="roomId">Id of the channel. Must match auth permissions
+        ///     Parameter name defined by <see cref="ApiKeyAuthenticationHandler.RoomIdQueryStringName"/>.</param>
         /// <param name="rewardId">Id of the reward. Must match roomId.</param>
         /// <returns></returns>
-        [HttpPatch("")]
+        [HttpPatch]
         public async Task<ActionResult> Update([FromQuery] int roomId, [FromQuery] string rewardId)
         {
             return Problem("Not implemented", null, (int) HttpStatusCode.ServiceUnavailable);
@@ -122,10 +127,11 @@ namespace TtsApi.Controllers.RedemptionController
         /// <summary>
         /// Delete a specific reward in a specific channel.
         /// </summary>
-        /// <param name="roomId">Id of the channel. Must match auth permissions</param>
+        /// <param name="roomId">Id of the channel. Must match auth permissions
+        ///     Parameter name defined by <see cref="ApiKeyAuthenticationHandler.RoomIdQueryStringName"/>.</param>
         /// <param name="rewardId">Id of the reward. Must match roomId.</param>
         /// <returns></returns>
-        [HttpDelete("")]
+        [HttpDelete]
         public async Task<ActionResult> Delete([FromQuery] int roomId, [FromQuery] string rewardId)
         {
             Reward dbReward = _ttsDbContext.Rewards

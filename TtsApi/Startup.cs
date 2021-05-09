@@ -98,7 +98,7 @@ namespace TtsApi
             });
 
             services.AddSingleton<IAuthorizationHandler, RequiredSignupScopesHandler>();
-            services.AddSingleton<IAuthorizationHandler, CanChangeSettingsHandler>();
+            services.AddTransient<IAuthorizationHandler, CanChangeSettingsHandler>();
             services.AddSingleton<IAuthorizationHandler, CanAccessQueueHandler>();
 
 
