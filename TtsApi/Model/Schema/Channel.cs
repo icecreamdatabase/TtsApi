@@ -20,7 +20,7 @@ namespace TtsApi.Model.Schema
         public string ChannelName { get; set; }
 
         [Required]
-        public bool Enabled { get; set; }
+        public bool Enabled { get; set; } = true;
 
         [Required]
         public bool IsTwitchPartner { get; set; }

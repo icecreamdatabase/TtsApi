@@ -43,7 +43,8 @@ namespace TtsApi.Controllers
                 {
                     RoomId = int.Parse(validateResult.UserId),
                     ChannelName = validateResult.Login,
-                    IsTwitchPartner = false
+                    IsTwitchPartner = false,
+                    Enabled = true
                 };
                 _db.Channels.Add(entity);
             }
