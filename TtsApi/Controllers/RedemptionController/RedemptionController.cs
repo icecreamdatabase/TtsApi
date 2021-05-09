@@ -16,7 +16,7 @@ using TtsApi.Model.Schema;
 namespace TtsApi.Controllers.RedemptionController
 {
     [ApiController]
-    [Route("[controller]/{roomId:int}")]
+    [Route("[controller]")]
     [Authorize(Policy = Policies.CanChangeSettings)]
     public class RedemptionController : ControllerBase
     {
@@ -39,8 +39,8 @@ namespace TtsApi.Controllers.RedemptionController
         /// <param name="roomId">Id of the channel. Must match auth permissions</param>
         /// <param name="rewardId">Id of the reward. Must match roomId.</param>
         /// <returns></returns>
-        [HttpGet("{rewardId}")]
-        public async Task<ActionResult> Get([FromRoute] int roomId, [FromRoute] string rewardId)
+        [HttpGet("")]
+        public async Task<ActionResult> Get([FromQuery] int roomId, [FromQuery] string rewardId)
         {
             Reward dbReward = _ttsDbContext.Rewards.FirstOrDefault(r => r.RewardId == rewardId);
             if (dbReward?.ChannelId == roomId)
@@ -53,8 +53,8 @@ namespace TtsApi.Controllers.RedemptionController
         /// </summary>
         /// <param name="roomId">Id of the channel. Must match auth permissions</param>
         /// <returns></returns>
-        [HttpGet("")]
-        public async Task<ActionResult> GetAll([FromRoute] int roomId)
+        [HttpGet("All")]
+        public async Task<ActionResult> GetAll([FromQuery] int roomId)
         {
             List<Reward> dbRewards = _ttsDbContext.Rewards.Where(r => r.ChannelId == roomId).ToList();
             List<RedemptionRewardView> rewardViews = dbRewards.Select(r => (RedemptionRewardView) r).ToList();
@@ -68,7 +68,7 @@ namespace TtsApi.Controllers.RedemptionController
         /// <param name="input"></param>
         /// <returns></returns>
         [HttpPost("")]
-        public async Task<ActionResult> Create([FromRoute] int roomId, [FromForm] RedemptionCreateInput input)
+        public async Task<ActionResult> Create([FromQuery] int roomId, [FromForm] RedemptionCreateInput input)
         {
             Channel channel = _ttsDbContext.Channels.FirstOrDefault(c => c.RoomId == roomId);
             if (channel is null)
@@ -112,8 +112,8 @@ namespace TtsApi.Controllers.RedemptionController
         /// <param name="roomId">Id of the channel. Must match auth permissions</param>
         /// <param name="rewardId">Id of the reward. Must match roomId.</param>
         /// <returns></returns>
-        [HttpPatch("{rewardId}")]
-        public async Task<ActionResult> Update([FromRoute] int roomId, [FromRoute] string rewardId)
+        [HttpPatch("")]
+        public async Task<ActionResult> Update([FromQuery] int roomId, [FromQuery] string rewardId)
         {
             return Problem("Not implemented", null, (int) HttpStatusCode.ServiceUnavailable);
             //return Ok();
@@ -125,8 +125,8 @@ namespace TtsApi.Controllers.RedemptionController
         /// <param name="roomId">Id of the channel. Must match auth permissions</param>
         /// <param name="rewardId">Id of the reward. Must match roomId.</param>
         /// <returns></returns>
-        [HttpDelete("{rewardId}")]
-        public async Task<ActionResult> Delete([FromRoute] int roomId, [FromRoute] string rewardId)
+        [HttpDelete("")]
+        public async Task<ActionResult> Delete([FromQuery] int roomId, [FromQuery] string rewardId)
         {
             Reward dbReward = _ttsDbContext.Rewards
                 .Include(r => r.Channel)

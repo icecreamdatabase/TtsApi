@@ -44,7 +44,7 @@ namespace TtsApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            //services.AddRouting(options => options.LowercaseUrls = true);
+            services.AddRouting(options => options.LowercaseUrls = true);
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo {Title = "TtsApi", Version = "v1"});
