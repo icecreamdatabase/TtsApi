@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
-namespace TtsApi.ExternalApis.Twitch.Helix.Auth
+namespace TtsApi.ExternalApis.Twitch.Helix.Auth.DataTypes
 {
     [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
     public class TwitchValidateResult

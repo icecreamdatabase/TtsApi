@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace TtsApi.ExternalApis.Twitch.Helix.Auth
+namespace TtsApi.ExternalApis.Twitch.Helix.Auth.DataTypes
 {
     public class TwitchTokenResult
     {

@@ -2,11 +2,9 @@
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using TtsApi.Authentication.Policies;
-using TtsApi.ExternalApis.Twitch.Helix.Auth;
+using TtsApi.ExternalApis.Twitch.Helix.Auth.DataTypes;
 using TtsApi.ExternalApis.Twitch.Helix.Users;
 using TtsApi.Model;
 using TtsApi.Model.Schema;

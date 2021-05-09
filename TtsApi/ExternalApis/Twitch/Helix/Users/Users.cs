@@ -3,7 +3,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using TtsApi.ExternalApis.Twitch.Helix.Auth;
+using TtsApi.ExternalApis.Twitch.Helix.Auth.DataTypes;
 using TtsApi.ExternalApis.Twitch.Helix.Users.DataTypes;
 using TtsApi.Model;
 

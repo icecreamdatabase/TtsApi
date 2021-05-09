@@ -4,6 +4,7 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.WebUtilities;
+using TtsApi.ExternalApis.Twitch.Helix.Auth.DataTypes;
 using TtsApi.Model;
 using TtsApi.Model.Schema;
 

@@ -1,17 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Primitives;
-using TtsApi.ExternalApis.Twitch.Helix.Moderation.DataTypes;
 using TtsApi.ExternalApis.Twitch.Helix.Users.DataTypes;
-using TtsApi.Model.Schema;
 
 namespace TtsApi.ExternalApis.Twitch.Helix.Users
 {
