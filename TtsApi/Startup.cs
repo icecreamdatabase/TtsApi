@@ -90,15 +90,12 @@ namespace TtsApi
                 .AddApiKeySupport(_ => { });
             services.AddAuthorization(options =>
             {
-                options.AddPolicy(Policies.RequiredSignupScopes,
-                    policy => policy.Requirements.Add(new RequiredSignupScopesRequirements()));
                 options.AddPolicy(Policies.CanChangeSettings,
                     policy => policy.Requirements.Add(new CanChangeSettingsRequirements()));
                 options.AddPolicy(Policies.CanAccessQueue,
                     policy => policy.Requirements.Add(new CanAccessQueueRequirements()));
             });
 
-            services.AddSingleton<IAuthorizationHandler, RequiredSignupScopesHandler>();
             services.AddTransient<IAuthorizationHandler, CanChangeSettingsHandler>();
             services.AddTransient<IAuthorizationHandler, CanAccessQueueHandler>();
 

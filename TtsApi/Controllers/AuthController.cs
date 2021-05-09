@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,6 +20,9 @@ namespace TtsApi.Controllers
         private readonly ILogger<AuthController> _logger;
         private readonly TtsDbContext _db;
 
+        private static readonly List<string> RegisterRequiredScopes = new()
+            {"channel:manage:redemptions", "channel:read:redemptions", "moderation:read"};
+
         public AuthController(ILogger<AuthController> logger, TtsDbContext db)
         {
             _logger = logger;
@@ -36,10 +41,18 @@ namespace TtsApi.Controllers
             TwitchValidateResult validateResult = await Validate(tokenResult.AccessToken);
             if (string.IsNullOrEmpty(validateResult.UserId))
                 return Forbid();
+
+            bool hasAllRequiredScopes = RegisterRequiredScopes
+                .All(requiredScope => validateResult.Scopes
+                    .Select(s => s.ToLowerInvariant())
+                    .Contains(requiredScope.ToLowerInvariant())
+                );
+            if (!hasAllRequiredScopes)
+                return Problem($"Missing scopes. Registering requires: {string.Join(", ", RegisterRequiredScopes)}",
+                    null, (int) HttpStatusCode.Forbidden);
+            
             
             //TODO: Check if Affiliate or Partner
-            
-            //TODO: check scopes
 
             Channel entity = _db.Channels.FirstOrDefault(channel => channel.RoomId == int.Parse(validateResult.UserId));
 
