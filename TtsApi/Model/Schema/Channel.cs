@@ -73,7 +73,7 @@ namespace TtsApi.Model.Schema
                 entity.Property(e => e.IrcMuted).HasDefaultValue(false);
                 entity.Property(e => e.IsQueueMessages).HasDefaultValue(true);
                 entity.Property(e => e.Volume).HasDefaultValue(100);
-                entity.Property(e => e.AllModsAreEditors).HasDefaultValue(true);
+                entity.Property(e => e.AllModsAreEditors).HasDefaultValue(false);
             });
         }
     }

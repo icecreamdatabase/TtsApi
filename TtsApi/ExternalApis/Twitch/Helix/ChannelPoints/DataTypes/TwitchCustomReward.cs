@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.Datatypes
+namespace TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.DataTypes
 {
     public class TwitchCustomReward
     {

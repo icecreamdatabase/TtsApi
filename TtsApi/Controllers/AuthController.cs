@@ -25,7 +25,6 @@ namespace TtsApi.Controllers
         }
 
         [HttpPost("Register")]
-        [Authorize(Policy = Policies.RequiredSignupScopes)]
         public async Task<ActionResult> Register([FromQuery] string code)
         {
             string clientId = BotDataAccess.GetClientId(_db.BotData);
@@ -39,11 +38,14 @@ namespace TtsApi.Controllers
                 return Forbid();
             
             //TODO: Check if Affiliate or Partner
+            
+            //TODO: check scopes
 
             Channel entity = _db.Channels.FirstOrDefault(channel => channel.RoomId == int.Parse(validateResult.UserId));
 
             if (entity is null)
             {
+                //TODO: all the default values are being set by the object instead of the db!
                 entity = new Channel
                 {
                     RoomId = int.Parse(validateResult.UserId),

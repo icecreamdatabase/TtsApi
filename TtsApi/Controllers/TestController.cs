@@ -23,12 +23,10 @@ namespace TtsApi.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = Roles.BotAdmin)]
-        public ActionResult Get()
+        [Authorize(Policy = Policies.CanChangeSettings)]
+        public ActionResult Get([FromQuery] int roomId)
         {
-            // Triggering IndexOutOfRangeException on purpose
-            int[] a = new int[1];
-            return Ok(a[2]);
+            return Ok();
         }
 
         [HttpGet("{channelId}")]

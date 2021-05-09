@@ -6,7 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.WebUtilities;
-using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.Datatypes;
+using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.DataTypes;
 using TtsApi.Model.Schema;
 
 namespace TtsApi.ExternalApis.Twitch.Helix.ChannelPoints

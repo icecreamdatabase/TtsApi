@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.Datatypes;
+using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.DataTypes;
 using TtsApi.Model;
 using TtsApi.Model.Schema;
 
@@ -52,7 +52,7 @@ namespace TtsApi.ExternalApis.Twitch.Helix.ChannelPoints
             // Try again. If this still returns null then so be it.
             rewardData = await ChannelPointsStatics.DeleteCustomReward(clientId, reward);
             // Is Ok or not found --> Delete was successful.
-            return rewardData is {Status: (int) HttpStatusCode.OK} or {Status: (int) HttpStatusCode.NotFound};
+            return rewardData is {Status: (int) HttpStatusCode.NoContent} or {Status: (int) HttpStatusCode.NotFound};
         }
     }
 }

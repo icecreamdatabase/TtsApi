@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
-namespace TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.Datatypes
+namespace TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.DataTypes
 {
     [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
     public class TwitchCustomRewardInput 

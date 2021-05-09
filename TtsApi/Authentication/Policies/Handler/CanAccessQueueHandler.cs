@@ -2,12 +2,10 @@
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Primitives;
 using TtsApi.Authentication.Policies.Requirements;
+using TtsApi.ExternalApis.Twitch.Helix.Moderation;
 using TtsApi.Model;
 using TtsApi.Model.Schema;
 
@@ -17,16 +15,19 @@ namespace TtsApi.Authentication.Policies.Handler
     {
         private readonly ILogger<CanAccessQueueHandler> _logger;
         private readonly TtsDbContext _ttsDbContext;
+        private readonly Moderation _moderation;
         private const string RoomIdQueryStringName = "roomId";
 
-        public CanAccessQueueHandler(ILogger<CanAccessQueueHandler> logger, TtsDbContext ttsDbContext)
+        public CanAccessQueueHandler(ILogger<CanAccessQueueHandler> logger, TtsDbContext ttsDbContext,
+            Moderation moderation)
         {
             _logger = logger;
             _ttsDbContext = ttsDbContext;
+            _moderation = moderation;
         }
 
 
-        protected override Task HandleRequirementAsync(AuthorizationHandlerContext context,
+        protected override async Task<Task> HandleRequirementAsync(AuthorizationHandlerContext context,
             CanAccessQueueRequirements requirement)
         {
             if (
@@ -50,14 +51,13 @@ namespace TtsApi.Authentication.Policies.Handler
                 if (channel is not null)
                 {
                     string userIdStr = context.User.Claims.FirstOrDefault(c => c.Type == AuthClaims.UserId)?.Value;
-                    if (string.IsNullOrEmpty(userIdStr) && int.TryParse(roomIdStr, out int userId))
+                    if (int.TryParse(userIdStr, out int userId))
                         if (channel.ChannelEditors.Any(ce => ce.UserId == userId) ||
-                            /*checkIf mode*/ false
+                            await _moderation.IsModerator(channel, userId)
                         )
                             context.Succeed(requirement);
                 }
             }
-
             return Task.CompletedTask;
         }
     }

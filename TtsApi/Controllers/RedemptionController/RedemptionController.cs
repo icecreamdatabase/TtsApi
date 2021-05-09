@@ -10,7 +10,7 @@ using TtsApi.Authentication;
 using TtsApi.Authentication.Policies;
 using TtsApi.ExternalApis.Twitch.Helix;
 using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints;
-using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.Datatypes;
+using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.DataTypes;
 using TtsApi.Model;
 using TtsApi.Model.Schema;
 
