@@ -29,8 +29,8 @@ namespace TtsApi.ExternalApis.Twitch.Helix.Moderation
                 // If more than one was return --> yes userIdToCheck is a moderator.
                 return rewardData.Data is {Count: > 0};
             // Else refresh the oauth
-            await Auth.Authentication.Refresh(_db, channel);
             _logger.LogInformation("Refreshing auth for {RoomId} ({ChannelName})", channel.RoomId, channel.ChannelName);
+            await Auth.Authentication.Refresh(_db, channel);
             // Try again. If this still returns null then so be it.
             rewardData = await ModerationStatics.Moderators(clientId, channel, userIdToCheck.ToString());
             // If more than one was return --> yes userIdToCheck is a moderator.

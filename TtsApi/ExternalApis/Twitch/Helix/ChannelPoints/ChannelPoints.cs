@@ -29,8 +29,8 @@ namespace TtsApi.ExternalApis.Twitch.Helix.ChannelPoints
             if (rewardData is not {Status: (int) HttpStatusCode.Unauthorized})
                 return rewardData;
             // Else refresh the oauth
-            await Auth.Authentication.Refresh(_db, channel);
             _logger.LogInformation("Refreshing auth for {RoomId} ({ChannelName})", channel.RoomId, channel.ChannelName);
+            await Auth.Authentication.Refresh(_db, channel);
             // Try again. If this still returns null then so be it.
             return await ChannelPointsStatics.CreateCustomReward(clientId, channel, twitchCustomRewardInput);
         }
@@ -44,11 +44,11 @@ namespace TtsApi.ExternalApis.Twitch.Helix.ChannelPoints
             // If we don't have an Unauthorized result return it
             if (rewardData is not {Status: (int) HttpStatusCode.Unauthorized})
                 // Is Ok or not found --> Delete was successful.
-                return rewardData is {Status: (int) HttpStatusCode.NoContent} or {Status: (int) HttpStatusCode.NotFound};
+                return rewardData is {Status: (int) HttpStatusCode.NoContent} or
+                    {Status: (int) HttpStatusCode.NotFound};
             // Else refresh the oauth
+            _logger.LogInformation("Refreshing auth for {RoomId} ({ChannelName})", reward.Channel.RoomId, reward.Channel.ChannelName);
             await Auth.Authentication.Refresh(_db, reward.Channel);
-            _logger.LogInformation("Refreshing auth for {RoomId} ({ChannelName})",
-                reward.Channel.RoomId, reward.Channel.ChannelName);
             // Try again. If this still returns null then so be it.
             rewardData = await ChannelPointsStatics.DeleteCustomReward(clientId, reward);
             // Is Ok or not found --> Delete was successful.

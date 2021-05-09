@@ -18,6 +18,7 @@ using TtsApi.BackgroundServices;
 using TtsApi.ExternalApis.Discord;
 using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints;
 using TtsApi.ExternalApis.Twitch.Helix.Moderation;
+using TtsApi.ExternalApis.Twitch.Helix.Users;
 using TtsApi.Hubs.TtsHub;
 using TtsApi.Hubs.TtsHub.TransformationClasses;
 using TtsApi.Model;
@@ -124,6 +125,7 @@ namespace TtsApi
             services.AddTransient<TtsHandler>();
             services.AddTransient<ChannelPoints>();
             services.AddTransient<Moderation>();
+            services.AddTransient<Users>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

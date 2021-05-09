@@ -24,7 +24,7 @@ namespace TtsApi.Controllers
 
         [HttpGet]
         [Authorize(Policy = Policies.CanChangeSettings)]
-        public ActionResult Get([FromQuery] int roomId)
+        public async Task<ActionResult> Get([FromQuery] int roomId)
         {
             return Ok();
         }

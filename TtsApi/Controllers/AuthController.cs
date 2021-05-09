@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using TtsApi.Authentication.Policies;
 using TtsApi.ExternalApis.Twitch.Helix.Auth;
+using TtsApi.ExternalApis.Twitch.Helix.Users;
 using TtsApi.Model;
 using TtsApi.Model.Schema;
 using static TtsApi.ExternalApis.Twitch.Helix.Auth.Authentication;
@@ -19,14 +20,16 @@ namespace TtsApi.Controllers
     {
         private readonly ILogger<AuthController> _logger;
         private readonly TtsDbContext _db;
+        private readonly Users _users;
 
         private static readonly List<string> RegisterRequiredScopes = new()
             {"channel:manage:redemptions", "channel:read:redemptions", "moderation:read"};
 
-        public AuthController(ILogger<AuthController> logger, TtsDbContext db)
+        public AuthController(ILogger<AuthController> logger, TtsDbContext db, Users users)
         {
             _logger = logger;
             _db = db;
+            _users = users;
         }
 
         [HttpPost("Register")]

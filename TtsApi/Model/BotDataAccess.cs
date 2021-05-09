@@ -16,6 +16,16 @@ namespace TtsApi.Model
             return Get(botData, "clientSecret");
         }
 
+        public static string GetAppAccessToken(DbSet<BotData> botData)
+        {
+            return Get(botData, "appAccessToken");
+        }
+        
+        public static void SetAppAccessToken(DbSet<BotData> botData, string appAccessToken)
+        {
+            Set(botData, "appAccessToken", appAccessToken);
+        }
+
         private static string Get(IQueryable<BotData> botData, string key)
         {
             return botData.Where(data => data.Key == key).ToList().Select(data => data.Value).FirstOrDefault();

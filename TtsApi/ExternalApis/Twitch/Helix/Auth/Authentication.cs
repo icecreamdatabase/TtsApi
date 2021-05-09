@@ -95,5 +95,24 @@ namespace TtsApi.ExternalApis.Twitch.Helix.Auth
             using HttpRequestMessage requestMessage = new(HttpMethod.Post, queryString);
             await Client.SendAsync(requestMessage);
         }
+
+        public static async Task<TwitchTokenResult> GetAppAccessToken(string clientId, string clientSecret)
+        {
+            Dictionary<string, string> query = new()
+            {
+                {"client_id", clientId},
+                {"client_secret", clientSecret},
+                {"grant_type", "client_credentials"},
+                //{"scopes", ""}
+            };
+            
+            string queryString = QueryHelpers.AddQueryString(BaseUrlToken, query);
+
+            using HttpRequestMessage requestMessage = new(HttpMethod.Post, queryString);
+            HttpResponseMessage response = await Client.SendAsync(requestMessage);
+            string responseFromServer = await response.Content.ReadAsStringAsync();
+
+            return JsonSerializer.Deserialize<TwitchTokenResult>(responseFromServer);
+        }
     }
 }
