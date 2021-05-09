@@ -89,15 +89,15 @@ namespace TtsApi
                 .AddApiKeySupport(_ => { });
             services.AddAuthorization(options =>
             {
-                options.AddPolicy(Policies.RedemptionsScopes,
-                    policy => policy.Requirements.Add(new RedemptionsScopesRequirements()));
+                options.AddPolicy(Policies.RequiredSignupScopes,
+                    policy => policy.Requirements.Add(new RequiredSignupScopesRequirements()));
                 options.AddPolicy(Policies.CanChangeSettings,
                     policy => policy.Requirements.Add(new CanChangeSettingsRequirements()));
                 options.AddPolicy(Policies.CanAccessQueue,
                     policy => policy.Requirements.Add(new CanAccessQueueRequirements()));
             });
 
-            services.AddSingleton<IAuthorizationHandler, RedemptionsScopesHandler>();
+            services.AddSingleton<IAuthorizationHandler, RequiredSignupScopesHandler>();
             services.AddSingleton<IAuthorizationHandler, CanChangeSettingsHandler>();
             services.AddSingleton<IAuthorizationHandler, CanAccessQueueHandler>();
 

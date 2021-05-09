@@ -6,10 +6,10 @@ using TtsApi.Authentication.Policies.Requirements;
 
 namespace TtsApi.Authentication.Policies.Handler
 {
-    public class RedemptionsScopesHandler : AuthorizationHandler<RedemptionsScopesRequirements>
+    public class RequiredSignupScopesHandler : AuthorizationHandler<RequiredSignupScopesRequirements>
     {
         protected override Task HandleRequirementAsync(AuthorizationHandlerContext context,
-            RedemptionsScopesRequirements requirement)
+            RequiredSignupScopesRequirements requirement)
         {
             bool hasAllRequiredScopes = requirement.RequiredScopes.All(requiredScope =>
             {

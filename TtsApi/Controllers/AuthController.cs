@@ -1,7 +1,9 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using TtsApi.Authentication.Policies;
 using TtsApi.ExternalApis.Twitch.Helix.Auth;
 using TtsApi.Model;
 using TtsApi.Model.Schema;
@@ -23,6 +25,7 @@ namespace TtsApi.Controllers
         }
 
         [HttpPost("Register")]
+        [Authorize(Policy = Policies.RequiredSignupScopes)]
         public async Task<ActionResult> Register([FromQuery] string code)
         {
             string clientId = BotDataAccess.GetClientId(_db.BotData);
@@ -34,6 +37,8 @@ namespace TtsApi.Controllers
             TwitchValidateResult validateResult = await Validate(tokenResult.AccessToken);
             if (string.IsNullOrEmpty(validateResult.UserId))
                 return Forbid();
+            
+            //TODO: Check if Affiliate or Partner
 
             Channel entity = _db.Channels.FirstOrDefault(channel => channel.RoomId == int.Parse(validateResult.UserId));
 
