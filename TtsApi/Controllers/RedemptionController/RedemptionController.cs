@@ -4,6 +4,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using TtsApi.Authentication.Policies;
 using TtsApi.ExternalApis.Twitch.Helix;
@@ -15,7 +16,7 @@ using TtsApi.Model.Schema;
 namespace TtsApi.Controllers.RedemptionController
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("[controller]/{roomId:int}")]
     [Authorize(Policy = Policies.CanChangeSettings)]
     public class RedemptionController : ControllerBase
     {
@@ -32,25 +33,43 @@ namespace TtsApi.Controllers.RedemptionController
             _channelPoints = channelPoints;
         }
 
-        [HttpGet("Get/{rewardId}")]
-        public async Task<ActionResult> Get([FromRoute] string rewardId)
+        /// <summary>
+        /// Get a specific reward of a specific channel.
+        /// </summary>
+        /// <param name="roomId">Id of the channel. Must match auth permissions</param>
+        /// <param name="rewardId">Id of the reward. Must match roomId.</param>
+        /// <returns></returns>
+        [HttpGet("{rewardId}")]
+        public async Task<ActionResult> Get([FromRoute] int roomId, [FromRoute] string rewardId)
         {
             Reward dbReward = _ttsDbContext.Rewards.FirstOrDefault(r => r.RewardId == rewardId);
-            return Ok((RedemptionRewardView) dbReward);
+            if (dbReward?.ChannelId == roomId)
+                return Ok((RedemptionRewardView) dbReward);
+            return NotFound();
         }
 
-        [HttpGet("GetAll/{roomId}")]
-        public async Task<ActionResult> GetAll([FromRoute] string roomId)
+        /// <summary>
+        /// Get all rewards of a specific channel.
+        /// </summary>
+        /// <param name="roomId">Id of the channel. Must match auth permissions</param>
+        /// <returns></returns>
+        [HttpGet("")]
+        public async Task<ActionResult> GetAll([FromRoute] int roomId)
         {
-            List<Reward> dbRewards = _ttsDbContext.Rewards.Where(r => r.ChannelId == int.Parse(roomId)).ToList();
+            List<Reward> dbRewards = _ttsDbContext.Rewards.Where(r => r.ChannelId == roomId).ToList();
             List<RedemptionRewardView> rewardViews = dbRewards.Select(r => (RedemptionRewardView) r).ToList();
             return Ok(rewardViews);
         }
 
-        [HttpPost("Create/{roomId}")]
-        public async Task<ActionResult> Create([FromRoute] string roomId, [FromForm] RedemptionCreateInput input)
+        /// <summary>
+        /// Create a new reward for a specific channel.
+        /// </summary>
+        /// <param name="roomId">Id of the channel. Must match auth permissions</param>
+        /// <returns></returns>
+        [HttpPost("")]
+        public async Task<ActionResult> Create([FromRoute] int roomId, [FromForm] RedemptionCreateInput input)
         {
-            Channel channel = _ttsDbContext.Channels.FirstOrDefault(c => c.RoomId == int.Parse(roomId));
+            Channel channel = _ttsDbContext.Channels.FirstOrDefault(c => c.RoomId == roomId);
             if (channel is null)
                 return NotFound();
 
@@ -86,16 +105,44 @@ namespace TtsApi.Controllers.RedemptionController
                 : Problem(dataHolder.Message, null, (int) HttpStatusCode.InternalServerError);
         }
 
-        [HttpPatch("Update/{rewardId}")]
-        public async Task<ActionResult> Update([FromRoute] string rewardId)
+        /// <summary>
+        /// Update settings of a specific reward in a specific channel.
+        /// </summary>
+        /// <param name="roomId">Id of the channel. Must match auth permissions</param>
+        /// <param name="rewardId">Id of the reward. Must match roomId.</param>
+        /// <returns></returns>
+        [HttpPatch("{rewardId}")]
+        public async Task<ActionResult> Update([FromRoute] int roomId, [FromRoute] string rewardId)
         {
             return Ok();
         }
 
-        [HttpDelete("Delete/{rewardId}")]
-        public async Task<ActionResult> Delete([FromRoute] string rewardId)
+        /// <summary>
+        /// Delete a specific reward in a specific channel.
+        /// </summary>
+        /// <param name="roomId">Id of the channel. Must match auth permissions</param>
+        /// <param name="rewardId">Id of the reward. Must match roomId.</param>
+        /// <returns></returns>
+        [HttpDelete("{rewardId}")]
+        public async Task<ActionResult> Delete([FromRoute] int roomId, [FromRoute] string rewardId)
         {
-            return NoContent();
+            Reward dbReward = _ttsDbContext.Rewards
+                .Include(r => r.Channel)
+                .FirstOrDefault(r => r.RewardId == rewardId);
+
+            if (dbReward is null)
+                return NoContent();
+            if (dbReward.ChannelId != roomId)
+                return NotFound();
+
+            if (await _channelPoints.DeleteCustomReward(dbReward))
+            {
+                _ttsDbContext.Rewards.Remove(dbReward);
+                await _ttsDbContext.SaveChangesAsync();
+                return NoContent();
+            }
+
+            return Problem(null, null, (int) HttpStatusCode.ServiceUnavailable);
         }
     }
 }
