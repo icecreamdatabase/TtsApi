@@ -65,6 +65,7 @@ namespace TtsApi.Controllers.RedemptionController
         /// Create a new reward for a specific channel.
         /// </summary>
         /// <param name="roomId">Id of the channel. Must match auth permissions</param>
+        /// <param name="input"></param>
         /// <returns></returns>
         [HttpPost("")]
         public async Task<ActionResult> Create([FromRoute] int roomId, [FromForm] RedemptionCreateInput input)
@@ -114,7 +115,8 @@ namespace TtsApi.Controllers.RedemptionController
         [HttpPatch("{rewardId}")]
         public async Task<ActionResult> Update([FromRoute] int roomId, [FromRoute] string rewardId)
         {
-            return Ok();
+            return Problem("Not implemented", null, (int) HttpStatusCode.ServiceUnavailable);
+            //return Ok();
         }
 
         /// <summary>
