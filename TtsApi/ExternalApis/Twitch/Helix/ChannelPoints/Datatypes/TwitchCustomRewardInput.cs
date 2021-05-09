@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
-namespace TtsApi.ExternalApis.Twitch.Helix.ChannelPoints
+namespace TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.Datatypes
 {
     [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
     public class TwitchCustomRewardInput 

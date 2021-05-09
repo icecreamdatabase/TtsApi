@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
-using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints;
 
 namespace TtsApi.ExternalApis.Twitch.Helix
 {

@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
-using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using TtsApi.Authentication.Policies;
 using TtsApi.ExternalApis.Twitch.Helix;
 using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints;
+using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.Datatypes;
 using TtsApi.Model;
 using TtsApi.Model.Schema;
 
@@ -64,7 +62,7 @@ namespace TtsApi.Controllers.RedemptionController
             };
 
             DataHolder<TwitchCustomReward> dataHolder =
-                await _channelPoints.CreateCustomReward(roomId, channel, twitchInput);
+                await _channelPoints.CreateCustomReward(channel, twitchInput);
 
             if (dataHolder.Data is {Count: > 0})
             {
