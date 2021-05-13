@@ -1,0 +1,10 @@
+services:
+  app:
+    build: .
+    container_name: ttsapi
+    network_mode: bridge
+    volumes:
+      - /var/run/mysqld/mysqld.sock:/root/mysqld.sock:rw
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
