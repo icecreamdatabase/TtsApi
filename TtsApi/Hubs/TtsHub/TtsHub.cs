@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 using TtsApi.Hubs.TtsHub.TransferClasses;
@@ -8,6 +9,7 @@ using TtsApi.Model;
 namespace TtsApi.Hubs.TtsHub
 {
     //https://dotnetplaybook.com/which-is-best-websockets-or-signalr/
+    [SuppressMessage("ReSharper", "UnusedMember.Global")]
     public class TtsHub : Hub<ITtsHub>
     {
         private readonly TtsDbContext _ttsDbContext;
@@ -33,19 +35,20 @@ namespace TtsApi.Hubs.TtsHub
         {
             Console.WriteLine($"--> Connection Closed: {Context.ConnectionId} (roomId: {Context.UserIdentifier})");
             TtsHandler.ConnectClients.Remove(Context.ConnectionId);
+            TtsHandler.ClientDisconnected(Context.ConnectionId, Context.UserIdentifier);
             return base.OnDisconnectedAsync(exception);
         }
 
-        public void ConfirmTtsFullyPlayed(string id)
+        public async Task ConfirmTtsFullyPlayed(string id)
         {
             Console.WriteLine($"Confirmed {Context.UserIdentifier} has fully played tts {id}");
-            _ttsHandler.ConfirmTtsFullyPlayed(Context.ConnectionId, Context.UserIdentifier, id);
+            await _ttsHandler.ConfirmTtsFullyPlayed(Context.ConnectionId, Context.UserIdentifier, id);
         }
 
-        public void ConfirmTtsSkipped(string id)
+        public async Task ConfirmTtsSkipped(string id)
         {
             Console.WriteLine($"Confirmed {Context.UserIdentifier} has skipped tts {id}");
-            _ttsHandler.ConfirmTtsSkipped(Context.ConnectionId, Context.UserIdentifier, id);
+            await _ttsHandler.ConfirmTtsSkipped(Context.ConnectionId, Context.UserIdentifier, id);
         }
 
         public static async Task SendTtsRequest(IHubContext<TtsHub, ITtsHub> context, string roomId, TtsRequest request)
