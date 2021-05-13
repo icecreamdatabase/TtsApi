@@ -23,10 +23,9 @@ namespace TtsApi.Controllers
         }
 
         [HttpGet]
-        [Authorize(Policy = Policies.CanChangeSettings)]
-        public async Task<ActionResult> Get([FromQuery] int roomId)
+        public async Task<ActionResult> Get()
         {
-            return Ok();
+            return Ok("xD");
         }
 
         [HttpGet("{channelId}")]
