@@ -1,5 +1,7 @@
+version: '3.3'
+
 services:
-  app:
+  ttsapi:
     build: .
     container_name: ttsapi
     network_mode: bridge
