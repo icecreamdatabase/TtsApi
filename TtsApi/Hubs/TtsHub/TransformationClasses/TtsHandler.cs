@@ -58,7 +58,7 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
             TtsRequest ttsRequest = new()
             {
                 Id = rqi.Id.ToString(),
-                MaxMessageTimeSeconds = rqi.Reward.Channel.MaxMessageLength,
+                MaxMessageTimeSeconds = rqi.Reward.Channel.MaxMessageTimeSeconds,
             };
 
             List<TtsIndividualSynthesize> ttsIndividualSynthesizes = new();

@@ -23,32 +23,32 @@ namespace TtsApi.Model.Schema
         public bool Enabled { get; set; } = true;
 
         [Required]
-        public bool IsTwitchPartner { get; set; }
+        public bool IsTwitchPartner { get; set; } = false;
 
         [Required]
-        public int MaxMessageLength { get; set; } // TODO rename this into MaxMessageTimeSeconds
+        public int MaxMessageTimeSeconds { get; set; } = 0; 
 
         [Required]
-        public int MinCooldown { get; set; }
+        public int MinCooldown { get; set; } = 0;
 
         [Required]
-        public int TimeoutCheckTime { get; set; }
+        public int TimeoutCheckTime { get; set; } = 2;
 
         [Required]
         [Column(TypeName = "TIMESTAMP")]
         public DateTime AddDate { get; set; }
 
         [Required]
-        public bool IrcMuted { get; set; }
+        public bool IrcMuted { get; set; } = false;
 
         [Required]
-        public bool IsQueueMessages { get; set; }
+        public bool IsQueueMessages { get; set; } = true;
 
         [Required]
-        public int Volume { get; set; }
+        public int Volume { get; set; } = 100;
 
         [Required]
-        public bool AllModsAreEditors { get; set; }
+        public bool AllModsAreEditors { get; set; } = false;
 
         public string AccessToken { get; set; }
 
@@ -66,7 +66,7 @@ namespace TtsApi.Model.Schema
             {
                 entity.Property(e => e.Enabled).HasDefaultValue(true);
                 entity.Property(e => e.IsTwitchPartner).HasDefaultValue(false);
-                entity.Property(e => e.MaxMessageLength).HasDefaultValue(450);
+                entity.Property(e => e.MaxMessageTimeSeconds).HasDefaultValue(0);
                 entity.Property(e => e.MinCooldown).HasDefaultValue(0);
                 entity.Property(e => e.TimeoutCheckTime).HasDefaultValue(2);
                 entity.Property(e => e.AddDate).ValueGeneratedOnAdd();
