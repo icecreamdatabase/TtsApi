@@ -1,14 +1,22 @@
 ﻿using System.Threading.Tasks;
 using Amazon.Polly;
 using Amazon.Polly.Model;
+using Microsoft.Extensions.Logging;
 
 namespace TtsApi.ExternalApis.Aws
 {
-    public static class Polly
+    public class Polly
     {
-        private static readonly AmazonPollyClient PollyClient = new();
+        private readonly ILogger<Polly> _logger;
+        private readonly IAmazonPolly _amazonPolly;
 
-        public static async Task<SynthesizeSpeechResponse> Synthesize(string text, VoiceId voiceId, Engine engine = null)
+        public Polly(ILogger<Polly> logger, IAmazonPolly amazonPolly)
+        {
+            _logger = logger;
+            _amazonPolly = amazonPolly;
+        }
+
+        public async Task<SynthesizeSpeechResponse> Synthesize(string text, VoiceId voiceId, Engine engine = null)
         {
             SynthesizeSpeechRequest speechRequest = new()
             {
@@ -17,7 +25,7 @@ namespace TtsApi.ExternalApis.Aws
                 VoiceId = voiceId,
                 Engine = engine
             };
-            return await PollyClient.SynthesizeSpeechAsync(speechRequest);
+            return await _amazonPolly.SynthesizeSpeechAsync(speechRequest);
         }
     }
 }

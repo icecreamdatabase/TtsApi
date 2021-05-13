@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using Amazon.Polly;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
@@ -15,6 +16,7 @@ using TtsApi.Authentication.Policies;
 using TtsApi.Authentication.Policies.Handler;
 using TtsApi.Authentication.Policies.Requirements;
 using TtsApi.BackgroundServices;
+using TtsApi.ExternalApis.Aws;
 using TtsApi.ExternalApis.Discord;
 using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints;
 using TtsApi.ExternalApis.Twitch.Helix.Moderation;
@@ -80,7 +82,13 @@ namespace TtsApi
             });
 
             services.AddDbContext<TtsDbContext>(opt =>
-                opt.UseMySQL(Configuration.GetConnectionString("TtsDb") + AdditionalMySqlConfigurationParameters));
+            {
+                //Try env var first else use appsettings.json
+                string dbConString = Environment.GetEnvironmentVariable(@"TTSAPI_CONNECTIONSTRINGS_DB");
+                if (string.IsNullOrEmpty(dbConString))
+                    dbConString = Configuration.GetConnectionString("TtsDb");
+                opt.UseMySQL(dbConString + AdditionalMySqlConfigurationParameters);
+            });
 
             //https://josef.codes/asp-net-core-protect-your-api-with-api-keys/
             services.AddAuthentication(options =>
@@ -126,6 +134,10 @@ namespace TtsApi
             services.AddTransient<ChannelPoints>();
             services.AddTransient<Moderation>();
             services.AddTransient<Users>();
+
+            services.AddDefaultAWSOptions(Configuration.GetAWSOptions());
+            services.AddAWSService<IAmazonPolly>();
+            services.AddSingleton<Polly>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
