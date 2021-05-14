@@ -83,11 +83,13 @@ namespace TtsApi.Controllers.RedemptionController
             if (channel is null)
                 return NotFound();
 
-            TwitchCustomRewardInput twitchInput = new()
+            TwitchCustomRewardInputCreate twitchInput = new()
             {
                 Title = input.Title,
                 Prompt = input.Prompt,
                 Cost = input.Cost,
+                IsEnabled = true,
+                IsUserInputRequired = true
             };
 
             DataHolder<TwitchCustomReward> dataHolder =
@@ -121,12 +123,50 @@ namespace TtsApi.Controllers.RedemptionController
         /// <param name="roomId">Id of the channel. Must match auth permissions
         ///     Parameter name defined by <see cref="ApiKeyAuthenticationHandler.RoomIdQueryStringName"/>.</param>
         /// <param name="rewardId">Id of the reward. Must match roomId.</param>
+        /// <param name="input"></param>
         /// <returns></returns>
         [HttpPatch]
-        public async Task<ActionResult> Update([FromQuery] int roomId, [FromQuery] string rewardId)
+        public async Task<ActionResult> Update([FromQuery] int roomId, [FromQuery] string rewardId,
+            [FromForm] RedemptionUpdateInput input)
         {
-            return Problem("Not implemented", null, (int) HttpStatusCode.ServiceUnavailable);
-            //return Ok();
+            Reward dbReward = _ttsDbContext.Rewards
+                .Include(r => r.Channel)
+                .FirstOrDefault(r => r.RewardId == rewardId);
+
+            if (dbReward is null)
+                return NoContent();
+            if (dbReward.ChannelId != roomId)
+                return NotFound();
+
+            if (input.VoiceId is not null)
+            {
+                dbReward.VoiceId = input.VoiceId;
+                await _ttsDbContext.SaveChangesAsync();
+                input.VoiceId = null;
+            }
+
+            bool allPropertiesAreNull = input.GetType().GetProperties() //get all properties on object
+                .Select(pi => pi.GetValue(input)) //get value for the property
+                .All(value => value == null); // Check if one of the values is not null, if so it returns true.
+
+            if (allPropertiesAreNull) 
+                return NoContent();
+
+            // This always needs to be true. No matter what.
+            if (input.IsUserInputRequired is not null)
+                input.IsUserInputRequired = true;
+            
+            DataHolder<TwitchCustomReward> dataHolder = await _channelPoints.UpdateCustomReward(dbReward, input);
+            if (dataHolder.Data is {Count: > 0})
+            {
+                TwitchCustomReward reward = dataHolder.Data.First();
+                return reward?.Id is null
+                    ? Problem(null, null, (int) HttpStatusCode.ServiceUnavailable)
+                    : NoContent();
+            }
+
+            return Problem(dataHolder.Message, null, (int) HttpStatusCode.ServiceUnavailable);
+
         }
 
         /// <summary>
@@ -168,9 +208,9 @@ namespace TtsApi.Controllers.RedemptionController
         public async Task<ActionResult> Skip([FromQuery] int roomId)
         {
             bool hasReward = await _ttsDbContext.Rewards.AnyAsync(reward => reward.ChannelId == roomId);
-            
+
             if (!hasReward) return NotFound();
-            
+
             List<string> clients = TtsHandler.ConnectClients
                 .Where(pair => pair.Value == roomId.ToString())
                 .Select(pair => pair.Key)

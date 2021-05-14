@@ -18,7 +18,7 @@ namespace TtsApi.ExternalApis.Twitch.Helix.ChannelPoints
         private static readonly JsonSerializerOptions JsonIgnoreNullValues = new() {IgnoreNullValues = true};
 
         internal static async Task<DataHolder<TwitchCustomReward>> CreateCustomReward(string clientId,
-            Channel targetChannel, TwitchCustomRewardInput twitchCustomRewardInput)
+            Channel targetChannel, TwitchCustomRewardInputCreate twitchCustomRewardInputCreate)
         {
             using HttpRequestMessage requestMessage = new() {Method = HttpMethod.Post};
             GetRequest(
@@ -29,7 +29,31 @@ namespace TtsApi.ExternalApis.Twitch.Helix.ChannelPoints
                 {
                     {"broadcaster_id", targetChannel.RoomId.ToString()},
                 },
-                twitchCustomRewardInput
+                twitchCustomRewardInputCreate
+            );
+
+            HttpResponseMessage response = await Client.SendAsync(requestMessage);
+            string responseFromServer = await response.Content.ReadAsStringAsync();
+
+            return string.IsNullOrEmpty(responseFromServer)
+                ? new DataHolder<TwitchCustomReward> {Status = (int) response.StatusCode}
+                : JsonSerializer.Deserialize<DataHolder<TwitchCustomReward>>(responseFromServer, JsonIgnoreNullValues);
+        }
+        
+        internal static async Task<DataHolder<TwitchCustomReward>> UpdateCustomReward(string clientId,
+            Channel targetChannel, Reward targetReward, TwitchCustomRewardInputUpdate twitchCustomRewardInputUpdate)
+        {
+            using HttpRequestMessage requestMessage = new() {Method = HttpMethod.Patch};
+            GetRequest(
+                requestMessage,
+                clientId,
+                targetChannel.AccessToken,
+                new Dictionary<string, string>
+                {
+                    {"broadcaster_id", targetChannel.RoomId.ToString()},
+                    {"id", targetReward.RewardId}
+                },
+                twitchCustomRewardInputUpdate
             );
 
             HttpResponseMessage response = await Client.SendAsync(requestMessage);
