@@ -5,6 +5,7 @@ using System.Text.Json.Serialization;
 namespace TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.DataTypes
 {
     [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
+    [SuppressMessage("ReSharper", "PropertyCanBeMadeInitOnly.Global")]
     public class TwitchCustomRewardInputCreate
     {
         [JsonPropertyName("title")]

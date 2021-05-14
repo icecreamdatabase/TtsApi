@@ -104,10 +104,14 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
             if (ActiveRequests.ContainsKey(roomId) && ActiveRequests[roomId] == id)
             {
                 ActiveRequests.Remove(roomId);
-                RequestQueueIngest rqi = _ttsDbContext.RequestQueueIngest
+                RequestQueueIngest rqi = await _ttsDbContext.RequestQueueIngest
                     .Include(r => r.Reward)
-                    .First(r => r.Id == int.Parse(id));
+                    .FirstOrDefaultAsync(r => r.Id == int.Parse(id));
 
+                //TODO: this shouldn't happen. This stuff runs in parallel. We need to lock the lockfile Pepega
+                if (rqi is null)
+                    return;
+                
                 _ttsDbContext.TtsLogMessages.Add(new TtsLogMessage
                 {
                     RewardId = rqi.RewardId,

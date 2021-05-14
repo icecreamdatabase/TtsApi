@@ -1,8 +1,11 @@
-﻿using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.DataTypes;
+﻿using System.Diagnostics.CodeAnalysis;
+using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.DataTypes;
 using TtsApi.Model.Schema;
 
 namespace TtsApi.Controllers.RedemptionController
 {
+    [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
+    [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
     public class RedemptionRewardView
     {
         public string RewardId { get; }
