@@ -101,7 +101,7 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
 
         private async Task DoneWithPlaying(int roomId, string id, MessageType reason)
         {
-            if (ActiveRequests[roomId] == id)
+            if (ActiveRequests.ContainsKey(roomId) && ActiveRequests[roomId] == id)
             {
                 ActiveRequests.Remove(roomId);
                 RequestQueueIngest rqi = _ttsDbContext.RequestQueueIngest
