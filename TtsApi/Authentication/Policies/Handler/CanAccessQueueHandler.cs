@@ -31,9 +31,10 @@ namespace TtsApi.Authentication.Policies.Handler
             CanAccessQueueRequirements requirement)
         {
             if (
-                context.User.IsInRole(Roles.Roles.ChannelBroadcaster) ||
+                context.User.IsInRole(Roles.Roles.IrcBot) ||
                 context.User.IsInRole(Roles.Roles.BotOwner) ||
-                context.User.IsInRole(Roles.Roles.BotAdmin)
+                context.User.IsInRole(Roles.Roles.BotAdmin) ||
+                context.User.IsInRole(Roles.Roles.ChannelBroadcaster)
             )
             {
                 context.Succeed(requirement);

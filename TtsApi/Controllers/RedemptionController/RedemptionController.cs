@@ -4,6 +4,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using TtsApi.Authentication;
@@ -11,6 +12,8 @@ using TtsApi.Authentication.Policies;
 using TtsApi.ExternalApis.Twitch.Helix;
 using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints;
 using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.DataTypes;
+using TtsApi.Hubs.TtsHub;
+using TtsApi.Hubs.TtsHub.TransformationClasses;
 using TtsApi.Model;
 using TtsApi.Model.Schema;
 
@@ -25,13 +28,15 @@ namespace TtsApi.Controllers.RedemptionController
         private readonly ILogger<RedemptionController> _logger;
         private readonly TtsDbContext _ttsDbContext;
         private readonly ChannelPoints _channelPoints;
+        private readonly IHubContext<TtsHub, ITtsHub> _ttsHub;
 
         public RedemptionController(ILogger<RedemptionController> logger, TtsDbContext ttsDbContext,
-            ChannelPoints channelPoints)
+            ChannelPoints channelPoints, IHubContext<TtsHub, ITtsHub> ttsHub)
         {
             _logger = logger;
             _ttsDbContext = ttsDbContext;
             _channelPoints = channelPoints;
+            _ttsHub = ttsHub;
         }
 
         /// <summary>
@@ -151,6 +156,32 @@ namespace TtsApi.Controllers.RedemptionController
             }
 
             return Problem(null, null, (int) HttpStatusCode.ServiceUnavailable);
+        }
+
+        /// <summary>
+        /// Skips the currently playing redemption. 
+        /// </summary>
+        /// <param name="roomId">Id of the channel. Must match auth permissions
+        ///     Parameter name defined by <see cref="ApiKeyAuthenticationHandler.RoomIdQueryStringName"/>.</param>
+        [HttpPost("Skip")]
+        [Authorize(Policy = Policies.CanAccessQueue)]
+        public async Task<ActionResult> Skip([FromQuery] int roomId)
+        {
+            bool hasReward = await _ttsDbContext.Rewards.AnyAsync(reward => reward.ChannelId == roomId);
+            
+            if (!hasReward) return NotFound();
+            
+            List<string> clients = TtsHandler.ConnectClients
+                .Where(pair => pair.Value == roomId.ToString())
+                .Select(pair => pair.Key)
+                .Distinct()
+                .ToList();
+            if (clients.Any())
+            {
+                await _ttsHub.Clients.Clients(clients).TtsSkipCurrent();
+            }
+
+            return NoContent();
         }
     }
 }

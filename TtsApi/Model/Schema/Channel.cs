@@ -26,7 +26,10 @@ namespace TtsApi.Model.Schema
         public bool IsTwitchPartner { get; set; } = false;
 
         [Required]
-        public int MaxMessageTimeSeconds { get; set; } = 0; 
+        public int MaxIrcMessageLength { get; set; } = 450;
+
+        [Required]
+        public int MaxMessageTimeSeconds { get; set; } = 0;
 
         [Required]
         public int MinCooldown { get; set; } = 0;
@@ -66,6 +69,7 @@ namespace TtsApi.Model.Schema
             {
                 entity.Property(e => e.Enabled).HasDefaultValue(true);
                 entity.Property(e => e.IsTwitchPartner).HasDefaultValue(false);
+                entity.Property(e => e.MaxIrcMessageLength).HasDefaultValue(450);
                 entity.Property(e => e.MaxMessageTimeSeconds).HasDefaultValue(0);
                 entity.Property(e => e.MinCooldown).HasDefaultValue(0);
                 entity.Property(e => e.TimeoutCheckTime).HasDefaultValue(2);

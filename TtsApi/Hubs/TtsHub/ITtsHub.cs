@@ -8,5 +8,7 @@ namespace TtsApi.Hubs.TtsHub
         Task ConnId(string connectionId);
         
         Task TtsPlayRequest(TtsRequest request);
+
+        Task TtsSkipCurrent();
     }
 }
