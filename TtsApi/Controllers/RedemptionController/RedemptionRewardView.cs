@@ -1,4 +1,5 @@
-﻿using TtsApi.Model.Schema;
+﻿using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.DataTypes;
+using TtsApi.Model.Schema;
 
 namespace TtsApi.Controllers.RedemptionController
 {
@@ -11,19 +12,21 @@ namespace TtsApi.Controllers.RedemptionController
         public bool IsSubOnly { get; }
         public int Cooldown { get; }
 
-        public RedemptionRewardView(Reward reward)
-        {
-            RewardId = reward.RewardId;
-            ChannelId = reward.ChannelId;
-            VoiceId = reward.VoiceId;
-            IsConversation = reward.IsConversation;
-            IsSubOnly = reward.IsSubOnly;
-            Cooldown = reward.Cooldown;
-        }
+        public TwitchCustomReward TwitchCustomReward { get; }
 
-        public static explicit operator RedemptionRewardView(Reward reward)
+        public RedemptionRewardView(Reward reward, TwitchCustomReward twitchCustomReward)
         {
-            return new(reward);
+            if (reward is not null)
+            {
+                RewardId = reward.RewardId;
+                ChannelId = reward.ChannelId;
+                VoiceId = reward.VoiceId;
+                IsConversation = reward.IsConversation;
+                IsSubOnly = reward.IsSubOnly;
+                Cooldown = reward.Cooldown;
+            }
+
+            TwitchCustomReward = twitchCustomReward;
         }
     }
 }

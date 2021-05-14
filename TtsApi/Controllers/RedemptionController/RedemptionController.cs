@@ -49,24 +49,33 @@ namespace TtsApi.Controllers.RedemptionController
         [HttpGet]
         public async Task<ActionResult> Get([FromQuery] int roomId, [FromQuery] string rewardId)
         {
-            Reward dbReward = _ttsDbContext.Rewards.FirstOrDefault(r => r.RewardId == rewardId);
-            if (dbReward?.ChannelId == roomId)
-                return Ok((RedemptionRewardView) dbReward);
-            return NotFound();
-        }
+            Channel inputChannel;
+            Reward inputReward = null;
+            if (!string.IsNullOrEmpty(rewardId))
+            {
+                inputReward = _ttsDbContext.Rewards
+                    .Include(r => r.Channel)
+                    .FirstOrDefault(r => r.RewardId == rewardId);
+                if (inputReward?.ChannelId != roomId)
+                    return NotFound();
+                inputChannel = inputReward.Channel;
+            }
+            else
+            {
+                inputChannel = _ttsDbContext.Channels.FirstOrDefault(channel => channel.RoomId == roomId);
+            }
 
-        /// <summary>
-        /// Get all rewards of a specific channel.
-        /// </summary>
-        /// <param name="roomId">Id of the channel. Must match auth permissions
-        ///     Parameter name defined by <see cref="ApiKeyAuthenticationHandler.RoomIdQueryStringName"/>.</param>
-        /// <returns></returns>
-        [HttpGet("All")]
-        public async Task<ActionResult> GetAll([FromQuery] int roomId)
-        {
-            List<Reward> dbRewards = _ttsDbContext.Rewards.Where(r => r.ChannelId == roomId).ToList();
-            List<RedemptionRewardView> rewardViews = dbRewards.Select(r => (RedemptionRewardView) r).ToList();
-            return Ok(rewardViews);
+            DataHolder<TwitchCustomReward> dataHolder = await _channelPoints.GetCustomReward(inputChannel, inputReward);
+
+            List<RedemptionRewardView> redemptionRewardViews = dataHolder.Data
+                .Select(twitchCustomReward =>
+                {
+                    inputReward ??= _ttsDbContext.Rewards.FirstOrDefault(r => r.RewardId == twitchCustomReward.Id);
+                    return new RedemptionRewardView(inputReward, twitchCustomReward);
+                })
+                .ToList();
+
+            return Ok(redemptionRewardViews);
         }
 
         /// <summary>
@@ -89,7 +98,8 @@ namespace TtsApi.Controllers.RedemptionController
                 Prompt = input.Prompt,
                 Cost = input.Cost,
                 IsEnabled = true,
-                IsUserInputRequired = true
+                IsUserInputRequired = true,
+                ShouldRedemptionsSkipRequestQueue = false
             };
 
             DataHolder<TwitchCustomReward> dataHolder =
@@ -97,19 +107,20 @@ namespace TtsApi.Controllers.RedemptionController
 
             if (dataHolder.Data is {Count: > 0})
             {
-                TwitchCustomReward reward = dataHolder.Data.First();
-                if (reward?.Id is null)
+                TwitchCustomReward twitchCustomReward = dataHolder.Data.First();
+                if (twitchCustomReward?.Id is null)
                     return Problem(null, null, (int) HttpStatusCode.ServiceUnavailable);
                 Reward newReward = new()
                 {
-                    RewardId = reward.Id,
-                    ChannelId = int.Parse(reward.BroadcasterId),
+                    RewardId = twitchCustomReward.Id,
+                    ChannelId = int.Parse(twitchCustomReward.BroadcasterId),
                     VoiceId = input.VoiceId
                 };
                 _ttsDbContext.Rewards.Add(newReward);
                 await _ttsDbContext.SaveChangesAsync();
 
-                return Created($"{@Url.Action("Get")}/{reward.Id}", (RedemptionRewardView) newReward);
+                return Created($"{@Url.Action("Get")}/{twitchCustomReward.Id}",
+                    new RedemptionRewardView(newReward, twitchCustomReward));
             }
 
             return dataHolder is {Status: (int) HttpStatusCode.BadRequest, Message: ErrorDuplicateReward}
@@ -149,13 +160,13 @@ namespace TtsApi.Controllers.RedemptionController
                 .Select(pi => pi.GetValue(input)) //get value for the property
                 .All(value => value == null); // Check if one of the values is not null, if so it returns true.
 
-            if (allPropertiesAreNull) 
+            if (allPropertiesAreNull)
                 return NoContent();
 
             // This always needs to be true. No matter what.
             if (input.IsUserInputRequired is not null)
                 input.IsUserInputRequired = true;
-            
+
             DataHolder<TwitchCustomReward> dataHolder = await _channelPoints.UpdateCustomReward(dbReward, input);
             if (dataHolder.Data is {Count: > 0})
             {
@@ -166,7 +177,6 @@ namespace TtsApi.Controllers.RedemptionController
             }
 
             return Problem(dataHolder.Message, null, (int) HttpStatusCode.ServiceUnavailable);
-
         }
 
         /// <summary>

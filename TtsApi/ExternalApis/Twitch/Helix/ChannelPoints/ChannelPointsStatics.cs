@@ -17,6 +17,33 @@ namespace TtsApi.ExternalApis.Twitch.Helix.ChannelPoints
         private const string BaseUrlCustomRewards = @"https://api.twitch.tv/helix/channel_points/custom_rewards";
         private static readonly JsonSerializerOptions JsonIgnoreNullValues = new() {IgnoreNullValues = true};
 
+        internal static async Task<DataHolder<TwitchCustomReward>> GetCustomReward(string clientId,
+            Channel targetChannel, Reward targetReward = null)
+        {
+            using HttpRequestMessage requestMessage = new() {Method = HttpMethod.Get};
+
+            Dictionary<string, string> query = new()
+            {
+                {"broadcaster_id", targetChannel.RoomId.ToString()},
+                {"only_manageable_rewards", "true"}
+            };
+            if (targetReward is not null)
+                query.Add("id", targetReward.RewardId);
+            GetRequest(
+                requestMessage,
+                clientId,
+                targetChannel.AccessToken,
+                query
+            );
+
+            HttpResponseMessage response = await Client.SendAsync(requestMessage);
+            string responseFromServer = await response.Content.ReadAsStringAsync();
+
+            return string.IsNullOrEmpty(responseFromServer)
+                ? new DataHolder<TwitchCustomReward> {Status = (int) response.StatusCode}
+                : JsonSerializer.Deserialize<DataHolder<TwitchCustomReward>>(responseFromServer, JsonIgnoreNullValues);
+        }
+
         internal static async Task<DataHolder<TwitchCustomReward>> CreateCustomReward(string clientId,
             Channel targetChannel, TwitchCustomRewardInputCreate twitchCustomRewardInputCreate)
         {
@@ -39,7 +66,7 @@ namespace TtsApi.ExternalApis.Twitch.Helix.ChannelPoints
                 ? new DataHolder<TwitchCustomReward> {Status = (int) response.StatusCode}
                 : JsonSerializer.Deserialize<DataHolder<TwitchCustomReward>>(responseFromServer, JsonIgnoreNullValues);
         }
-        
+
         internal static async Task<DataHolder<TwitchCustomReward>> UpdateCustomReward(string clientId,
             Channel targetChannel, Reward targetReward, TwitchCustomRewardInputUpdate twitchCustomRewardInputUpdate)
         {
