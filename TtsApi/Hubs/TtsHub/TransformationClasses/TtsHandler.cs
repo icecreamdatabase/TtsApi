@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Amazon.Polly.Model;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using TtsApi.ExternalApis.Aws;
 using TtsApi.Hubs.TtsHub.TransferClasses;
@@ -32,6 +33,18 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
 
         public async Task SendTtsRequest(RequestQueueIngest rqi)
         {
+            if (rqi.WasTimedOut)
+            {
+                await DoneWithPlaying(rqi.Reward.ChannelId, rqi.Id.ToString(), MessageType.NotPlayedTimedOut);
+                return;
+            }
+
+            if (rqi.Reward.IsSubOnly && !rqi.IsSubOrHigher)
+            {
+                await DoneWithPlaying(rqi.Reward.ChannelId, rqi.Id.ToString(), MessageType.NotPlayedSubOnly);
+                return;
+            }
+
             List<string> clients = ConnectClients
                 .Where(pair => pair.Value == rqi.Reward.ChannelId.ToString())
                 .Select(pair => pair.Key)
@@ -78,22 +91,37 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
 
         public async Task ConfirmTtsSkipped(string contextConnectionId, string contextUserIdentifier, string id)
         {
-            await DoneWithPlaying(contextUserIdentifier, id, "skipped");
+            await DoneWithPlaying(int.Parse(contextUserIdentifier), id, MessageType.Skipped);
         }
 
         public async Task ConfirmTtsFullyPlayed(string contextConnectionId, string contextUserIdentifier, string id)
         {
-            await DoneWithPlaying(contextUserIdentifier, id, "Played");
+            await DoneWithPlaying(int.Parse(contextUserIdentifier), id, MessageType.PlayedFully);
         }
 
-        private async Task DoneWithPlaying(string contextUserIdentifier, string id, string reason)
+        private async Task DoneWithPlaying(int roomId, string id, MessageType reason)
         {
-            int roomId = int.Parse(contextUserIdentifier);
             if (ActiveRequests[roomId] == id)
             {
                 ActiveRequests.Remove(roomId);
-                RequestQueueIngest rqi = await _ttsDbContext.RequestQueueIngest.FindAsync(int.Parse(id));
-                //TODO: add rqi to messageLog with note from reason parameter
+                RequestQueueIngest rqi = _ttsDbContext.RequestQueueIngest
+                    .Include(r => r.Reward)
+                    .First(r => r.Id == int.Parse(id));
+
+                _ttsDbContext.TtsLogMessages.Add(new TtsLogMessage
+                {
+                    RewardId = rqi.RewardId,
+                    RoomId = rqi.Reward.ChannelId,
+                    RequesterId = rqi.RequesterId,
+                    IsSubOrHigher = rqi.IsSubOrHigher,
+                    RawMessage = rqi.RawMessage,
+                    VoicesId = rqi.Reward.VoiceId,
+                    WasTimedOut = rqi.WasTimedOut,
+                    MessageType = reason,
+                    RequestTimestamp = rqi.RequestTimestamp,
+                    MessageId = rqi.MessageId
+                });
+
                 _ttsDbContext.RequestQueueIngest.Remove(rqi);
                 await _ttsDbContext.SaveChangesAsync();
             }

@@ -18,6 +18,8 @@ namespace TtsApi.Model
         public DbSet<ChannelEditor> ChannelEditors { get; set; }
         public DbSet<RequestQueueIngest> RequestQueueIngest { get; set; }
         public DbSet<BotSpecialUser> BotSpecialUsers { get; set; }
+        
+        public DbSet<TtsLogMessage> TtsLogMessages { get; set; }
 
         public TtsDbContext(DbContextOptions<TtsDbContext> options) : base(options)
         {
@@ -38,6 +40,7 @@ namespace TtsApi.Model
             Schema.AllowedConversationVoice.BuildModel(modelBuilder);
             Schema.ChannelEditor.BuildModel(modelBuilder);
             Schema.BotSpecialUser.BuildModel(modelBuilder);
+            Schema.TtsLogMessage.BuildModel(modelBuilder);
         }
     }
 }

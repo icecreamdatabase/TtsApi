@@ -20,7 +20,7 @@ namespace TtsApi.Model.Schema
         public virtual Reward Reward { get; set; }
 
         [Required]
-        public string RequesterId { get; set; }
+        public int RequesterId { get; set; }
 
         [Required]
         public string RequesterDisplayName { get; set; }
