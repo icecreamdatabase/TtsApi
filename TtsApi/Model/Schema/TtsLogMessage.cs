@@ -14,7 +14,8 @@ namespace TtsApi.Model.Schema
         SkippedAfterTime,
         SkippedNoQueue,
         NotPlayedTimedOut,
-        NotPlayedSubOnly
+        NotPlayedSubOnly,
+        FailedNoParts
     }
 
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]

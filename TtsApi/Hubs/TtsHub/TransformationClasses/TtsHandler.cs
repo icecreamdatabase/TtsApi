@@ -63,7 +63,10 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
                 if (ttsRequest.TtsIndividualSynthesizes.Count > 0)
                     await _hubContext.Clients.Clients(clients).TtsPlayRequest(ttsRequest);
                 else
+                {
                     _logger.LogWarning("No message parts for reward id: {Id}", rqi.Id);
+                    await DoneWithPlaying(rqi.Reward.ChannelId, ttsRequest.Id, MessageType.FailedNoParts);
+                }
             }
         }
 
