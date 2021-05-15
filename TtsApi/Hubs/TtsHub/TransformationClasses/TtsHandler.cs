@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Amazon.Polly;
 using Amazon.Polly.Model;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -62,7 +63,7 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
                 if (ttsRequest.TtsIndividualSynthesizes.Count > 0)
                     await _hubContext.Clients.Clients(clients).TtsPlayRequest(ttsRequest);
                 else
-                    throw new Exception("No message parts?");
+                    _logger.LogWarning("No message parts for reward id: {Id}", rqi.Id);
             }
         }
 
@@ -79,9 +80,16 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
             IEnumerable<TtsMessagePart> messageParts = TtsHandlerStatics.SplitMessage(rqi);
             foreach (TtsMessagePart part in messageParts.Where(part => part != null))
             {
-                SynthesizeSpeechResponse r = await _polly.Synthesize(part.Message, part.VoiceId, part.Engine);
-                TtsIndividualSynthesize tis = new(r.AudioStream, part.PlaybackSpeed, part.Volume);
-                ttsIndividualSynthesizes.Add(tis);
+                try
+                {
+                    SynthesizeSpeechResponse r = await _polly.Synthesize(part.Message, part.VoiceId, part.Engine);
+                    TtsIndividualSynthesize tis = new(r.AudioStream, part.PlaybackSpeed, part.Volume);
+                    ttsIndividualSynthesizes.Add(tis);
+                }
+                catch (AmazonPollyException e)
+                {
+                    _logger.LogWarning("GetTtsRequest error: {Message}", e.Message);
+                }
             }
 
             ttsRequest.TtsIndividualSynthesizes = ttsIndividualSynthesizes;
@@ -111,7 +119,7 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
                 //TODO: this shouldn't happen. This stuff runs in parallel. We need to lock the lockfile Pepega
                 if (rqi is null)
                     return;
-                
+
                 _ttsDbContext.TtsLogMessages.Add(new TtsLogMessage
                 {
                     RewardId = rqi.RewardId,

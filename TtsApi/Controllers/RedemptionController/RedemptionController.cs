@@ -40,7 +40,7 @@ namespace TtsApi.Controllers.RedemptionController
         }
 
         /// <summary>
-        /// Get a specific reward of a specific channel.
+        /// Get all or a specific reward of a specific channel.
         /// </summary>
         /// <param name="roomId">Id of the channel. Must match auth permissions.
         ///     Parameter name defined by <see cref="ApiKeyAuthenticationHandler.RoomIdQueryStringName"/>.</param>

@@ -30,6 +30,11 @@ namespace TtsApi.Controllers
             _users = users;
         }
 
+        /// <summary>
+        /// Signup as a broadcaster
+        /// </summary>
+        /// <param name="code"></param>
+        /// <returns></returns>
         [HttpPost("Register")]
         public async Task<ActionResult> Register([FromQuery] string code)
         {
