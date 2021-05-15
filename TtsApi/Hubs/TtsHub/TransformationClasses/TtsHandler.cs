@@ -6,6 +6,7 @@ using Amazon.Polly;
 using Amazon.Polly.Model;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using TtsApi.ExternalApis.Aws;
 using TtsApi.Hubs.TtsHub.TransferClasses;
@@ -22,14 +23,16 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
         private readonly TtsDbContext _ttsDbContext;
         private readonly IHubContext<TtsHub, ITtsHub> _hubContext;
         private readonly Polly _polly;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
 
         public TtsHandler(ILogger<TtsHandler> logger, TtsDbContext ttsDbContext,
-            IHubContext<TtsHub, ITtsHub> hubContext, Polly polly)
+            IHubContext<TtsHub, ITtsHub> hubContext, Polly polly, IServiceScopeFactory serviceScopeFactory)
         {
             _logger = logger;
             _ttsDbContext = ttsDbContext;
             _hubContext = hubContext;
             _polly = polly;
+            _serviceScopeFactory = serviceScopeFactory;
         }
 
         public async Task SendTtsRequest(RequestQueueIngest rqi)
@@ -64,8 +67,7 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
                     await _hubContext.Clients.Clients(clients).TtsPlayRequest(ttsRequest);
                 else
                 {
-                    _logger.LogWarning("No message parts for reward id: {Id}", rqi.Id);
-                    await DoneWithPlaying(rqi.Reward.ChannelId, ttsRequest.Id, MessageType.FailedNoParts);
+                    throw new Exception($"No message parts for reward id {rqi.Id}");
                 }
             }
         }
@@ -92,6 +94,7 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
                 catch (AmazonPollyException e)
                 {
                     _logger.LogWarning("GetTtsRequest error: {Message}", e.Message);
+                    ttsIndividualSynthesizes.Add(new TtsIndividualSynthesize());
                 }
             }
 

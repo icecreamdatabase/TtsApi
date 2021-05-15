@@ -5,11 +5,11 @@ namespace TtsApi.Hubs.TtsHub.TransferClasses
 {
     public class TtsIndividualSynthesize
     {
-        public string VoiceDataWavBase64 { get; set; }
+        public string VoiceDataWavBase64 { get; set; } = "";
 
-        public float PlaybackRate { get; set; }
+        public float PlaybackRate { get; set; } = 1.0f;
 
-        public float Volume { get; set; }
+        public float Volume { get; set; } = 100;
 
         public TtsIndividualSynthesize()
         {
