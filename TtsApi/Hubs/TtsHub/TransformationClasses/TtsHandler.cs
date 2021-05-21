@@ -37,6 +37,11 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
 
         public async Task SendTtsRequest(RequestQueueIngest rqi)
         {
+            if (ActiveRequests.ContainsKey(rqi.Reward.ChannelId))
+                return;
+            
+            ActiveRequests.Add(rqi.Reward.ChannelId, rqi.Id.ToString());
+
             if (rqi.WasTimedOut)
             {
                 await DoneWithPlaying(rqi.Reward.ChannelId, rqi.Id.ToString(), MessageType.NotPlayedTimedOut);
@@ -56,11 +61,6 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
                 .ToList();
             if (clients.Any())
             {
-                if (ActiveRequests.ContainsKey(rqi.Reward.ChannelId))
-                    return;
-
-                ActiveRequests.Add(rqi.Reward.ChannelId, rqi.Id.ToString());
-
                 TtsRequest ttsRequest = await GetTtsRequest(rqi);
 
                 if (ttsRequest.TtsIndividualSynthesizes.Count > 0)
