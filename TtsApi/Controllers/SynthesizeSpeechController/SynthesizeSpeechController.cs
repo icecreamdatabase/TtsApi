@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using TtsApi.Authentication.Roles;
 using TtsApi.ExternalApis.Aws;
-using TtsApi.Model;
 
 namespace TtsApi.Controllers.SynthesizeSpeechController
 {
@@ -14,13 +13,11 @@ namespace TtsApi.Controllers.SynthesizeSpeechController
     public class SynthesizeSpeechController : ControllerBase
     {
         private readonly ILogger<SynthesizeSpeechController> _logger;
-        private readonly TtsDbContext _ttsDbContext;
         private readonly Polly _polly;
 
-        public SynthesizeSpeechController(ILogger<SynthesizeSpeechController> logger, TtsDbContext ttsDbContext, Polly polly)
+        public SynthesizeSpeechController(ILogger<SynthesizeSpeechController> logger, Polly polly)
         {
             _logger = logger;
-            _ttsDbContext = ttsDbContext;
             _polly = polly;
         }
 
@@ -30,6 +27,12 @@ namespace TtsApi.Controllers.SynthesizeSpeechController
         {
             SynthesizeSpeechResponse res = await _polly.Synthesize(input.Text, input.GetVoiceId(), input.GetEngine());
             return Ok(res.AudioStream);
+        }
+
+        [HttpGet("GetVoices")]
+        public ActionResult Get()
+        {
+            return Ok(Polly.VoicesData);
         }
     }
 }

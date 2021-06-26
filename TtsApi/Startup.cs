@@ -128,16 +128,17 @@ namespace TtsApi
                 }
             );
             services.AddSignalR();
+            
+            services.AddDefaultAWSOptions(Configuration.GetAWSOptions());
+            services.AddAWSService<IAmazonPolly>();
+            services.AddSingleton<Polly>();
+            services.AddHostedService<PrefetchPollyData>();
 
             services.AddHostedService<IngestQueueHandler>();
             services.AddTransient<TtsHandler>();
             services.AddTransient<ChannelPoints>();
             services.AddTransient<Moderation>();
             services.AddTransient<Users>();
-
-            services.AddDefaultAWSOptions(Configuration.GetAWSOptions());
-            services.AddAWSService<IAmazonPolly>();
-            services.AddSingleton<Polly>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

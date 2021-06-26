@@ -28,8 +28,6 @@ namespace TtsApi.BackgroundServices
             db.RequestQueueIngest
                 .Include(r => r.Reward)
                 .Include(r => r.Reward.Channel)
-                .Include(r => r.Reward.Voice)
-                .Include(r => r.Reward.Voice.VoiceEngines)
                 .ToList()
                 .GroupBy(req => req.Reward.ChannelId)
                 .Select(ingests => ingests.FirstOrDefault())

@@ -11,8 +11,6 @@ namespace TtsApi.Model
         public DbSet<GlobalUserBlacklist> GlobalUserBlacklist { get; set; }
 
         public DbSet<Channel> Channels { get; set; }
-        public DbSet<Voice> Voices { get; set; }
-        public DbSet<VoiceLanguage> VoicesLanguages { get; set; }
         public DbSet<Reward> Rewards { get; set; }
         public DbSet<AllowedConversationVoice> AllowedConversationVoices { get; set; }
         public DbSet<ChannelEditor> ChannelEditors { get; set; }
