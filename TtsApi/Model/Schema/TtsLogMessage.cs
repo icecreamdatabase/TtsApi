@@ -57,6 +57,12 @@ namespace TtsApi.Model.Schema
         [Required]
         public string MessageId { get; set; }
 
+        [Required]
+        public int CharacterCostStandard { get; set; } = 0;
+
+        [Required]
+        public int CharacterCostNeural { get; set; } = 0;
+
         protected internal static void BuildModel(ModelBuilder modelBuilder)
         {
             // modelBuilder.Entity<TtsLogMessage>()
@@ -69,6 +75,8 @@ namespace TtsApi.Model.Schema
             modelBuilder.Entity<TtsLogMessage>(builder =>
             {
                 builder.Property(p => p.MessageType).HasConversion(new EnumToStringConverter<MessageType>());
+                builder.Property(p => p.CharacterCostStandard).HasDefaultValue(0);
+                builder.Property(p => p.CharacterCostNeural).HasDefaultValue(0);
             });
         }
     }

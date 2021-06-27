@@ -24,7 +24,7 @@ namespace TtsApi.Model.Schema
         [Required]
         public VoiceId VoiceId { get; set; }
 
-        [JsonIgnore]
+        [NotMapped]
         public Voice Voice => Polly.VoicesData.First(v => v.Id == VoiceId);
 
         protected internal static void BuildModel(ModelBuilder modelBuilder)

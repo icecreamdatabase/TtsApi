@@ -23,71 +23,79 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
         private readonly TtsDbContext _ttsDbContext;
         private readonly IHubContext<TtsHub, ITtsHub> _hubContext;
         private readonly Polly _polly;
-        private readonly IServiceScopeFactory _serviceScopeFactory;
 
-        public TtsHandler(ILogger<TtsHandler> logger, TtsDbContext ttsDbContext,
-            IHubContext<TtsHub, ITtsHub> hubContext, Polly polly, IServiceScopeFactory serviceScopeFactory)
+        public TtsHandler(ILogger<TtsHandler> logger, IHubContext<TtsHub, ITtsHub> hubContext, Polly polly,
+            IServiceScopeFactory serviceScopeFactory)
         {
             _logger = logger;
-            _ttsDbContext = ttsDbContext;
             _hubContext = hubContext;
             _polly = polly;
-            _serviceScopeFactory = serviceScopeFactory;
+
+            // We can't give the DB through the constructor parameters.
+            IServiceProvider serviceProvider = serviceScopeFactory.CreateScope().ServiceProvider;
+            _ttsDbContext = serviceProvider.GetService<TtsDbContext>();
         }
 
-        public async Task SendTtsRequest(RequestQueueIngest rqi)
+        public async Task SendTtsRequest(RequestQueueIngest rqiNoRef)
         {
-            if (ActiveRequests.ContainsKey(rqi.Reward.ChannelId))
+            if (ActiveRequests.ContainsKey(rqiNoRef.Reward.ChannelId))
                 return;
-            
-            ActiveRequests.Add(rqi.Reward.ChannelId, rqi.Id.ToString());
 
-            if (rqi.WasTimedOut)
+            ActiveRequests.Add(rqiNoRef.Reward.ChannelId, rqiNoRef.Id.ToString());
+
+            if (rqiNoRef.WasTimedOut)
             {
-                await DoneWithPlaying(rqi.Reward.ChannelId, rqi.Id.ToString(), MessageType.NotPlayedTimedOut);
+                await DoneWithPlaying(rqiNoRef.Reward.ChannelId, rqiNoRef.Id.ToString(), MessageType.NotPlayedTimedOut);
                 return;
             }
 
-            if (rqi.Reward.IsSubOnly && !rqi.IsSubOrHigher)
+            if (rqiNoRef.Reward.IsSubOnly && !rqiNoRef.IsSubOrHigher)
             {
-                await DoneWithPlaying(rqi.Reward.ChannelId, rqi.Id.ToString(), MessageType.NotPlayedSubOnly);
+                await DoneWithPlaying(rqiNoRef.Reward.ChannelId, rqiNoRef.Id.ToString(), MessageType.NotPlayedSubOnly);
                 return;
             }
 
             List<string> clients = ConnectClients
-                .Where(pair => pair.Value == rqi.Reward.ChannelId.ToString())
+                .Where(pair => pair.Value == rqiNoRef.Reward.ChannelId.ToString())
                 .Select(pair => pair.Key)
                 .Distinct()
                 .ToList();
             if (clients.Any())
             {
-                TtsRequest ttsRequest = await GetTtsRequest(rqi);
+                TtsRequest ttsRequest = await GetTtsRequest(rqiNoRef);
 
                 if (ttsRequest.TtsIndividualSynthesizes.Count > 0)
                     await _hubContext.Clients.Clients(clients).TtsPlayRequest(ttsRequest);
                 else
                 {
-                    throw new Exception($"No message parts for reward id {rqi.Id}");
+                    throw new Exception($"No message parts for reward id {rqiNoRef.Id}");
                 }
             }
         }
 
-        private async Task<TtsRequest> GetTtsRequest(RequestQueueIngest rqi)
+        private async Task<TtsRequest> GetTtsRequest(RequestQueueIngest rqiNoRef)
         {
             TtsRequest ttsRequest = new()
             {
-                Id = rqi.Id.ToString(),
-                MaxMessageTimeSeconds = rqi.Reward.Channel.MaxMessageTimeSeconds,
+                Id = rqiNoRef.Id.ToString(),
+                MaxMessageTimeSeconds = rqiNoRef.Reward.Channel.MaxMessageTimeSeconds,
             };
 
             List<TtsIndividualSynthesize> ttsIndividualSynthesizes = new();
 
-            IEnumerable<TtsMessagePart> messageParts = TtsHandlerStatics.SplitMessage(rqi);
+            int characterCostStandard = 0;
+            int characterCostNeural = 0;
+
+            IEnumerable<TtsMessagePart> messageParts = TtsHandlerStatics.SplitMessage(rqiNoRef);
             foreach (TtsMessagePart part in messageParts.Where(part => part != null))
             {
                 try
                 {
                     SynthesizeSpeechResponse r = await _polly.Synthesize(part.Message, part.VoiceId, part.Engine);
+                    if (part.Engine == Engine.Standard)
+                        characterCostStandard += r.RequestCharacters;
+                    else
+                        characterCostNeural += r.RequestCharacters;
                     TtsIndividualSynthesize tis = new(r.AudioStream, part.PlaybackSpeed, part.Volume);
                     ttsIndividualSynthesizes.Add(tis);
                 }
@@ -98,6 +106,15 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
                 }
             }
 
+            if (_ttsDbContext is not null)
+            {
+                RequestQueueIngest rqiWithDbRef = await _ttsDbContext.RequestQueueIngest.FindAsync(rqiNoRef.Id);
+                rqiWithDbRef.CharacterCostStandard = characterCostStandard;
+                rqiWithDbRef.CharacterCostNeural = characterCostNeural;
+                await _ttsDbContext.SaveChangesAsync();
+            }
+
+            //await _ttsDbContext.SaveChangesAsync();
             ttsRequest.TtsIndividualSynthesizes = ttsIndividualSynthesizes;
 
             return ttsRequest;
@@ -126,6 +143,10 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
                 if (rqi is null)
                     return;
 
+                // This should never happen! But if it does we can find it in the logs.
+                if (!rqi.CharacterCostStandard.HasValue || !rqi.CharacterCostNeural.HasValue)
+                    _logger.LogWarning("RequestQueueIngest entry {Id} had no cost!", rqi.Id);
+
                 _ttsDbContext.TtsLogMessages.Add(new TtsLogMessage
                 {
                     RewardId = rqi.RewardId,
@@ -137,7 +158,9 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
                     WasTimedOut = rqi.WasTimedOut,
                     MessageType = reason,
                     RequestTimestamp = rqi.RequestTimestamp,
-                    MessageId = rqi.MessageId
+                    MessageId = rqi.MessageId,
+                    CharacterCostStandard = rqi.CharacterCostStandard ?? -1,
+                    CharacterCostNeural = rqi.CharacterCostNeural ?? -1
                 });
 
                 _ttsDbContext.RequestQueueIngest.Remove(rqi);
