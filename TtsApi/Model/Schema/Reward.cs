@@ -37,6 +37,9 @@ namespace TtsApi.Model.Schema
 
         [Required]
         public bool IsConversation { get; set; }
+        
+        [Required]
+        public float DefaultPlaybackSpeed { get; set; }
 
         [Required]
         public bool IsSubOnly { get; set; }
@@ -53,6 +56,7 @@ namespace TtsApi.Model.Schema
                 entity.Property(e => e.IsConversation).HasDefaultValue(true);
                 entity.Property(e => e.IsSubOnly).HasDefaultValue(false);
                 entity.Property(e => e.Cooldown).HasDefaultValue(0);
+                entity.Property(e => e.DefaultPlaybackSpeed).HasDefaultValue(1.0f);
                 entity.Property(e => e.VoiceId).HasConversion(
                     v => v.ToString(),
                     v => VoiceId.FindValue(v)

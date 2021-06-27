@@ -36,7 +36,7 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
                         Message = rqi.RawMessage,
                         VoiceId = useFallback ? FallbackVoiceId : voice.Id,
                         Engine = useFallback ? FallbackEngine : engine,
-                        PlaybackSpeed = 1.0f,
+                        PlaybackSpeed = rqi.Reward.DefaultPlaybackSpeed,
                         Volume = rqi.Reward.Channel.Volume
                     }
                 };
@@ -48,7 +48,7 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
             string currentMessage = "";
             Voice lastVoice = rqi.Reward.Voice;
             Engine lastEngine = GetEngine(rqi, lastVoice);
-            float lastPlaybackSpeed = 1.0f;
+            float lastPlaybackSpeed = rqi.Reward.DefaultPlaybackSpeed;
             foreach (string word in rqi.RawMessage.Split(" "))
             {
                 if (!string.IsNullOrEmpty(word) && word.EndsWith(":"))
