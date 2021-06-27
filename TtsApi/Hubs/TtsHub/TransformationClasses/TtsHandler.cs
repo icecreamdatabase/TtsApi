@@ -143,7 +143,7 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
                     return;
 
                 // This should never happen! But if it does we can find it in the logs.
-                if (!rqi.CharacterCostStandard.HasValue || !rqi.CharacterCostNeural.HasValue)
+                if (!rqi.CharacterCostStandard.HasValue && !rqi.CharacterCostNeural.HasValue)
                     _logger.LogWarning("RequestQueueIngest entry {Id} had no cost!", rqi.Id);
 
                 _ttsDbContext.TtsLogMessages.Add(new TtsLogMessage
@@ -158,8 +158,8 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
                     MessageType = reason,
                     RequestTimestamp = rqi.RequestTimestamp,
                     MessageId = rqi.MessageId,
-                    CharacterCostStandard = rqi.CharacterCostStandard ?? -1,
-                    CharacterCostNeural = rqi.CharacterCostNeural ?? -1
+                    CharacterCostStandard = rqi.CharacterCostStandard ?? 0,
+                    CharacterCostNeural = rqi.CharacterCostNeural ?? 0
                 });
 
                 _ttsDbContext.RequestQueueIngest.Remove(rqi);
