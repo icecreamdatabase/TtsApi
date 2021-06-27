@@ -19,6 +19,7 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
     {
         public static readonly Dictionary<string, string> ConnectClients = new();
         private static readonly Dictionary<int, string> ActiveRequests = new();
+
         private readonly ILogger<TtsHandler> _logger;
         private readonly TtsDbContext _ttsDbContext;
         private readonly IHubContext<TtsHub, ITtsHub> _hubContext;
@@ -36,68 +37,73 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
             _ttsDbContext = serviceProvider.GetService<TtsDbContext>();
         }
 
-        public async Task SendTtsRequest(RequestQueueIngest rqiNoRef)
+        public async Task SendTtsRequest(int rqiId)
         {
-            if (ActiveRequests.ContainsKey(rqiNoRef.Reward.ChannelId))
+            RequestQueueIngest rqi = _ttsDbContext.RequestQueueIngest
+                .Include(r => r.Reward)
+                .Include(r => r.Reward.Channel)
+                .First(r => r.Id == rqiId);
+
+            if (ActiveRequests.ContainsKey(rqi.Reward.ChannelId))
                 return;
 
-            ActiveRequests.Add(rqiNoRef.Reward.ChannelId, rqiNoRef.Id.ToString());
+            ActiveRequests.Add(rqi.Reward.ChannelId, rqi.Id.ToString());
 
-            if (rqiNoRef.WasTimedOut)
+            if (rqi.WasTimedOut)
             {
-                await DoneWithPlaying(rqiNoRef.Reward.ChannelId, rqiNoRef.Id.ToString(), MessageType.NotPlayedTimedOut);
+                await DoneWithPlaying(rqi.Reward.ChannelId, rqi.Id.ToString(), MessageType.NotPlayedTimedOut);
                 return;
             }
 
-            if (rqiNoRef.Reward.IsSubOnly && !rqiNoRef.IsSubOrHigher)
+            if (rqi.Reward.IsSubOnly && !rqi.IsSubOrHigher)
             {
-                await DoneWithPlaying(rqiNoRef.Reward.ChannelId, rqiNoRef.Id.ToString(), MessageType.NotPlayedSubOnly);
+                await DoneWithPlaying(rqi.Reward.ChannelId, rqi.Id.ToString(), MessageType.NotPlayedSubOnly);
                 return;
             }
 
             List<string> clients = ConnectClients
-                .Where(pair => pair.Value == rqiNoRef.Reward.ChannelId.ToString())
+                .Where(pair => pair.Value == rqi.Reward.ChannelId.ToString())
                 .Select(pair => pair.Key)
                 .Distinct()
                 .ToList();
             if (clients.Any())
             {
-                TtsRequest ttsRequest = await GetTtsRequest(rqiNoRef);
+                TtsRequest ttsRequest = await GetTtsRequest(rqi);
 
                 if (ttsRequest.TtsIndividualSynthesizes.Count > 0)
                     await _hubContext.Clients.Clients(clients).TtsPlayRequest(ttsRequest);
                 else
                 {
-                    throw new Exception($"No message parts for reward id {rqiNoRef.Id}");
+                    throw new Exception($"No message parts for reward id {rqi.Id}");
                 }
             }
         }
 
-        private async Task<TtsRequest> GetTtsRequest(RequestQueueIngest rqiNoRef)
+        private async Task<TtsRequest> GetTtsRequest(RequestQueueIngest rqi)
         {
             TtsRequest ttsRequest = new()
             {
-                Id = rqiNoRef.Id.ToString(),
-                MaxMessageTimeSeconds = rqiNoRef.Reward.Channel.MaxMessageTimeSeconds,
+                Id = rqi.Id.ToString(),
+                MaxMessageTimeSeconds = rqi.Reward.Channel.MaxMessageTimeSeconds,
             };
 
             List<TtsIndividualSynthesize> ttsIndividualSynthesizes = new();
 
-            int characterCostStandard = 0;
-            int characterCostNeural = 0;
-
-            IEnumerable<TtsMessagePart> messageParts = TtsHandlerStatics.SplitMessage(rqiNoRef);
+            IEnumerable<TtsMessagePart> messageParts = TtsHandlerStatics.SplitMessage(rqi);
             foreach (TtsMessagePart part in messageParts.Where(part => part != null))
             {
                 try
                 {
                     SynthesizeSpeechResponse r = await _polly.Synthesize(part.Message, part.VoiceId, part.Engine);
-                    if (part.Engine == Engine.Standard)
-                        characterCostStandard += r.RequestCharacters;
-                    else
-                        characterCostNeural += r.RequestCharacters;
                     TtsIndividualSynthesize tis = new(r.AudioStream, part.PlaybackSpeed, part.Volume);
                     ttsIndividualSynthesizes.Add(tis);
+
+                    if (part.Engine == Engine.Standard)
+                        rqi.CharacterCostStandard =
+                            rqi.CharacterCostStandard.GetValueOrDefault(0) + r.RequestCharacters;
+                    else
+                        rqi.CharacterCostNeural =
+                            rqi.CharacterCostNeural.GetValueOrDefault(0) + r.RequestCharacters;
                 }
                 catch (AmazonPollyException e)
                 {
@@ -106,15 +112,8 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
                 }
             }
 
-            if (_ttsDbContext is not null)
-            {
-                RequestQueueIngest rqiWithDbRef = await _ttsDbContext.RequestQueueIngest.FindAsync(rqiNoRef.Id);
-                rqiWithDbRef.CharacterCostStandard = characterCostStandard;
-                rqiWithDbRef.CharacterCostNeural = characterCostNeural;
-                await _ttsDbContext.SaveChangesAsync();
-            }
+            await _ttsDbContext.SaveChangesAsync();
 
-            //await _ttsDbContext.SaveChangesAsync();
             ttsRequest.TtsIndividualSynthesizes = ttsIndividualSynthesizes;
 
             return ttsRequest;

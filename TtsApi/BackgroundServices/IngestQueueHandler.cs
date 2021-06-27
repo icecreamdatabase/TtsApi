@@ -37,7 +37,7 @@ namespace TtsApi.BackgroundServices
                     // rqi.RewardId is already being checked
                 )
                 .ToList()
-                .ForEach(async rqi => await ttsHandler.SendTtsRequest(rqi));
+                .ForEach(async rqi => await ttsHandler.SendTtsRequest(rqi.Id));
         }
     }
 }
