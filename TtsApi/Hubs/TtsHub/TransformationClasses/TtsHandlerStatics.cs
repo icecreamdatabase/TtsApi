@@ -106,7 +106,7 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
             {
                 Message = currentMessage,
                 VoiceId = lastVoice.Id,
-                Engine = Engine.Standard,
+                Engine = lastEngine,
                 PlaybackSpeed = lastPlaybackSpeed,
                 Volume = rqi.Reward.Channel.Volume
             });
