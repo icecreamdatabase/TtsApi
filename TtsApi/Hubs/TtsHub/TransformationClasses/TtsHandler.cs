@@ -19,27 +19,34 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
     {
         public static readonly Dictionary<string, string> ConnectClients = new();
         private static readonly Dictionary<int, string> ActiveRequests = new();
+
         private readonly ILogger<TtsHandler> _logger;
         private readonly TtsDbContext _ttsDbContext;
         private readonly IHubContext<TtsHub, ITtsHub> _hubContext;
         private readonly Polly _polly;
-        private readonly IServiceScopeFactory _serviceScopeFactory;
 
-        public TtsHandler(ILogger<TtsHandler> logger, TtsDbContext ttsDbContext,
-            IHubContext<TtsHub, ITtsHub> hubContext, Polly polly, IServiceScopeFactory serviceScopeFactory)
+        public TtsHandler(ILogger<TtsHandler> logger, IHubContext<TtsHub, ITtsHub> hubContext, Polly polly,
+            IServiceScopeFactory serviceScopeFactory)
         {
             _logger = logger;
-            _ttsDbContext = ttsDbContext;
             _hubContext = hubContext;
             _polly = polly;
-            _serviceScopeFactory = serviceScopeFactory;
+
+            // We can't give the DB through the constructor parameters.
+            IServiceProvider serviceProvider = serviceScopeFactory.CreateScope().ServiceProvider;
+            _ttsDbContext = serviceProvider.GetService<TtsDbContext>();
         }
 
-        public async Task SendTtsRequest(RequestQueueIngest rqi)
+        public async Task SendTtsRequest(int rqiId)
         {
+            RequestQueueIngest rqi = _ttsDbContext.RequestQueueIngest
+                .Include(r => r.Reward)
+                .Include(r => r.Reward.Channel)
+                .First(r => r.Id == rqiId);
+
             if (ActiveRequests.ContainsKey(rqi.Reward.ChannelId))
                 return;
-            
+
             ActiveRequests.Add(rqi.Reward.ChannelId, rqi.Id.ToString());
 
             if (rqi.WasTimedOut)
@@ -90,6 +97,13 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
                     SynthesizeSpeechResponse r = await _polly.Synthesize(part.Message, part.VoiceId, part.Engine);
                     TtsIndividualSynthesize tis = new(r.AudioStream, part.PlaybackSpeed, part.Volume);
                     ttsIndividualSynthesizes.Add(tis);
+
+                    if (part.Engine == Engine.Standard)
+                        rqi.CharacterCostStandard =
+                            rqi.CharacterCostStandard.GetValueOrDefault(0) + r.RequestCharacters;
+                    else
+                        rqi.CharacterCostNeural =
+                            rqi.CharacterCostNeural.GetValueOrDefault(0) + r.RequestCharacters;
                 }
                 catch (AmazonPollyException e)
                 {
@@ -97,6 +111,8 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
                     ttsIndividualSynthesizes.Add(new TtsIndividualSynthesize());
                 }
             }
+
+            await _ttsDbContext.SaveChangesAsync();
 
             ttsRequest.TtsIndividualSynthesizes = ttsIndividualSynthesizes;
 
@@ -126,6 +142,10 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
                 if (rqi is null)
                     return;
 
+                // This should never happen! But if it does we can find it in the logs.
+                if (!rqi.CharacterCostStandard.HasValue && !rqi.CharacterCostNeural.HasValue)
+                    _logger.LogWarning("RequestQueueIngest entry {Id} had no cost!", rqi.Id);
+
                 _ttsDbContext.TtsLogMessages.Add(new TtsLogMessage
                 {
                     RewardId = rqi.RewardId,
@@ -137,7 +157,9 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
                     WasTimedOut = rqi.WasTimedOut,
                     MessageType = reason,
                     RequestTimestamp = rqi.RequestTimestamp,
-                    MessageId = rqi.MessageId
+                    MessageId = rqi.MessageId,
+                    CharacterCostStandard = rqi.CharacterCostStandard ?? 0,
+                    CharacterCostNeural = rqi.CharacterCostNeural ?? 0
                 });
 
                 _ttsDbContext.RequestQueueIngest.Remove(rqi);

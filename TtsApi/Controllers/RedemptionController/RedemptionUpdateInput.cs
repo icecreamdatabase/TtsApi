@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using System.Text.Json.Serialization;
 using Amazon.Polly;
 using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.DataTypes;
 

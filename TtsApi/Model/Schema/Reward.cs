@@ -2,7 +2,12 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Text.Json.Serialization;
+using Amazon.Polly;
+using Amazon.Polly.Model;
 using Microsoft.EntityFrameworkCore;
+using TtsApi.ExternalApis.Aws;
 
 namespace TtsApi.Model.Schema
 {
@@ -21,12 +26,14 @@ namespace TtsApi.Model.Schema
 
         public virtual Channel Channel { get; set; }
 
+        [Required]
+        public VoiceId VoiceId { get; set; }
+
+        [JsonIgnore]
+        public Voice Voice => Polly.VoicesData.First(v => v.Id == VoiceId);
 
         [Required]
-        [ForeignKey("Voice")]
-        public string VoiceId { get; set; }
-
-        public virtual Voice Voice { get; set; }
+        public Engine VoiceEngine { get; set; }
 
         [Required]
         public bool IsConversation { get; set; }
@@ -46,6 +53,14 @@ namespace TtsApi.Model.Schema
                 entity.Property(e => e.IsConversation).HasDefaultValue(true);
                 entity.Property(e => e.IsSubOnly).HasDefaultValue(false);
                 entity.Property(e => e.Cooldown).HasDefaultValue(0);
+                entity.Property(e => e.VoiceId).HasConversion(
+                    v => v.ToString(),
+                    v => VoiceId.FindValue(v)
+                );
+                entity.Property(e => e.VoiceEngine).HasConversion(
+                    e => e.ToString(),
+                    e => Engine.FindValue(e)
+                );
             });
         }
     }

@@ -48,6 +48,9 @@ namespace TtsApi.Model.Schema
         public bool IsQueueMessages { get; set; } = true;
 
         [Required]
+        public bool AllowNeuralVoices { get; set; } = false;
+
+        [Required]
         public int Volume { get; set; } = 100;
 
         [Required]
@@ -76,6 +79,7 @@ namespace TtsApi.Model.Schema
                 entity.Property(e => e.AddDate).ValueGeneratedOnAdd();
                 entity.Property(e => e.IrcMuted).HasDefaultValue(false);
                 entity.Property(e => e.IsQueueMessages).HasDefaultValue(true);
+                entity.Property(e => e.AllowNeuralVoices).HasDefaultValue(false);
                 entity.Property(e => e.Volume).HasDefaultValue(100);
                 entity.Property(e => e.AllModsAreEditors).HasDefaultValue(false);
             });

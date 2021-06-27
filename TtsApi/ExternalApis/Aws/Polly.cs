@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Net;
+using System.Threading.Tasks;
 using Amazon.Polly;
 using Amazon.Polly.Model;
 using Microsoft.Extensions.Logging;
@@ -26,6 +28,15 @@ namespace TtsApi.ExternalApis.Aws
                 Engine = engine
             };
             return await _amazonPolly.SynthesizeSpeechAsync(speechRequest);
+        }
+
+        public static readonly List<Voice> VoicesData = new();
+        
+        public async Task InitVoicesData()
+        {
+            DescribeVoicesResponse voicesDescription = await _amazonPolly.DescribeVoicesAsync(new DescribeVoicesRequest());
+            if (voicesDescription.HttpStatusCode == HttpStatusCode.OK)
+                VoicesData.AddRange(voicesDescription.Voices);
         }
     }
 }

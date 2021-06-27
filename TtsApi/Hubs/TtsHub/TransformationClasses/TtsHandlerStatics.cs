@@ -2,34 +2,52 @@
 using System.Linq;
 using System.Text.RegularExpressions;
 using Amazon.Polly;
+using Amazon.Polly.Model;
+using TtsApi.ExternalApis.Aws;
 using TtsApi.Model.Schema;
 
 namespace TtsApi.Hubs.TtsHub.TransformationClasses
 {
     public static class TtsHandlerStatics
     {
-        private static readonly Regex CheckWord = new Regex(@"(\w+)(?:\(x?(\d*\.?\d*)\))?:");
+        private static readonly Regex CheckWord = new Regex(@"(\+)?(\w+)(\+)?(?:\(x?(\d*\.?\d*)\))?(\+)?:");
+        private const int RegexGroupNeuralFront = 1;
+        private const int RegexGroupVoice = 2;
+        private const int RegexGroupNeuralMid = 3;
+        private const int RegexGroupPlaybackSpeed = 4;
+        private const int RegexGroupNeuralBack = 5;
+
+        private static readonly VoiceId FallbackVoiceId = VoiceId.Brian;
+        private static readonly Engine FallbackEngine = Engine.Standard;
 
         public static IEnumerable<TtsMessagePart> SplitMessage(RequestQueueIngest rqi)
         {
             if (!rqi.Reward.IsConversation)
+            {
+                Voice voice = rqi.Reward.Voice;
+                Engine engine = GetEngine(rqi, voice);
+
+                bool useFallback = !rqi.Reward.Channel.AllowNeuralVoices && engine == Engine.Neural;
+
                 return new List<TtsMessagePart>
                 {
                     new()
                     {
                         Message = rqi.RawMessage,
-                        Engine = Engine.Standard,
+                        VoiceId = useFallback ? FallbackVoiceId : voice.Id,
+                        Engine = useFallback ? FallbackEngine : engine,
                         PlaybackSpeed = 1.0f,
-                        VoiceId = GetVoiceId(rqi.Reward.VoiceId),
                         Volume = rqi.Reward.Channel.Volume
                     }
                 };
+            }
 
 
             List<TtsMessagePart> messageParts = new();
 
             string currentMessage = "";
-            string lastVoiceId = rqi.Reward.VoiceId;
+            Voice lastVoice = rqi.Reward.Voice;
+            Engine lastEngine = GetEngine(rqi, lastVoice);
             float lastPlaybackSpeed = 1.0f;
             foreach (string word in rqi.RawMessage.Split(" "))
             {
@@ -38,24 +56,42 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
                     Match match = CheckWord.Match(word);
                     if (match.Success)
                     {
-                        string voiceStr = match.Groups[1].Value;
+                        string voiceStr = match.Groups[RegexGroupVoice].Value;
 
-                        VoiceId voiceId = GetVoiceId(voiceStr);
-                        if (voiceId is not null)
+                        Voice voice = GetVoice(voiceStr);
+                        if (voice is not null)
                         {
-                            string playbackSpeedStr = match.Groups[2].Value;
                             if (!string.IsNullOrEmpty(currentMessage))
                                 messageParts.Add(new TtsMessagePart
                                 {
                                     Message = currentMessage,
-                                    VoiceId = lastVoiceId,
-                                    Engine = Engine.Standard,
+                                    VoiceId = lastVoice.Id,
+                                    Engine = lastEngine,
                                     PlaybackSpeed = lastPlaybackSpeed,
                                     Volume = rqi.Reward.Channel.Volume
                                 });
+
                             currentMessage = "";
-                            lastVoiceId = voiceId;
-                            lastPlaybackSpeed = float.TryParse(playbackSpeedStr, out float playbackSpeed)
+                            lastVoice = voice;
+
+                            bool tryToUseNeural = rqi.Reward.Channel.AllowNeuralVoices && (
+                                !string.IsNullOrEmpty(match.Groups[RegexGroupNeuralFront].Value) ||
+                                !string.IsNullOrEmpty(match.Groups[RegexGroupNeuralMid].Value) ||
+                                !string.IsNullOrEmpty(match.Groups[RegexGroupNeuralBack].Value)
+                            );
+
+                            // Is it even possible to use the requested engine?
+                            lastEngine = tryToUseNeural switch
+                            {
+                                true when voice.SupportedEngines.Contains(Engine.Neural) => Engine.Neural,
+                                false when voice.SupportedEngines.Contains(Engine.Standard) => Engine.Standard,
+                                _ => voice.SupportedEngines.First()
+                            };
+
+                            lastPlaybackSpeed = float.TryParse(
+                                match.Groups[RegexGroupPlaybackSpeed].Value,
+                                out float playbackSpeed
+                            )
                                 ? playbackSpeed
                                 : 1.0f;
                             continue;
@@ -69,8 +105,8 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
             messageParts.Add(new TtsMessagePart
             {
                 Message = currentMessage,
-                VoiceId = lastVoiceId,
-                Engine = Engine.Standard,
+                VoiceId = lastVoice.Id,
+                Engine = lastEngine,
                 PlaybackSpeed = lastPlaybackSpeed,
                 Volume = rqi.Reward.Channel.Volume
             });
@@ -78,18 +114,22 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
             return messageParts;
         }
 
-        private static VoiceId GetVoiceId(string rawVoiceId)
+        private static Voice GetVoice(string rawVoiceId)
         {
             return typeof(VoiceId).GetFields().Any(info => info.Name == rawVoiceId)
-                ? VoiceId.FindValue(rawVoiceId)
+                ? Polly.VoicesData.FirstOrDefault(v => v.Id == rawVoiceId)
                 : null;
         }
 
-        private static Engine GetEngine(string rawEngineId)
+        private static Engine GetEngine(RequestQueueIngest rqi, Voice voice)
         {
-            return typeof(Engine).GetFields().Any(info => info.Name == rawEngineId)
-                ? Engine.FindValue(rawEngineId)
-                : null;
+            Engine engine = rqi.Reward.VoiceEngine;
+
+            if (!voice.SupportedEngines.Contains(engine))
+                engine = voice.SupportedEngines.Contains(Engine.Standard)
+                    ? Engine.Standard
+                    : Engine.Neural;
+            return engine;
         }
     }
 }

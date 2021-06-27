@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
 
 namespace TtsApi.Model.Schema
 {
@@ -40,5 +41,9 @@ namespace TtsApi.Model.Schema
         [Required]
         [Column(TypeName = "TIMESTAMP")]
         public DateTime RequestTimestamp { get; set; }
+        
+        public int? CharacterCostStandard { get; set; }
+
+        public int? CharacterCostNeural { get; set; }
     }
 }

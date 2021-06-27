@@ -1,7 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Text.Json.Serialization;
+using Amazon.Polly;
+using Amazon.Polly.Model;
 using Microsoft.EntityFrameworkCore;
+using TtsApi.ExternalApis.Aws;
 
 namespace TtsApi.Model.Schema
 {
@@ -17,16 +22,20 @@ namespace TtsApi.Model.Schema
         public virtual Channel Channel { get; set; }
 
         [Required]
-        [ForeignKey("Voice")]
-        public string VoiceId { get; set; }
+        public VoiceId VoiceId { get; set; }
 
-        public virtual Voice Voice { get; set; }
+        [NotMapped]
+        public Voice Voice => Polly.VoicesData.First(v => v.Id == VoiceId);
 
         protected internal static void BuildModel(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<AllowedConversationVoice>(entity =>
             {
                 entity.HasKey(nameof(ChannelId), nameof(VoiceId));
+                entity.Property(e => e.VoiceId).HasConversion(
+                    v => v.ToString(),
+                    v => VoiceId.FindValue(v)
+                );
             });
         }
     }
