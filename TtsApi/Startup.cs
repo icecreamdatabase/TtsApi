@@ -128,7 +128,7 @@ namespace TtsApi
                 }
             );
             services.AddSignalR();
-            
+
             services.AddDefaultAWSOptions(Configuration.GetAWSOptions());
             services.AddAWSService<IAmazonPolly>();
             services.AddSingleton<Polly>();
@@ -147,15 +147,16 @@ namespace TtsApi
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseSwagger();
-                app.UseSwaggerUI(c =>
-                {
-                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "TtsApi v1");
-                    //This garbage doesn't work and therefore the authorization is lost after every reload.
-                    //Making swagger completely useless for this project.
-                    //c.ConfigObject.AdditionalItems.Add("persistAuthorization", "true");
-                });
             }
+
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "TtsApi v1");
+                //This garbage doesn't work and therefore the authorization is lost after every reload.
+                //Making swagger completely useless for this project.
+                //c.ConfigObject.AdditionalItems.Add("persistAuthorization", "true");
+            });
 
             app.UseExceptionHandler(appErr =>
                 appErr.Run(context =>
