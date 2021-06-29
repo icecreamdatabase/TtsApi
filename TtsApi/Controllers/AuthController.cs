@@ -31,11 +31,16 @@ namespace TtsApi.Controllers
         }
 
         /// <summary>
-        /// Signup as a broadcaster
+        /// Signup as a broadcaster.
         /// </summary>
         /// <param name="code"></param>
         /// <returns></returns>
+        /// <response code="204">Channel registered.</response>
+        /// <response code="400">No code provided.</response>
+        /// <response code="403">Invalid code or missing scopes.</response>
+        /// <response code="404">Channel not found.</response>
         [HttpPost("Register")]
+        [ProducesResponseType((int) HttpStatusCode.NoContent)]
         public async Task<ActionResult> Register([FromQuery] string code)
         {
             if (string.IsNullOrEmpty(code))
