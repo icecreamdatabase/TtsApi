@@ -46,8 +46,12 @@ namespace TtsApi.Controllers.RedemptionController
         ///     Parameter name defined by <see cref="ApiKeyAuthenticationHandler.RoomIdQueryStringName"/>.</param>
         /// <param name="rewardId">Id of the reward. Must match roomId.</param>
         /// <returns></returns>
+        /// <response code="200">Requested reward.</response>
+        /// <response code="404">Channel or reward in channel not found.</response>
         [HttpGet]
-        public async Task<ActionResult> Get([FromQuery] int roomId, [FromQuery] string rewardId)
+        [ProducesResponseType((int) HttpStatusCode.OK)]
+        [Produces("application/json")]
+        public async Task<ActionResult<RedemptionRewardView>> Get([FromQuery] int roomId, [FromQuery] string rewardId)
         {
             Channel inputChannel;
             Reward inputReward = null;
@@ -85,8 +89,14 @@ namespace TtsApi.Controllers.RedemptionController
         ///     Parameter name defined by <see cref="ApiKeyAuthenticationHandler.RoomIdQueryStringName"/>.</param>
         /// <param name="input"></param>
         /// <returns></returns>
+        /// <response code="201">Created reward.</response>
+        /// <response code="404">Channel or reward in channel not found.</response>
+        /// <response code="400">Title already exists.</response>
         [HttpPost]
-        public async Task<ActionResult> Create([FromQuery] int roomId, [FromForm] RedemptionCreateInput input)
+        [ProducesResponseType((int) HttpStatusCode.Created)]
+        [Produces("application/json")]
+        public async Task<ActionResult<RedemptionRewardView>> Create([FromQuery] int roomId,
+            [FromForm] RedemptionCreateInput input)
         {
             Channel channel = _ttsDbContext.Channels.FirstOrDefault(c => c.RoomId == roomId);
             if (channel is null)
@@ -136,7 +146,11 @@ namespace TtsApi.Controllers.RedemptionController
         /// <param name="rewardId">Id of the reward. Must match roomId.</param>
         /// <param name="input"></param>
         /// <returns></returns>
+        /// <response code="204">Reward updated successfully or nothing was changed..</response>
+        /// <response code="404">Channel or reward in channel not found.</response>
+        /// <response code="400">Title already exists.</response>
         [HttpPatch]
+        [ProducesResponseType((int) HttpStatusCode.NoContent)]
         public async Task<ActionResult> Update([FromQuery] int roomId, [FromQuery] string rewardId,
             [FromForm] RedemptionUpdateInput input)
         {
@@ -174,6 +188,7 @@ namespace TtsApi.Controllers.RedemptionController
                 return reward?.Id is null
                     ? Problem(null, null, (int) HttpStatusCode.ServiceUnavailable)
                     : NoContent();
+                //TODO: duplicate title
             }
 
             return Problem(dataHolder.Message, null, (int) HttpStatusCode.ServiceUnavailable);
@@ -186,7 +201,10 @@ namespace TtsApi.Controllers.RedemptionController
         ///     Parameter name defined by <see cref="ApiKeyAuthenticationHandler.RoomIdQueryStringName"/>.</param>
         /// <param name="rewardId">Id of the reward. Must match roomId.</param>
         /// <returns></returns>
+        /// <response code="204">Reward successfully deleted.</response>
+        /// <response code="404">Channel or reward in Channel not found.</response>
         [HttpDelete]
+        [ProducesResponseType((int) HttpStatusCode.NoContent)]
         public async Task<ActionResult> Delete([FromQuery] int roomId, [FromQuery] string rewardId)
         {
             Reward dbReward = _ttsDbContext.Rewards
@@ -213,8 +231,11 @@ namespace TtsApi.Controllers.RedemptionController
         /// </summary>
         /// <param name="roomId">Id of the channel. Must match auth permissions
         ///     Parameter name defined by <see cref="ApiKeyAuthenticationHandler.RoomIdQueryStringName"/>.</param>
+        /// <response code="204">Reward successfully skipped.</response>
+        /// <response code="404">Channel or reward in Channel not found.</response>
         [HttpPost("Skip")]
         [Authorize(Policy = Policies.CanAccessQueue)]
+        [ProducesResponseType((int) HttpStatusCode.NoContent)]
         public async Task<ActionResult> Skip([FromQuery] int roomId)
         {
             bool hasReward = await _ttsDbContext.Rewards.AnyAsync(reward => reward.ChannelId == roomId);

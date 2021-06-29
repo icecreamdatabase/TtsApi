@@ -1,4 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Net;
+using System.Threading.Tasks;
 using Amazon.Polly.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,16 +25,30 @@ namespace TtsApi.Controllers.SynthesizeSpeechController
             _polly = polly;
         }
 
+        /// <summary>
+        /// Execute a TTS request.
+        /// </summary>
+        /// <returns></returns>
+        /// <response code="200">Audio stream.</response>
         [HttpGet]
-        [Authorize(Roles = Roles.BotAdmin)]
-        public async Task<ActionResult> Get([FromQuery] SynthesizeSpeechInput input)
+        [Authorize(Roles = Roles.BotOwner)]
+        [ProducesResponseType((int) HttpStatusCode.OK)]
+        [Produces("audio/mpeg", "application/json")]
+        public async Task<ActionResult<Stream>> Get([FromQuery] SynthesizeSpeechInput input)
         {
             SynthesizeSpeechResponse res = await _polly.Synthesize(input.Text, input.GetVoiceId(), input.GetEngine());
             return Ok(res.AudioStream);
         }
 
+        /// <summary>
+        /// Get all available TTS Voices.
+        /// </summary>
+        /// <returns></returns>
+        /// <response code="200">Available TTS voices.</response>
         [HttpGet("GetVoices")]
-        public ActionResult Get()
+        [ProducesResponseType((int) HttpStatusCode.OK)]
+        [Produces("application/json")]
+        public ActionResult<List<Voice>> Get()
         {
             return Ok(Polly.VoicesData);
         }
