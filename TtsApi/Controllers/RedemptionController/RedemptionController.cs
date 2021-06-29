@@ -232,7 +232,7 @@ namespace TtsApi.Controllers.RedemptionController
         /// <param name="roomId">Id of the channel. Must match auth permissions
         ///     Parameter name defined by <see cref="ApiKeyAuthenticationHandler.RoomIdQueryStringName"/>.</param>
         /// <response code="204">Reward successfully skipped.</response>
-        /// <response code="404">Channel or reward in Channel not found.</response>
+        /// <response code="404">Channel not found or channel doesn't not have any rewards.</response>
         [HttpPost("Skip")]
         [Authorize(Policy = Policies.CanAccessQueue)]
         [ProducesResponseType((int) HttpStatusCode.NoContent)]
