@@ -11,6 +11,7 @@ namespace TtsApi.Model.Schema
     {
         PlayedFully,
         Skipped,
+        SkippedBeforePlaying,
         SkippedAfterTime,
         SkippedNoQueue,
         NotPlayedTimedOut,

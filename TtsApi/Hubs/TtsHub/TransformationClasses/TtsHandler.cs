@@ -18,7 +18,7 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
     public class TtsHandler
     {
         public static readonly Dictionary<string, string> ConnectClients = new();
-        private static readonly Dictionary<int, string> ActiveRequests = new();
+        public static readonly Dictionary<int, string> ActiveRequests = new();
 
         private readonly ILogger<TtsHandler> _logger;
         private readonly TtsDbContext _ttsDbContext;
@@ -134,37 +134,39 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
             if (ActiveRequests.ContainsKey(roomId) && ActiveRequests[roomId] == id)
             {
                 ActiveRequests.Remove(roomId);
-                RequestQueueIngest rqi = await _ttsDbContext.RequestQueueIngest
-                    .Include(r => r.Reward)
-                    .FirstOrDefaultAsync(r => r.Id == int.Parse(id));
-
-                //TODO: this shouldn't happen. This stuff runs in parallel. We need to lock the lockfile Pepega
-                if (rqi is null)
-                    return;
-
-                // This should never happen! But if it does we can find it in the logs.
-                if (!rqi.CharacterCostStandard.HasValue && !rqi.CharacterCostNeural.HasValue)
-                    _logger.LogWarning("RequestQueueIngest entry {Id} had no cost!", rqi.Id);
-
-                _ttsDbContext.TtsLogMessages.Add(new TtsLogMessage
-                {
-                    RewardId = rqi.RewardId,
-                    RoomId = rqi.Reward.ChannelId,
-                    RequesterId = rqi.RequesterId,
-                    IsSubOrHigher = rqi.IsSubOrHigher,
-                    RawMessage = rqi.RawMessage,
-                    VoicesId = rqi.Reward.VoiceId,
-                    WasTimedOut = rqi.WasTimedOut,
-                    MessageType = reason,
-                    RequestTimestamp = rqi.RequestTimestamp,
-                    MessageId = rqi.MessageId,
-                    CharacterCostStandard = rqi.CharacterCostStandard ?? 0,
-                    CharacterCostNeural = rqi.CharacterCostNeural ?? 0
-                });
-
-                _ttsDbContext.RequestQueueIngest.Remove(rqi);
-                await _ttsDbContext.SaveChangesAsync();
+                await MoveRqiToTtsLog(id, reason);
             }
+        }
+
+        public async Task MoveRqiToTtsLog(string id, MessageType reason)
+        {
+            RequestQueueIngest rqi = await _ttsDbContext.RequestQueueIngest
+                .Include(r => r.Reward)
+                .FirstOrDefaultAsync(r => r.Id == int.Parse(id));
+
+            //TODO: this shouldn't happen. This stuff runs in parallel. We need to lock the lockfile Pepega
+            if (rqi is null)
+                return;
+
+            _ttsDbContext.TtsLogMessages.Add(new TtsLogMessage
+            {
+                RewardId = rqi.RewardId,
+                RoomId = rqi.Reward.ChannelId,
+                RequesterId = rqi.RequesterId,
+                IsSubOrHigher = rqi.IsSubOrHigher,
+                RawMessage = rqi.RawMessage,
+                VoicesId = rqi.Reward.VoiceId,
+                WasTimedOut = rqi.WasTimedOut,
+                MessageType = reason,
+                RequestTimestamp = rqi.RequestTimestamp,
+                MessageId = rqi.MessageId,
+                // If skipped before even requesting we won't have a cost
+                CharacterCostStandard = rqi.CharacterCostStandard ?? 0, 
+                CharacterCostNeural = rqi.CharacterCostNeural ?? 0
+            });
+
+            _ttsDbContext.RequestQueueIngest.Remove(rqi);
+            await _ttsDbContext.SaveChangesAsync();
         }
 
         public static void ClientDisconnected(string contextConnectionId, string contextUserIdentifier)
