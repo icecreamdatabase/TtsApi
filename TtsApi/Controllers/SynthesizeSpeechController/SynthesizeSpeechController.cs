@@ -44,7 +44,7 @@ namespace TtsApi.Controllers.SynthesizeSpeechController
         /// </summary>
         /// <returns></returns>
         /// <response code="200">Available TTS voices.</response>
-        [HttpGet("GetVoices")]
+        [HttpGet("Voices")]
         [ProducesResponseType((int) HttpStatusCode.OK)]
         [Produces("application/json")]
         public ActionResult<List<Voice>> Get()
