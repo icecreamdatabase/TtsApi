@@ -96,7 +96,7 @@ namespace TtsApi.Controllers.RewardController
         [ProducesResponseType((int) HttpStatusCode.Created)]
         [Produces("application/json")]
         public async Task<ActionResult<RewardView>> Create([FromQuery] int roomId,
-            [FromForm] RewardCreateInput input)
+            [FromBody] RewardCreateInput input)
         {
             Channel channel = _ttsDbContext.Channels.FirstOrDefault(c => c.RoomId == roomId);
             if (channel is null)
@@ -152,7 +152,7 @@ namespace TtsApi.Controllers.RewardController
         [HttpPatch]
         [ProducesResponseType((int) HttpStatusCode.NoContent)]
         public async Task<ActionResult> Update([FromQuery] int roomId, [FromQuery] string rewardId,
-            [FromForm] RewardUpdateInput input)
+            [FromBody] RewardUpdateInput input)
         {
             Reward dbReward = _ttsDbContext.Rewards
                 .Include(r => r.Channel)
@@ -224,35 +224,6 @@ namespace TtsApi.Controllers.RewardController
             }
 
             return Problem(null, null, (int) HttpStatusCode.ServiceUnavailable);
-        }
-
-        /// <summary>
-        /// Skips the currently playing redemption. 
-        /// </summary>
-        /// <param name="roomId">Id of the channel. Must match auth permissions
-        ///     Parameter name defined by <see cref="ApiKeyAuthenticationHandler.RoomIdQueryStringName"/>.</param>
-        /// <response code="204">Reward successfully skipped.</response>
-        /// <response code="404">Channel not found or channel doesn't not have any rewards.</response>
-        [HttpPost("Skip")]
-        [Authorize(Policy = Policies.CanAccessQueue)]
-        [ProducesResponseType((int) HttpStatusCode.NoContent)]
-        public async Task<ActionResult> Skip([FromQuery] int roomId)
-        {
-            bool hasReward = await _ttsDbContext.Rewards.AnyAsync(reward => reward.ChannelId == roomId);
-
-            if (!hasReward) return NotFound();
-
-            List<string> clients = TtsHandler.ConnectClients
-                .Where(pair => pair.Value == roomId.ToString())
-                .Select(pair => pair.Key)
-                .Distinct()
-                .ToList();
-            if (clients.Any())
-            {
-                await _ttsHub.Clients.Clients(clients).TtsSkipCurrent();
-            }
-
-            return NoContent();
         }
     }
 }

@@ -9,12 +9,15 @@ namespace TtsApi.Controllers.SynthesizeSpeechController
     [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
     public class SynthesizeSpeechInput : IValidatableObject
     {
+        [Required]
         [StringLength(3000)]
         public string Text { get; set; }
 
+        [Required]
         public string VoiceId { get; set; }
         public VoiceId GetVoiceId() => Amazon.Polly.VoiceId.FindValue(VoiceId);
 
+        [Required]
         public string Engine { get; set; }
         public Engine GetEngine() => Amazon.Polly.Engine.FindValue(Engine);
 

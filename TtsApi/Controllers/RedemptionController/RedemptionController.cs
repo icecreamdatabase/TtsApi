@@ -60,7 +60,7 @@ namespace TtsApi.Controllers.RedemptionController
         }
 
         /// <summary>
-        /// Delete a specific redemption in a specific channel.
+        /// Delete a specific redemption in a specific channel. Essentially skipping it.
         /// </summary>
         /// <param name="roomId">Id of the channel. Must match auth permissions
         ///     Parameter name defined by <see cref="ApiKeyAuthenticationHandler.RoomIdQueryStringName"/>.</param>

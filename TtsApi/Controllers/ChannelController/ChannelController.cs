@@ -52,12 +52,13 @@ namespace TtsApi.Controllers.ChannelController
         /// </summary>
         /// <param name="roomId">Id of the channel. Must match auth permissions
         ///     Parameter name defined by <see cref="ApiKeyAuthenticationHandler.RoomIdQueryStringName"/>.</param>
+        /// <param name="input"></param>
         /// <returns></returns>
         /// <response code="204">Channel updated successfully or nothing was changed.</response>
         /// <response code="404">Channel not found.</response>
         [HttpPatch]
         [ProducesResponseType((int) HttpStatusCode.NoContent)]
-        public async Task<ActionResult> Update([FromQuery] int roomId, [FromForm] ChannelUpdateInput input)
+        public async Task<ActionResult> Update([FromQuery] int roomId, [FromBody] ChannelUpdateInput input)
         {
             Channel dbChannel = await _ttsDbContext.Channels.FindAsync(roomId);
 
