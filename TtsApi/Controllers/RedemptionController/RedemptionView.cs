@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
-using TtsApi.Controllers.RewardController;
 using TtsApi.Model.Schema;
 
 namespace TtsApi.Controllers.RedemptionController

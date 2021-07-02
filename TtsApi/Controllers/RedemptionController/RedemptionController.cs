@@ -1,20 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Net.Mime;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.Extensions.Logging;
 using TtsApi.Authentication;
 using TtsApi.Authentication.Policies;
-using TtsApi.Controllers.RewardController;
-using TtsApi.ExternalApis.Twitch.Helix;
-using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.DataTypes;
 using TtsApi.Hubs.TtsHub;
 using TtsApi.Hubs.TtsHub.TransformationClasses;
 using TtsApi.Model;
@@ -24,10 +19,9 @@ namespace TtsApi.Controllers.RedemptionController
 {
     [ApiController]
     [Route("[controller]")]
-    [Authorize(Policy = Policies.CanChangeSettings)]
+    [Authorize(Policy = Policies.CanAccessQueue)]
     public class RedemptionController : ControllerBase
     {
-        private const string ErrorDuplicateReward = "CREATE_CUSTOM_REWARD_DUPLICATE_REWARD";
         private readonly ILogger<RedemptionController> _logger;
         private readonly TtsDbContext _ttsDbContext;
         private readonly IHubContext<TtsHub, ITtsHub> _ttsHub;
