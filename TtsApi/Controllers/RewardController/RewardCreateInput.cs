@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text.Json.Serialization;
 using Amazon.Polly;
 
-namespace TtsApi.Controllers.RedemptionController
+namespace TtsApi.Controllers.RewardController
 {
-    public class RedemptionCreateInput : IValidatableObject
+    public class RewardCreateInput : IValidatableObject
     {
         [JsonPropertyName("title")]
         public string Title { get; set; }

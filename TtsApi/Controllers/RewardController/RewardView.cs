@@ -2,11 +2,11 @@
 using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.DataTypes;
 using TtsApi.Model.Schema;
 
-namespace TtsApi.Controllers.RedemptionController
+namespace TtsApi.Controllers.RewardController
 {
     [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
     [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
-    public class RedemptionRewardView
+    public class RewardView
     {
         public string RewardId { get; }
         public int ChannelId { get; }
@@ -17,7 +17,7 @@ namespace TtsApi.Controllers.RedemptionController
 
         public TwitchCustomReward TwitchCustomReward { get; }
 
-        public RedemptionRewardView(Reward reward, TwitchCustomReward twitchCustomReward)
+        public RewardView(Reward reward, TwitchCustomReward twitchCustomReward)
         {
             if (reward is not null)
             {

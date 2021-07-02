@@ -5,9 +5,9 @@ using System.Linq;
 using Amazon.Polly;
 using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.DataTypes;
 
-namespace TtsApi.Controllers.RedemptionController
+namespace TtsApi.Controllers.RewardController
 {
-    public class RedemptionUpdateInput : TwitchCustomRewardInputUpdate, IValidatableObject
+    public class RewardUpdateInput : TwitchCustomRewardInputUpdate, IValidatableObject
     {
         public string? VoiceId { get; set; }
         public VoiceId GetVoiceId() => Amazon.Polly.VoiceId.FindValue(VoiceId);

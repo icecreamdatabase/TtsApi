@@ -11,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.SwaggerUI;
 using TtsApi.Authentication;
 using TtsApi.Authentication.Policies;
 using TtsApi.Authentication.Policies.Handler;
@@ -153,6 +154,10 @@ namespace TtsApi
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "TtsApi v1");
+                
+                //Disable the "Try it out" button
+                //c.SupportedSubmitMethods(Array.Empty<SubmitMethod>());
+                
                 //This garbage doesn't work and therefore the authorization is lost after every reload.
                 //Making swagger completely useless for this project.
                 //c.ConfigObject.AdditionalItems.Add("persistAuthorization", "true");

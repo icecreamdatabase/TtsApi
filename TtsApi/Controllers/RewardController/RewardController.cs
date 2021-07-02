@@ -17,20 +17,20 @@ using TtsApi.Hubs.TtsHub.TransformationClasses;
 using TtsApi.Model;
 using TtsApi.Model.Schema;
 
-namespace TtsApi.Controllers.RedemptionController
+namespace TtsApi.Controllers.RewardController
 {
     [ApiController]
     [Route("[controller]")]
     [Authorize(Policy = Policies.CanChangeSettings)]
-    public class RedemptionController : ControllerBase
+    public class RewardController : ControllerBase
     {
         private const string ErrorDuplicateReward = "CREATE_CUSTOM_REWARD_DUPLICATE_REWARD";
-        private readonly ILogger<RedemptionController> _logger;
+        private readonly ILogger<RewardController> _logger;
         private readonly TtsDbContext _ttsDbContext;
         private readonly ChannelPoints _channelPoints;
         private readonly IHubContext<TtsHub, ITtsHub> _ttsHub;
 
-        public RedemptionController(ILogger<RedemptionController> logger, TtsDbContext ttsDbContext,
+        public RewardController(ILogger<RewardController> logger, TtsDbContext ttsDbContext,
             ChannelPoints channelPoints, IHubContext<TtsHub, ITtsHub> ttsHub)
         {
             _logger = logger;
@@ -51,7 +51,7 @@ namespace TtsApi.Controllers.RedemptionController
         [HttpGet]
         [ProducesResponseType((int) HttpStatusCode.OK)]
         [Produces("application/json")]
-        public async Task<ActionResult<RedemptionRewardView>> Get([FromQuery] int roomId, [FromQuery] string rewardId)
+        public async Task<ActionResult<RewardView>> Get([FromQuery] int roomId, [FromQuery] string rewardId)
         {
             Channel inputChannel;
             Reward inputReward = null;
@@ -71,15 +71,15 @@ namespace TtsApi.Controllers.RedemptionController
 
             DataHolder<TwitchCustomReward> dataHolder = await _channelPoints.GetCustomReward(inputChannel, inputReward);
 
-            List<RedemptionRewardView> redemptionRewardViews = dataHolder.Data
+            List<RewardView> rewardViews = dataHolder.Data
                 .Select(twitchCustomReward =>
                 {
                     inputReward ??= _ttsDbContext.Rewards.FirstOrDefault(r => r.RewardId == twitchCustomReward.Id);
-                    return new RedemptionRewardView(inputReward, twitchCustomReward);
+                    return new RewardView(inputReward, twitchCustomReward);
                 })
                 .ToList();
 
-            return Ok(redemptionRewardViews);
+            return Ok(rewardViews);
         }
 
         /// <summary>
@@ -95,8 +95,8 @@ namespace TtsApi.Controllers.RedemptionController
         [HttpPost]
         [ProducesResponseType((int) HttpStatusCode.Created)]
         [Produces("application/json")]
-        public async Task<ActionResult<RedemptionRewardView>> Create([FromQuery] int roomId,
-            [FromForm] RedemptionCreateInput input)
+        public async Task<ActionResult<RewardView>> Create([FromQuery] int roomId,
+            [FromForm] RewardCreateInput input)
         {
             Channel channel = _ttsDbContext.Channels.FirstOrDefault(c => c.RoomId == roomId);
             if (channel is null)
@@ -130,7 +130,7 @@ namespace TtsApi.Controllers.RedemptionController
                 await _ttsDbContext.SaveChangesAsync();
 
                 return Created($"{@Url.Action("Get")}/{twitchCustomReward.Id}",
-                    new RedemptionRewardView(newReward, twitchCustomReward));
+                    new RewardView(newReward, twitchCustomReward));
             }
 
             return dataHolder is {Status: (int) HttpStatusCode.BadRequest, Message: ErrorDuplicateReward}
@@ -152,7 +152,7 @@ namespace TtsApi.Controllers.RedemptionController
         [HttpPatch]
         [ProducesResponseType((int) HttpStatusCode.NoContent)]
         public async Task<ActionResult> Update([FromQuery] int roomId, [FromQuery] string rewardId,
-            [FromForm] RedemptionUpdateInput input)
+            [FromForm] RewardUpdateInput input)
         {
             Reward dbReward = _ttsDbContext.Rewards
                 .Include(r => r.Channel)
