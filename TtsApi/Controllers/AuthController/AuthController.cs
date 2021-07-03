@@ -24,13 +24,15 @@ namespace TtsApi.Controllers.AuthController
         private static readonly List<string> RegisterRequiredScopes = new()
             {"channel:manage:redemptions", "channel:read:redemptions", "moderation:read"};
 
+        private static readonly string[] ValidSignupBroadcasterTypes = {"partner", "affiliate"};
+
         public AuthController(ILogger<AuthController> logger, TtsDbContext db, Users users)
         {
             _logger = logger;
             _db = db;
             _users = users;
         }
-        
+
         /// <summary>
         /// Get the Twitch auth data required in the application.
         /// </summary>
@@ -59,7 +61,7 @@ namespace TtsApi.Controllers.AuthController
         {
             if (string.IsNullOrEmpty(code))
                 return BadRequest();
-            
+
             string clientId = BotDataAccess.GetClientId(_db.BotData);
             string clientSecret = BotDataAccess.GetClientSecret(_db.BotData);
             TwitchTokenResult tokenResult = await GenerateAccessToken(clientId, clientSecret, code);
@@ -78,9 +80,13 @@ namespace TtsApi.Controllers.AuthController
             if (!hasAllRequiredScopes)
                 return Problem($"Missing scopes. Registering requires: {string.Join(", ", RegisterRequiredScopes)}",
                     null, (int) HttpStatusCode.Forbidden);
-            
-            
-            //TODO: Check if Affiliate or Partner
+
+            // Check for partner / affiliate status
+            TwitchUser twitchUser = await _users.GetById(validateResult.UserId);
+            if (!ValidSignupBroadcasterTypes.Contains(twitchUser.BroadcasterType))
+            {
+                return Problem($"User is not a partner or affiliate", null, (int) HttpStatusCode.Forbidden);
+            }
 
             Channel entity = _db.Channels.FirstOrDefault(channel => channel.RoomId == int.Parse(validateResult.UserId));
 
@@ -91,7 +97,7 @@ namespace TtsApi.Controllers.AuthController
                 {
                     RoomId = int.Parse(validateResult.UserId),
                     ChannelName = validateResult.Login,
-                    IsTwitchPartner = false,
+                    IsTwitchPartner = twitchUser.BroadcasterType == "partner",
                     Enabled = true
                 };
                 _db.Channels.Add(entity);
