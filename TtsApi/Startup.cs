@@ -52,6 +52,8 @@ namespace TtsApi
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo {Title = "TtsApi", Version = "v1"});
+                if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true")
+                    c.IncludeXmlComments("TtsApi.xml");
                 c.AddSecurityDefinition("OAuth", new OpenApiSecurityScheme
                 {
                     Description = "Standard Twitch OAuth header. Example: \"OAuth 0123456789abcdefghijABCDEFGHIJ\"",
