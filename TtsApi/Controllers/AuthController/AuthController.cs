@@ -6,11 +6,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using TtsApi.ExternalApis.Twitch.Helix.Auth.DataTypes;
 using TtsApi.ExternalApis.Twitch.Helix.Users;
+using TtsApi.ExternalApis.Twitch.Helix.Users.DataTypes;
 using TtsApi.Model;
 using TtsApi.Model.Schema;
 using static TtsApi.ExternalApis.Twitch.Helix.Auth.Authentication;
 
-namespace TtsApi.Controllers
+namespace TtsApi.Controllers.AuthController
 {
     [ApiController]
     [Route("[controller]")]
@@ -28,6 +29,19 @@ namespace TtsApi.Controllers
             _logger = logger;
             _db = db;
             _users = users;
+        }
+        
+        /// <summary>
+        /// Get the Twitch auth data required in the application.
+        /// </summary>
+        /// <returns></returns>
+        /// <response code="200"></response>
+        [HttpGet("Links")]
+        [ProducesResponseType((int) HttpStatusCode.OK)]
+        [Produces("application/json")]
+        public ActionResult<AuthDataView> Get()
+        {
+            return Ok(AuthDataView.Instance);
         }
 
         /// <summary>

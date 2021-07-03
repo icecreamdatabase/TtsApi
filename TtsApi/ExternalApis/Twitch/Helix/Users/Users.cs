@@ -21,6 +21,11 @@ namespace TtsApi.ExternalApis.Twitch.Helix.Users
         }
 
 
+        public async Task<TwitchUser> GetById(string userId)
+        {
+            return (await GetList(userIdsToCheck: new[] {userId})).FirstOrDefault();
+        }
+
         public async Task<TwitchUser> GetById(int userId)
         {
             return (await GetList(userIdsToCheck: new[] {userId.ToString()})).FirstOrDefault();

@@ -13,7 +13,6 @@ using TtsApi.ExternalApis.Twitch.Helix;
 using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints;
 using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.DataTypes;
 using TtsApi.Hubs.TtsHub;
-using TtsApi.Hubs.TtsHub.TransformationClasses;
 using TtsApi.Model;
 using TtsApi.Model.Schema;
 
