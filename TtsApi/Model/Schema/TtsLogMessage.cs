@@ -16,6 +16,8 @@ namespace TtsApi.Model.Schema
         SkippedNoQueue,
         NotPlayedTimedOut,
         NotPlayedSubOnly,
+        NotPlayedIsOnGlobalBlacklist, // This one will never really be used. The ingest nodejs bot already filters this.
+        NotPlayedIsOnChannelBlacklist,
         FailedNoParts
     }
 

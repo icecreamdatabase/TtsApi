@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Amazon.Polly;
@@ -42,6 +43,7 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
             RequestQueueIngest rqi = _ttsDbContext.RequestQueueIngest
                 .Include(r => r.Reward)
                 .Include(r => r.Reward.Channel)
+                .Include(r => r.Reward.Channel.ChannelUserBlacklist)
                 .First(r => r.Id == rqiId);
 
             if (ActiveRequests.ContainsKey(rqi.Reward.ChannelId))
@@ -49,15 +51,47 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
 
             ActiveRequests.Add(rqi.Reward.ChannelId, rqi.Id.ToString());
 
-            if (rqi.WasTimedOut)
+            /* Global user blacklist */
+            if (_ttsDbContext.GlobalUserBlacklist.Any(gub => gub.UserId == rqi.RequesterId))
             {
-                await DoneWithPlaying(rqi.Reward.ChannelId, rqi.Id.ToString(), MessageType.NotPlayedTimedOut);
+                await DoneWithPlaying(
+                    rqi.Reward.ChannelId,
+                    rqi.Id.ToString(),
+                    MessageType.NotPlayedIsOnGlobalBlacklist
+                );
                 return;
             }
 
+            /* Channel user blacklist */
+            if (rqi.Reward.Channel.ChannelUserBlacklist.Any(cub => cub.UserId == rqi.RequesterId))
+            {
+                await DoneWithPlaying(
+                    rqi.Reward.ChannelId,
+                    rqi.Id.ToString(),
+                    MessageType.NotPlayedIsOnChannelBlacklist
+                );
+                return;
+            }
+
+            /* Was timed out or deleted */
+            if (rqi.WasTimedOut)
+            {
+                await DoneWithPlaying(
+                    rqi.Reward.ChannelId,
+                    rqi.Id.ToString(),
+                    MessageType.NotPlayedTimedOut
+                );
+                return;
+            }
+
+            /* Sub mode */
             if (rqi.Reward.IsSubOnly && !rqi.IsSubOrHigher)
             {
-                await DoneWithPlaying(rqi.Reward.ChannelId, rqi.Id.ToString(), MessageType.NotPlayedSubOnly);
+                await DoneWithPlaying(
+                    rqi.Reward.ChannelId,
+                    rqi.Id.ToString(),
+                    MessageType.NotPlayedSubOnly
+                );
                 return;
             }
 
@@ -161,7 +195,7 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
                 RequestTimestamp = rqi.RequestTimestamp,
                 MessageId = rqi.MessageId,
                 // If skipped before even requesting we won't have a cost
-                CharacterCostStandard = rqi.CharacterCostStandard ?? 0, 
+                CharacterCostStandard = rqi.CharacterCostStandard ?? 0,
                 CharacterCostNeural = rqi.CharacterCostNeural ?? 0
             });
 

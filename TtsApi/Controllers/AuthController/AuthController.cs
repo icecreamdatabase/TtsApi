@@ -72,6 +72,9 @@ namespace TtsApi.Controllers.AuthController
             if (string.IsNullOrEmpty(validateResult.UserId))
                 return Forbid();
 
+            if (_db.GlobalUserBlacklist.Any(gub => gub.UserId.ToString() == validateResult.UserId))
+                return Problem($"User is blacklisted", null, (int) HttpStatusCode.Forbidden);
+
             bool hasAllRequiredScopes = RegisterRequiredScopes
                 .All(requiredScope => validateResult.Scopes
                     .Select(s => s.ToLowerInvariant())

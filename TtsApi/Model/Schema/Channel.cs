@@ -65,6 +65,8 @@ namespace TtsApi.Model.Schema
         public virtual List<AllowedConversationVoice> AllowedConversationVoices { get; set; }
 
         public virtual List<ChannelEditor> ChannelEditors { get; set; }
+        
+        public virtual List<ChannelUserBlacklist> ChannelUserBlacklist { get; set; }
 
         protected internal static void BuildModel(ModelBuilder modelBuilder)
         {
