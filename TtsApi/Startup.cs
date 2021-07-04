@@ -15,6 +15,7 @@ using TtsApi.Authentication;
 using TtsApi.Authentication.Policies;
 using TtsApi.Authentication.Policies.Handler;
 using TtsApi.Authentication.Policies.Requirements;
+using TtsApi.Authentication.Roles;
 using TtsApi.BackgroundServices;
 using TtsApi.ExternalApis.Aws;
 using TtsApi.ExternalApis.Discord;
@@ -52,12 +53,12 @@ namespace TtsApi
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo {Title = "TtsApi", Version = "v1"});
-                
+
                 // This is more or less a hotfix due to the way I currently run docker. 
                 // Once I cleanup the docker file this won't be needed anymore.
                 if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true")
                     c.IncludeXmlComments("TtsApi.xml");
-                
+
                 c.AddSecurityDefinition("OAuth", new OpenApiSecurityScheme
                 {
                     Description = "Standard Twitch OAuth header. Example: \"OAuth 0123456789abcdefghijABCDEFGHIJ\"",
@@ -105,13 +106,15 @@ namespace TtsApi
                 .AddApiKeySupport(_ => { });
             services.AddAuthorization(options =>
             {
-                options.AddPolicy(Policies.CanChangeSettings,
-                    policy => policy.Requirements.Add(new CanChangeSettingsRequirements()));
+                options.AddPolicy(Policies.CanChangeChannelSettings,
+                    policy => policy.Requirements.Add(new CanChangeChannelSettingsRequirements()));
                 options.AddPolicy(Policies.CanAccessQueue,
                     policy => policy.Requirements.Add(new CanAccessQueueRequirements()));
+                options.AddPolicy(Policies.CanChangeBotSettings,
+                    policy => policy.RequireRole(Roles.IrcBot, Roles.BotOwner, Roles.BotAdmin));
             });
 
-            services.AddTransient<IAuthorizationHandler, CanChangeSettingsHandler>();
+            services.AddTransient<IAuthorizationHandler, CanChangeChannelSettingsHandler>();
             services.AddTransient<IAuthorizationHandler, CanAccessQueueHandler>();
 
 
@@ -159,10 +162,10 @@ namespace TtsApi
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "TtsApi v1");
-                
+
                 //Disable the "Try it out" button
                 //c.SupportedSubmitMethods(Array.Empty<SubmitMethod>());
-                
+
                 //This garbage doesn't work and therefore the authorization is lost after every reload.
                 //Making swagger completely useless for this project.
                 //c.ConfigObject.AdditionalItems.Add("persistAuthorization", "true");

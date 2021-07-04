@@ -14,7 +14,7 @@ namespace TtsApi.Controllers.ChannelController
 {
     [ApiController]
     [Route("[controller]")]
-    [Authorize(Policy = Policies.CanChangeSettings)]
+    [Authorize(Policy = Policies.CanChangeChannelSettings)]
     public class ChannelController : ControllerBase
     {
         private readonly ILogger<ChannelController> _logger;

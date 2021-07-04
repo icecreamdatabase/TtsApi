@@ -63,7 +63,7 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
             }
 
             /* Channel user blacklist */
-            if (rqi.Reward.Channel.ChannelUserBlacklist.Any(cub => cub.UserId == rqi.RequesterId))
+            if (rqi.Reward.Channel.ChannelUserBlacklist.Any(cub => cub.UserId == rqi.RequesterId && DateTime.Now < cub.UntilDate))
             {
                 await DoneWithPlaying(
                     rqi.Reward.ChannelId,

@@ -20,7 +20,7 @@ namespace TtsApi.Controllers.RewardController
 {
     [ApiController]
     [Route("[controller]")]
-    [Authorize(Policy = Policies.CanChangeSettings)]
+    [Authorize(Policy = Policies.CanChangeChannelSettings)]
     public class RewardController : ControllerBase
     {
         private const string ErrorDuplicateReward = "CREATE_CUSTOM_REWARD_DUPLICATE_REWARD";

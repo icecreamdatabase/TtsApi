@@ -11,13 +11,13 @@ using TtsApi.Model.Schema;
 
 namespace TtsApi.Authentication.Policies.Handler
 {
-    public class CanChangeSettingsHandler : AuthorizationHandler<CanChangeSettingsRequirements>
+    public class CanChangeChannelSettingsHandler : AuthorizationHandler<CanChangeChannelSettingsRequirements>
     {
-        private readonly ILogger<CanChangeSettingsHandler> _logger;
+        private readonly ILogger<CanChangeChannelSettingsHandler> _logger;
         private readonly TtsDbContext _ttsDbContext;
         private readonly Moderation _moderation;
 
-        public CanChangeSettingsHandler(ILogger<CanChangeSettingsHandler> logger, TtsDbContext ttsDbContext,
+        public CanChangeChannelSettingsHandler(ILogger<CanChangeChannelSettingsHandler> logger, TtsDbContext ttsDbContext,
             Moderation moderation)
         {
             _logger = logger;
@@ -26,7 +26,7 @@ namespace TtsApi.Authentication.Policies.Handler
         }
 
         protected override async Task<Task> HandleRequirementAsync(AuthorizationHandlerContext context,
-            CanChangeSettingsRequirements requirement)
+            CanChangeChannelSettingsRequirements requirement)
         {
             if (
                 context.User.IsInRole(Roles.Roles.IrcBot) ||
