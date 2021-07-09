@@ -11,6 +11,7 @@ namespace TtsApi.Controllers.RewardController
         public string RewardId { get; }
         public int ChannelId { get; }
         public string VoiceId { get; }
+        public string VoiceEngine { get; }
         public bool IsConversation { get; }
         public bool IsSubOnly { get; }
         public int Cooldown { get; }
@@ -24,6 +25,7 @@ namespace TtsApi.Controllers.RewardController
                 RewardId = reward.RewardId;
                 ChannelId = reward.ChannelId;
                 VoiceId = reward.VoiceId;
+                VoiceEngine = reward.VoiceEngine;
                 IsConversation = reward.IsConversation;
                 IsSubOnly = reward.IsSubOnly;
                 Cooldown = reward.Cooldown;
