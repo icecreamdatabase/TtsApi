@@ -58,7 +58,11 @@ namespace TtsApi.Controllers.ChannelBlacklistController
         {
             ChannelUserBlacklist channelUserBlacklist =
                 await _ttsDbContext.ChannelUserBlacklist.FindAsync(roomId, input.UserId);
-            _ttsDbContext.ChannelUserBlacklist.Remove(channelUserBlacklist);
+            if (channelUserBlacklist != null)
+            {
+                _ttsDbContext.ChannelUserBlacklist.Remove(channelUserBlacklist);
+                await _ttsDbContext.SaveChangesAsync();
+            }
 
             ChannelUserBlacklist cub = new ChannelUserBlacklist
             {

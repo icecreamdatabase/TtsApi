@@ -16,14 +16,16 @@ namespace TtsApi.Model.Schema
         public int UserId { get; set; }
 
         [Required]
-        [Column(TypeName = "TIMESTAMP")]
+        [Column(TypeName = "DATETIME")]
         public DateTime AddDate { get; set; }
 
         protected internal static void BuildModel(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<GlobalUserBlacklist>(entity =>
             {
-                entity.Property(e => e.AddDate).ValueGeneratedOnAdd();
+                entity.Property(e => e.AddDate)
+                    .HasDefaultValueSql("UTC_TIMESTAMP()")
+                    .ValueGeneratedOnAdd();
             });
         }
     }

@@ -21,10 +21,10 @@ namespace TtsApi.Model.Schema
         public int UserId { get; set; }
         
         [Required]
-        [Column(TypeName = "TIMESTAMP")]
+        [Column(TypeName = "DATETIME")]
         public DateTime AddDate { get; set; }
         
-        [Column(TypeName = "TIMESTAMP")]
+        [Column(TypeName = "DATETIME")]
         public DateTime? UntilDate { get; set; }
 
         protected internal static void BuildModel(ModelBuilder modelBuilder)
@@ -32,7 +32,9 @@ namespace TtsApi.Model.Schema
             modelBuilder.Entity<ChannelUserBlacklist>(entity =>
             {
                 entity.HasKey(nameof(ChannelId), nameof(UserId));
-                entity.Property(e => e.AddDate).ValueGeneratedOnAdd();
+                entity.Property(e => e.AddDate)
+                    .HasDefaultValueSql("UTC_TIMESTAMP()")
+                    .ValueGeneratedOnAdd();
             });
         }
     }
