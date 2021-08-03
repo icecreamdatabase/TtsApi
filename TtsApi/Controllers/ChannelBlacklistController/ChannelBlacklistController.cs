@@ -34,9 +34,9 @@ namespace TtsApi.Controllers.ChannelBlacklistController
         /// <returns></returns>
         /// <response code="200">Blacklisted users.</response>
         [HttpGet]
-        [ProducesResponseType((int) HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
         [Produces("application/json")]
-        public ActionResult<IEnumerable<ChannelBlacklistView>> GetChannel([FromQuery] int roomId)
+        public ActionResult<IEnumerable<ChannelBlacklistView>> GetChannelBlacklist([FromQuery] int roomId)
         {
             IQueryable<ChannelBlacklistView> bcv = _ttsDbContext.ChannelUserBlacklist
                 .Where(cub => cub.ChannelId == roomId && (cub.UntilDate == null || DateTime.Now < cub.UntilDate))
@@ -52,9 +52,14 @@ namespace TtsApi.Controllers.ChannelBlacklistController
         /// <returns></returns>
         /// <response code="201">User was added to the blacklist.</response>
         [HttpPost]
-        [ProducesResponseType((int) HttpStatusCode.Created)]
-        public async Task<ActionResult> AddChannel([FromQuery] int roomId, [FromBody] ChannelBlacklistInput input)
+        [ProducesResponseType((int)HttpStatusCode.Created)]
+        public async Task<ActionResult> AddUserToChannelBlacklist([FromQuery] int roomId,
+            [FromBody] ChannelBlacklistInput input)
         {
+            ChannelUserBlacklist channelUserBlacklist =
+                await _ttsDbContext.ChannelUserBlacklist.FindAsync(roomId, input.UserId);
+            _ttsDbContext.ChannelUserBlacklist.Remove(channelUserBlacklist);
+
             ChannelUserBlacklist cub = new ChannelUserBlacklist
             {
                 ChannelId = roomId,
@@ -63,7 +68,7 @@ namespace TtsApi.Controllers.ChannelBlacklistController
             };
             await _ttsDbContext.ChannelUserBlacklist.AddAsync(cub);
             await _ttsDbContext.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetChannel), new {roomId}, cub);
+            return CreatedAtAction(nameof(GetChannelBlacklist), new { roomId }, cub);
         }
 
         /// <summary>
@@ -75,8 +80,8 @@ namespace TtsApi.Controllers.ChannelBlacklistController
         /// <response code="204">User was removed from the blacklist.</response>
         /// <response code="404">User was not on the blacklist.</response>
         [HttpDelete]
-        [ProducesResponseType((int) HttpStatusCode.NoContent)]
-        public async Task<ActionResult> DeleteChannel([FromQuery] int roomId, [FromQuery] int userId)
+        [ProducesResponseType((int)HttpStatusCode.NoContent)]
+        public async Task<ActionResult> DeleteUserFromChannelBlacklist([FromQuery] int roomId, [FromQuery] int userId)
         {
             ChannelUserBlacklist cub = await _ttsDbContext.ChannelUserBlacklist.FindAsync(roomId, userId);
             if (cub is null)
