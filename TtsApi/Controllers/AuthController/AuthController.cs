@@ -22,7 +22,7 @@ namespace TtsApi.Controllers.AuthController
         private readonly Users _users;
 
         private static readonly List<string> RegisterRequiredScopes = new()
-            {"channel:manage:redemptions", "channel:read:redemptions", "moderation:read"};
+            {"channel:manage:redemptions", "channel:read:redemptions", "moderation:read", "channel:moderate"};
 
         private static readonly string[] ValidSignupBroadcasterTypes = {"partner", "affiliate"};
 

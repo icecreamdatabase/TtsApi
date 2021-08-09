@@ -11,7 +11,7 @@ namespace TtsApi.Controllers.AuthController
         public AuthDataSignupView(AuthDataView authDataView) => _authDataView = authDataView;
 
         public string ReponseType => "code";
-        public string Scope => "moderation:read+channel:read:redemptions+channel:manage:redemptions";
+        public string Scope => "moderation:read+channel:read:redemptions+channel:manage:redemptions+channel:moderate";
 
         public string FullUrl =>
             $"{_authDataView.BaseUrl}?client_id={_authDataView.ClientId}&redirect_uri={_authDataView.RedirectUrl}&response_type={ReponseType}&scope={Scope}";
