@@ -12,6 +12,10 @@ namespace TtsApi.Controllers.ChannelController
         [JsonPropertyName("maxMessageTimeSeconds")]
         [Range(0, 300)]
         public int? MaxMessageTimeSeconds { get; set; }
+        
+        [JsonPropertyName("maxTtsCharactersPerRequest")]
+        [Range(50, 500)]
+        public int? MaxTtsCharactersPerRequest { get; set; }
 
         [JsonPropertyName("minCooldown")]
         [Range(0, 300)]

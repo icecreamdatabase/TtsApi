@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using Amazon.Polly;
 using Amazon.Polly.Model;
@@ -22,6 +24,7 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
 
         public static IEnumerable<TtsMessagePart> SplitMessage(RequestQueueIngest rqi)
         {
+            List<string> messageSplit = SplitMessageToClosestWordToLimit(rqi);
             if (!rqi.Reward.IsConversation)
             {
                 Voice voice = rqi.Reward.Voice;
@@ -33,7 +36,7 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
                 {
                     new()
                     {
-                        Message = rqi.RawMessage,
+                        Message = string.Join(' ', messageSplit),
                         VoiceId = useFallback ? FallbackVoiceId : voice.Id,
                         Engine = useFallback ? FallbackEngine : engine,
                         PlaybackSpeed = rqi.Reward.DefaultPlaybackSpeed,
@@ -49,7 +52,7 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
             Voice lastVoice = rqi.Reward.Voice;
             Engine lastEngine = GetEngine(rqi, lastVoice);
             float lastPlaybackSpeed = rqi.Reward.DefaultPlaybackSpeed;
-            foreach (string word in rqi.RawMessage.Split(" "))
+            foreach (string word in messageSplit)
             {
                 if (!string.IsNullOrEmpty(word) && word.EndsWith(":"))
                 {
@@ -112,6 +115,28 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
             });
 
             return messageParts;
+        }
+
+        private static List<string> SplitMessageToClosestWordToLimit(RequestQueueIngest rqi,
+            int wordLengthToNeverCut = 10)
+        {
+            string[] rawMessageSplit = rqi.RawMessage.Split(" ");
+            int messageLength = 0;
+            List<string> returnMessage = new();
+            foreach (string part in rawMessageSplit)
+            {
+                if (messageLength + part.Length > rqi.Reward.Channel.MaxTtsCharactersPerRequest)
+                {
+                    if (part.Length >= wordLengthToNeverCut)
+                        returnMessage.Add(part[..(rqi.Reward.Channel.MaxTtsCharactersPerRequest - messageLength)]);
+                    break;
+                }
+
+                messageLength += part.Length + 1; // + 1 for the spaces
+                returnMessage.Add(part);
+            }
+
+            return returnMessage;
         }
 
         private static Voice GetVoice(string rawVoiceId)

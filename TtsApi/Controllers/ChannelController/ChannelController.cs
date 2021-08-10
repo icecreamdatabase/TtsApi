@@ -102,13 +102,36 @@ namespace TtsApi.Controllers.ChannelController
         public async Task<ActionResult> Delete([FromQuery] int roomId)
         {
             return Problem(null, null, (int) HttpStatusCode.NotImplemented);
-            
+
             Channel dbChannel = await _ttsDbContext.Channels.FindAsync(roomId);
             if (dbChannel is null || !dbChannel.Enabled)
                 return NotFound();
             dbChannel.Enabled = false;
             await _ttsDbContext.SaveChangesAsync();
             //TODO: revoke all token of said user
+            return NoContent();
+        }
+
+        /// <summary>
+        /// Setup defaults like creating an initial reward.
+        /// </summary>
+        /// <param name="roomId">Id of the channel. Must match auth permissions
+        ///     Parameter name defined by <see cref="ApiKeyAuthenticationHandler.RoomIdQueryStringName"/>.</param>
+        /// <returns></returns>
+        /// <response code="204">Successfully setup defaults.</response>
+        /// <response code="404">Channel not found.</response>
+        [HttpPost("SetupDefaults")]
+        [ProducesResponseType((int) HttpStatusCode.NoContent)]
+        public async Task<ActionResult> SetupDefaults([FromQuery] int roomId)
+        {
+            return Problem(null, null, (int) HttpStatusCode.NotImplemented);
+            
+            Channel dbChannel = await _ttsDbContext.Channels.FindAsync(roomId);
+            if (dbChannel is null || !dbChannel.Enabled)
+                return NotFound();
+            
+            //TODO
+
             return NoContent();
         }
     }

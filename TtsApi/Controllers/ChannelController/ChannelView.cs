@@ -13,6 +13,7 @@ namespace TtsApi.Controllers.ChannelController
         public bool IsTwitchPartner { get; }
         public int MaxIrcMessageLength { get; }
         public int MaxMessageTimeSeconds { get; }
+        public int MaxTtsCharactersPerRequest { get; }
         public int MinCooldown { get; }
         public DateTime AddDate { get; }
         public bool IrcMuted { get; }
@@ -28,6 +29,7 @@ namespace TtsApi.Controllers.ChannelController
             IsTwitchPartner = channel.IsTwitchPartner;
             MaxIrcMessageLength = channel.MaxIrcMessageLength;
             MaxMessageTimeSeconds = channel.MaxMessageTimeSeconds;
+            MaxTtsCharactersPerRequest = channel.MaxTtsCharactersPerRequest;
             MinCooldown = channel.MinCooldown;
             AddDate = channel.AddDate;
             IrcMuted = channel.IrcMuted;
