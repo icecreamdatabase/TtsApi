@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Amazon.Polly;
@@ -44,7 +43,10 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
                 .Include(r => r.Reward)
                 .Include(r => r.Reward.Channel)
                 .Include(r => r.Reward.Channel.ChannelUserBlacklist)
-                .First(r => r.Id == rqiId);
+                .FirstOrDefault(r => r.Id == rqiId);
+
+            if (rqi == null)
+                return;
 
             if (ActiveRequests.ContainsKey(rqi.Reward.ChannelId))
                 return;
