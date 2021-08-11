@@ -1,16 +1,13 @@
 ﻿using System;
 using System.IO;
-using System.IO.Pipelines;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
-using Org.BouncyCastle.Ocsp;
 using TtsApi.ExternalApis.Twitch.Eventsub;
 using TtsApi.Model;
 
@@ -46,33 +43,35 @@ namespace TtsApi.Controllers.EventSubController
         [Produces("application/json", "text/plain")]
         public async Task<ActionResult> Post()
         {
-            Console.WriteLine("-------------");
-            //Request.EnableBuffering();
-            
-            // We are not using [FromBody] because I need access to the raw bytes
-            await using MemoryStream memStream = new MemoryStream();
-            await Request.Body.CopyToAsync(memStream);
-            byte[] rawBody = memStream.ToArray();
-            string bodyAsRawString = Utf8Encoding.GetString(rawBody);
-            
-            //Request.Body.Position = 0;
-            //using StreamReader reader = new StreamReader(Request.Body, Encoding.UTF8);
-            //string rawJsonString = await reader.ReadToEndAsync();
-            _logger.LogInformation(bodyAsRawString);
-            EventSubInput data = JsonSerializer.Deserialize<EventSubInput>(bodyAsRawString);
+            // We are not using [FromBody] because I need access to the raw json input data. 
+            // We can't serialize the [FromBody] object back to a json string either.
+            // We need the original order of the json attributes.
+            using StreamReader reader = new StreamReader(Request.Body, Encoding.UTF8);
+            string bodyAsRawString = await reader.ReadToEndAsync();
 
-            if (data == null)
-                return BadRequest();
-
-            if (!string.IsNullOrEmpty(data.Challenge))
+            EventSubInput data;
+            try
             {
-                if (VerifySubscription(bodyAsRawString))
-                    return Ok(data.Challenge);
-                return Forbid();
+                data = JsonSerializer.Deserialize<EventSubInput>(bodyAsRawString);
+
+                if (data == null)
+                    return BadRequest();
+
+                if (!VerifySubscription(bodyAsRawString))
+                    return Forbid();
+            }
+            catch
+            {
+                return BadRequest();
             }
 
 
-            return Ok();
+            // TODO: Handle request
+
+
+            return string.IsNullOrEmpty(data.Challenge)
+                ? Ok()
+                : Ok(data.Challenge);
         }
 
         private bool VerifySubscription(string bodyAsRawString)
@@ -88,9 +87,16 @@ namespace TtsApi.Controllers.EventSubController
             byte[] signature = hash.ComputeHash(Encoding.ASCII.GetBytes(hmacMessage));
             string expectedSignature = "sha256=" + BitConverter.ToString(signature).Replace("-", "");
 
-            _logger.LogInformation("------\n{1}\n{2}\n{3}\n------", hmacMessage, expectedSignature, messageSignature);
+            //_logger.LogInformation("------\n{1}\n{2}\n{3}\n------", hmacMessage, expectedSignature, messageSignature);
 
-            return string.Equals(messageSignature, expectedSignature, StringComparison.InvariantCultureIgnoreCase);
+            // Check valid signature
+            if (!string.Equals(messageSignature, expectedSignature, StringComparison.InvariantCultureIgnoreCase))
+                return false;
+
+            // Check valid age
+            if (!DateTime.TryParse(messageTimestamp, out DateTime messageDateTime))
+                return false;
+            return (DateTime.Now - messageDateTime).TotalMinutes < 10;
         }
     }
 }
