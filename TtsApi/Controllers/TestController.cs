@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using TtsApi.Authentication.Policies;
 using TtsApi.Authentication.Roles;
+using TtsApi.ExternalApis.Twitch.Eventsub;
+using TtsApi.ExternalApis.Twitch.Eventsub.Datatypes;
 using TtsApi.Model;
 
 namespace TtsApi.Controllers
@@ -15,17 +17,20 @@ namespace TtsApi.Controllers
     {
         private readonly ILogger<TestController> _logger;
         private readonly TtsDbContext _ttsDbContext;
+        private readonly Subscriptions _subscriptions;
 
-        public TestController(ILogger<TestController> logger, TtsDbContext ttsDbContext)
+        public TestController(ILogger<TestController> logger, TtsDbContext ttsDbContext, Subscriptions subscriptions)
         {
             _logger = logger;
             _ttsDbContext = ttsDbContext;
+            _subscriptions = subscriptions;
         }
 
         [HttpGet]
         public async Task<ActionResult> Get()
         {
-            return Ok("xD");
+            GetResponse subscriptions = await _subscriptions.GetSubscriptions();
+            return Ok(subscriptions);
         }
 
         [HttpGet("{channelId}")]

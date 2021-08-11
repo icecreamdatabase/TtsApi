@@ -19,6 +19,7 @@ using TtsApi.Authentication.Roles;
 using TtsApi.BackgroundServices;
 using TtsApi.ExternalApis.Aws;
 using TtsApi.ExternalApis.Discord;
+using TtsApi.ExternalApis.Twitch.Eventsub;
 using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints;
 using TtsApi.ExternalApis.Twitch.Helix.Moderation;
 using TtsApi.ExternalApis.Twitch.Helix.Users;
@@ -144,10 +145,13 @@ namespace TtsApi
             services.AddHostedService<PrefetchPollyData>();
 
             services.AddHostedService<IngestQueueHandler>();
+            // Helix
             services.AddTransient<TtsHandler>();
             services.AddTransient<ChannelPoints>();
             services.AddTransient<Moderation>();
             services.AddTransient<Users>();
+            // EventSub
+            services.AddTransient<Subscriptions>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
