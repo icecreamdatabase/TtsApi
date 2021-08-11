@@ -13,6 +13,7 @@ namespace TtsApi.Controllers
 {
     [ApiController]
     [Route("[controller]")]
+    [ApiExplorerSettings(IgnoreApi = true)]
     public class TestController : ControllerBase
     {
         private readonly ILogger<TestController> _logger;

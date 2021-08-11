@@ -9,6 +9,7 @@ namespace TtsApi.Controllers.EventSubController
 {
     [ApiController]
     [Route("[controller]")]
+    [ApiExplorerSettings(IgnoreApi = true)]
     public class EventSubController : ControllerBase
     {
         private readonly ILogger<EventSubController> _logger;
@@ -24,7 +25,9 @@ namespace TtsApi.Controllers.EventSubController
         }
 
         /// <summary>
-        /// 
+        /// Callback endpoint for Twitch Helix EventSub.
+        /// It does full verification of the request origin.
+        /// There is no reason for a user or frontend to ever call it.
         /// </summary>
         /// <returns></returns>
         /// <response code="200"></response>
