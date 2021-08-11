@@ -17,7 +17,7 @@ namespace TtsApi.ExternalApis.Twitch.Eventsub.Datatypes
         public string Version { get; init; }
 
         [JsonPropertyName("cost")]
-        public string Cost { get; init; }
+        public int Cost { get; init; }
 
         [JsonPropertyName("condition")]
         public Condition Condition { get; init; }

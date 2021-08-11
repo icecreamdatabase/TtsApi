@@ -5,7 +5,7 @@ namespace TtsApi.ExternalApis.Twitch.Eventsub.Datatypes
     public class Transport
     {
         [JsonPropertyName("method")]
-        public string Method { get; init; } = "webhook";
+        public string Method { get; init; }
 
         [JsonPropertyName("callback")]
         public string Callback { get; init; }

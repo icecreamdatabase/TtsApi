@@ -1,10 +1,17 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.IO;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using TtsApi.Authentication.Policies;
 using TtsApi.Authentication.Roles;
+using TtsApi.Controllers.EventSubController;
 using TtsApi.ExternalApis.Twitch.Eventsub;
 using TtsApi.ExternalApis.Twitch.Eventsub.Datatypes;
 using TtsApi.Model;
@@ -32,6 +39,20 @@ namespace TtsApi.Controllers
         {
             GetResponse subscriptions = await _subscriptions.GetSubscriptions();
             return Ok(subscriptions);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> Post()
+        {
+            await _subscriptions.CreateSubscription();
+            return NoContent();
+        }
+
+        [HttpDelete]
+        public async Task<ActionResult> Delete([FromQuery] string id)
+        {
+            await _subscriptions.DeleteSubscription(id);
+            return NoContent();
         }
 
         [HttpGet("{channelId}")]

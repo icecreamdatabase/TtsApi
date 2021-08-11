@@ -6,7 +6,7 @@ namespace TtsApi.ExternalApis.Twitch.Eventsub.Datatypes
     public class GetResponse
     {
         [JsonPropertyName("data")]
-        public List<Subscription> Data { get; init; }
+        public Subscription[] Data { get; init; }
         
         [JsonPropertyName("total")]
         public int Total { get; init; }
