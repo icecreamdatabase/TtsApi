@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net;
 using System.Security.Cryptography;
@@ -6,9 +8,12 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Server.Kestrel.Core.Features;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using TtsApi.ExternalApis.Twitch.Eventsub;
+using TtsApi.ExternalApis.Twitch.Eventsub.Datatypes.Conditions;
+using TtsApi.ExternalApis.Twitch.Eventsub.Datatypes.Events;
 using TtsApi.Model;
 
 namespace TtsApi.Controllers.EventSubController
@@ -49,10 +54,11 @@ namespace TtsApi.Controllers.EventSubController
             using StreamReader reader = new StreamReader(Request.Body, Encoding.UTF8);
             string bodyAsRawString = await reader.ReadToEndAsync();
 
-            EventSubInput data;
+            // Generic EventSubInput parsing because we don't know the exact type yet
+            BareEventSubInput data;
             try
             {
-                data = JsonSerializer.Deserialize<EventSubInput>(bodyAsRawString);
+                data = JsonSerializer.Deserialize<BareEventSubInput>(bodyAsRawString);
 
                 if (data == null)
                     return BadRequest();
@@ -65,9 +71,8 @@ namespace TtsApi.Controllers.EventSubController
                 return BadRequest();
             }
 
-
-            // TODO: Handle request
-
+            _logger.LogInformation(bodyAsRawString);
+            HandleData(data, bodyAsRawString);
 
             return string.IsNullOrEmpty(data.Challenge)
                 ? Ok()
@@ -97,6 +102,47 @@ namespace TtsApi.Controllers.EventSubController
             if (!DateTime.TryParse(messageTimestamp, out DateTime messageDateTime))
                 return false;
             return (DateTime.Now - messageDateTime).TotalMinutes < 10;
+        }
+
+        private static readonly List<string> AlreadyHandledMessages = new();
+
+        [SuppressMessage("ReSharper", "SuggestVarOrType_Elsewhere")] // Because fuck 4 line parse statements :)
+        private void HandleData(BareEventSubInput data, string bodyAsRawString)
+        {
+            // If we have already handled this ID discard it. This won't help after a restart.
+            if (AlreadyHandledMessages.Contains(data.Subscription.Id))
+                return;
+            AlreadyHandledMessages.Add(data.Subscription.Id);
+            
+            // If the queue is over 500 elements long remove the first / oldest 200 elements
+            if (AlreadyHandledMessages.Count > 500)
+                AlreadyHandledMessages.RemoveRange(0, 200);
+
+            // Handle Type and Version
+            switch (data.Subscription.Type, data.Subscription.Version)
+            {
+                case ("channel.channel_points_custom_reward_redemption.add", "1"):
+                {
+                    var parsed = JsonSerializer
+                        .Deserialize<EventSubInput<ChannelPointsCustomRewardRedemptionCondition,
+                            ChannelPointsCustomRewardRedemptionEvent>>(bodyAsRawString);
+                    break;
+                }
+                case ("channel.channel_points_custom_reward_redemption.update", "1"):
+                {
+                    var parsed = JsonSerializer
+                        .Deserialize<EventSubInput<ChannelPointsCustomRewardRedemptionCondition,
+                            ChannelPointsCustomRewardRedemptionEvent>>(bodyAsRawString);
+                    break;
+                }
+                case ("user.authorization.revoke", "1"):
+                {
+                    var parsed = JsonSerializer
+                        .Deserialize<EventSubInput<UserAuthorizationRevokeNotificationCondition,
+                            UserAuthorizationRevokeNotificationEvent>>(bodyAsRawString);
+                    break;
+                }
+            }
         }
     }
 }

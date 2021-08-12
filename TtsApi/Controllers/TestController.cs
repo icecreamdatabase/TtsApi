@@ -37,7 +37,7 @@ namespace TtsApi.Controllers
         [HttpGet]
         public async Task<ActionResult> Get()
         {
-            GetResponse subscriptions = await _subscriptions.GetSubscriptions();
+            GetResponse<object> subscriptions = await _subscriptions.GetSubscriptions<object>();
             return Ok(subscriptions);
         }
 

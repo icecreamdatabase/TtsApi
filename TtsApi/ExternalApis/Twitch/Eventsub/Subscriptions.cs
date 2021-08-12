@@ -17,12 +17,12 @@ namespace TtsApi.ExternalApis.Twitch.Eventsub
             _db = db;
         }
 
-        public async Task<GetResponse> GetSubscriptions()
+        public async Task<GetResponse<T>> GetSubscriptions<T>()
         {
             string clientId = BotDataAccess.GetClientId(_db.BotData);
             string appAccessToken = BotDataAccess.GetAppAccessToken(_db.BotData);
 
-            return await SubscriptionsStatics.GetSubscription(clientId, appAccessToken);
+            return await SubscriptionsStatics.GetSubscription<T>(clientId, appAccessToken);
         }
 
         public async Task CreateSubscription()

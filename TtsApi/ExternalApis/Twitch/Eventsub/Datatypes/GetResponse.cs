@@ -3,10 +3,10 @@ using System.Text.Json.Serialization;
 
 namespace TtsApi.ExternalApis.Twitch.Eventsub.Datatypes
 {
-    public class GetResponse
+    public class GetResponse<T>
     {
         [JsonPropertyName("data")]
-        public Subscription[] Data { get; init; }
+        public Subscription<T>[] Data { get; init; }
         
         [JsonPropertyName("total")]
         public int Total { get; init; }

@@ -3,15 +3,12 @@ using TtsApi.ExternalApis.Twitch.Eventsub.Datatypes;
 
 namespace TtsApi.Controllers.EventSubController
 {
-    public class EventSubInput
+    public class EventSubInput<TCondition, TEvent> : BareEventSubInput
     {
-        [JsonPropertyName("challenge")]
-        public string Challenge { get; init; }
+        [JsonPropertyName("event")]
+        public TEvent Event { get; init; }
         
         [JsonPropertyName("subscription")]
-        public Subscription Subscription { get; init; }
-        
-        [JsonPropertyName("event")]
-        public Event Event { get; init; }
+        public new Subscription<TCondition> Subscription { get; init; }
     }
 }
