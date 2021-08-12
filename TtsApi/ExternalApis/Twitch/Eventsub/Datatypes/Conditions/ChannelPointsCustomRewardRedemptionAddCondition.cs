@@ -2,7 +2,7 @@
 
 namespace TtsApi.ExternalApis.Twitch.Eventsub.Datatypes.Conditions
 {
-    public class ChannelPointsCustomRewardRedemptionCondition
+    public class ChannelPointsCustomRewardRedemptionAddCondition
     {
         [JsonPropertyName("broadcaster_user_id")]
         public string BroadCasterUserId { get; init; }

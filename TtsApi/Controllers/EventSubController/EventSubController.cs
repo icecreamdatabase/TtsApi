@@ -8,7 +8,6 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Server.Kestrel.Core.Features;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using TtsApi.ExternalApis.Twitch.Eventsub;
@@ -121,24 +120,24 @@ namespace TtsApi.Controllers.EventSubController
             // Handle Type and Version
             switch (data.Subscription.Type, data.Subscription.Version)
             {
-                case ("channel.channel_points_custom_reward_redemption.add", "1"):
+                case (ConditionMap.ChannelPointsCustomRewardRedemptionAdd, "1"):
                 {
                     var parsed = JsonSerializer
-                        .Deserialize<EventSubInput<ChannelPointsCustomRewardRedemptionCondition,
+                        .Deserialize<EventSubInput<ChannelPointsCustomRewardRedemptionAddCondition,
                             ChannelPointsCustomRewardRedemptionEvent>>(bodyAsRawString);
                     break;
                 }
-                case ("channel.channel_points_custom_reward_redemption.update", "1"):
+                case (ConditionMap.ChannelPointsCustomRewardRedemptionUpdate, "1"):
                 {
                     var parsed = JsonSerializer
-                        .Deserialize<EventSubInput<ChannelPointsCustomRewardRedemptionCondition,
+                        .Deserialize<EventSubInput<ChannelPointsCustomRewardRedemptionUpdateCondition,
                             ChannelPointsCustomRewardRedemptionEvent>>(bodyAsRawString);
                     break;
                 }
-                case ("user.authorization.revoke", "1"):
+                case (ConditionMap.UserAuthorizationRevoke, "1"):
                 {
                     var parsed = JsonSerializer
-                        .Deserialize<EventSubInput<UserAuthorizationRevokeNotificationCondition,
+                        .Deserialize<EventSubInput<UserAuthorizationRevokeCondition,
                             UserAuthorizationRevokeNotificationEvent>>(bodyAsRawString);
                     break;
                 }

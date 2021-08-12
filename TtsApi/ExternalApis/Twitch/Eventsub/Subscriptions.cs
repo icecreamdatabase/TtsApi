@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using TtsApi.Controllers.EventSubController;
 using TtsApi.ExternalApis.Twitch.Eventsub.Datatypes;
 using TtsApi.Model;
 
@@ -17,12 +16,12 @@ namespace TtsApi.ExternalApis.Twitch.Eventsub
             _db = db;
         }
 
-        public async Task<GetResponse<T>> GetSubscriptions<T>()
+        public async Task<GetResponse> GetSubscriptions()
         {
             string clientId = BotDataAccess.GetClientId(_db.BotData);
             string appAccessToken = BotDataAccess.GetAppAccessToken(_db.BotData);
 
-            return await SubscriptionsStatics.GetSubscription<T>(clientId, appAccessToken);
+            return await SubscriptionsStatics.GetSubscription(clientId, appAccessToken);
         }
 
         public async Task CreateSubscription()
