@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Amazon;
 using TtsApi.ExternalApis.Twitch.Eventsub.Datatypes.Conditions;
 
 namespace TtsApi.ExternalApis.Twitch.Eventsub.Datatypes
@@ -20,15 +18,18 @@ namespace TtsApi.ExternalApis.Twitch.Eventsub.Datatypes
                 {
                     case ConditionMap.ChannelPointsCustomRewardRedemptionAdd:
                         ChannelPointsCustomRewardRedemptionAdds.Add(
-                            ParseCondition<ChannelPointsCustomRewardRedemptionAddCondition>(sub));
+                            ParseCondition<ChannelPointsCustomRewardRedemptionAddCondition>(sub)
+                        );
                         break;
                     case ConditionMap.ChannelPointsCustomRewardRedemptionUpdate:
                         ChannelPointsCustomRewardRedemptionUpdates.Add(
-                            ParseCondition<ChannelPointsCustomRewardRedemptionUpdateCondition>(sub));
+                            ParseCondition<ChannelPointsCustomRewardRedemptionUpdateCondition>(sub)
+                        );
                         break;
                     case ConditionMap.UserAuthorizationRevoke:
                         UserAuthorizationRevokes.Add(
-                            ParseCondition<UserAuthorizationRevokeCondition>(sub));
+                            ParseCondition<UserAuthorizationRevokeCondition>(sub)
+                        );
                         break;
                 }
             }
