@@ -40,7 +40,7 @@ namespace TtsApi.ExternalApis.Twitch.Eventsub
                 : JsonSerializer.Deserialize<GetResponse>(responseFromServer, JsonIgnoreNullValues);
         }
 
-        internal static async Task CreateSubscription(string clientId, string appAccessToken, Request request)
+        internal static async Task<bool> CreateSubscription(string clientId, string appAccessToken, Request request)
         {
             using HttpRequestMessage requestMessage = new();
             Request(
@@ -53,9 +53,10 @@ namespace TtsApi.ExternalApis.Twitch.Eventsub
             );
 
             HttpResponseMessage response = await Client.SendAsync(requestMessage);
+            return response.IsSuccessStatusCode;
         }
 
-        public static async Task DeleteSubscription(string clientId, string appAccessToken, string id)
+        public static async Task<bool> DeleteSubscription(string clientId, string appAccessToken, string id)
         {
             using HttpRequestMessage requestMessage = new();
             Request(
@@ -70,6 +71,7 @@ namespace TtsApi.ExternalApis.Twitch.Eventsub
             );
 
             HttpResponseMessage response = await Client.SendAsync(requestMessage);
+            return response.IsSuccessStatusCode;
         }
 
 
