@@ -55,5 +55,10 @@ namespace TtsApi.ExternalApis.Twitch.Eventsub
 
             await SubscriptionsStatics.DeleteSubscription(clientId, appAccessToken, id);
         }
+
+        public async Task ReenableNotificationFailuresExceeded()
+        {
+            GetResponse getResponse = await GetSubscriptions("notification_failure_exceeded");
+        }
     }
 }

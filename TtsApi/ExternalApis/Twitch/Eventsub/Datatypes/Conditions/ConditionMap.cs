@@ -13,11 +13,14 @@ namespace TtsApi.ExternalApis.Twitch.Eventsub.Datatypes.Conditions
 
         public const string UserAuthorizationRevoke = "user.authorization.revoke";
 
+        public const string ChannelBan = "channel.ban";
+
         public static readonly Dictionary<Type, string> Map = new()
         {
             { typeof(ChannelPointsCustomRewardRedemptionAddCondition), ChannelPointsCustomRewardRedemptionAdd },
             { typeof(ChannelPointsCustomRewardRedemptionUpdateCondition), ChannelPointsCustomRewardRedemptionUpdate },
-            { typeof(UserAuthorizationRevokeCondition), UserAuthorizationRevoke }
+            { typeof(UserAuthorizationRevokeCondition), UserAuthorizationRevoke },
+            { typeof(ChannelBanCondition), ChannelBan }
         };
     }
 }

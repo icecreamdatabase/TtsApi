@@ -116,7 +116,7 @@ namespace TtsApi.Controllers.EventSubController
             if (AlreadyHandledMessages.Contains(data.Subscription.Id))
                 return;
             AlreadyHandledMessages.Add(data.Subscription.Id);
-            
+
             // If the queue is over 500 elements long remove the first / oldest 200 elements
             if (AlreadyHandledMessages.Count > 500)
                 AlreadyHandledMessages.RemoveRange(0, 200);
@@ -142,7 +142,14 @@ namespace TtsApi.Controllers.EventSubController
                 {
                     var parsed = JsonSerializer
                         .Deserialize<EventSubInput<UserAuthorizationRevokeCondition,
-                            UserAuthorizationRevokeNotificationEvent>>(bodyAsRawString);
+                            UserAuthorizationRevokeEvent>>(bodyAsRawString);
+                    break;
+                }
+                case (ConditionMap.ChannelBan, "1"):
+                {
+                    var parsed = JsonSerializer
+                        .Deserialize<EventSubInput<ChannelBanCondition,
+                            ChannelBanEvent>>(bodyAsRawString);
                     break;
                 }
             }

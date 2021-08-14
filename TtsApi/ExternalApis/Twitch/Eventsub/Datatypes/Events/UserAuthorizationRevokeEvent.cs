@@ -2,7 +2,7 @@
 
 namespace TtsApi.ExternalApis.Twitch.Eventsub.Datatypes.Events
 {
-    public class UserAuthorizationRevokeNotificationEvent
+    public class UserAuthorizationRevokeEvent
     {
         [JsonPropertyName("client_id")]
         public string ClientId { get; init; }
