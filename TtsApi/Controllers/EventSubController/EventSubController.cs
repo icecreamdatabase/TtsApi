@@ -63,7 +63,10 @@ namespace TtsApi.Controllers.EventSubController
                     return BadRequest();
 
                 if (!VerifySubscription(bodyAsRawString))
+                {
+                    _logger.LogWarning(bodyAsRawString);
                     return Forbid();
+                }
             }
             catch
             {
