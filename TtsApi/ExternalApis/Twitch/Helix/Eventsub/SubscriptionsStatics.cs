@@ -32,6 +32,9 @@ namespace TtsApi.ExternalApis.Twitch.Helix.Eventsub
                 query
             );
 
+            while (!HelixRatelimit.Bucket.TakeTicket())
+                await Task.Delay(100);
+
             HttpResponseMessage response = await Client.SendAsync(requestMessage);
             string responseFromServer = await response.Content.ReadAsStringAsync();
 
@@ -52,6 +55,9 @@ namespace TtsApi.ExternalApis.Twitch.Helix.Eventsub
                 request
             );
 
+            while (!HelixRatelimit.Bucket.TakeTicket())
+                await Task.Delay(100);
+
             HttpResponseMessage response = await Client.SendAsync(requestMessage);
             return response.IsSuccessStatusCode;
         }
@@ -69,6 +75,9 @@ namespace TtsApi.ExternalApis.Twitch.Helix.Eventsub
                     { "id", id }
                 }
             );
+
+            while (!HelixRatelimit.Bucket.TakeTicket())
+                await Task.Delay(100);
 
             HttpResponseMessage response = await Client.SendAsync(requestMessage);
             return response.IsSuccessStatusCode;
