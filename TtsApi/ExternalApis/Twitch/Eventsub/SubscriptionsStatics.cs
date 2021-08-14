@@ -17,14 +17,19 @@ namespace TtsApi.ExternalApis.Twitch.Eventsub
         private const string BaseUrlSubscriptions = @"https://api.twitch.tv/helix/eventsub/subscriptions";
         private static readonly JsonSerializerOptions JsonIgnoreNullValues = new() { IgnoreNullValues = true };
 
-        internal static async Task<GetResponse> GetSubscription(string clientId, string appAccessToken)
+        internal static async Task<GetResponse> GetSubscription(string clientId, string appAccessToken, string status)
         {
+            Dictionary<string, StringValues> query = null;
+            if (!string.IsNullOrEmpty(status))
+                query = new Dictionary<string, StringValues> { { "status", status } };
+
             using HttpRequestMessage requestMessage = new();
             Request(
                 requestMessage,
                 clientId,
                 appAccessToken,
-                HttpMethod.Get
+                HttpMethod.Get,
+                query
             );
 
             HttpResponseMessage response = await Client.SendAsync(requestMessage);

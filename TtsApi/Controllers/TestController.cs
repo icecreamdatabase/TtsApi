@@ -37,7 +37,7 @@ namespace TtsApi.Controllers
         [HttpPost]
         public async Task<ActionResult> Post()
         {
-            await _subscriptions.SetRequiredSubscriptions();
+            await _subscriptions.SetRequiredSubscriptionsForAllChannels();
             return NoContent();
         }
 

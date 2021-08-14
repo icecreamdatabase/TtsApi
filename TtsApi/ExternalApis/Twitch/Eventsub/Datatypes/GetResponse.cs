@@ -26,6 +26,11 @@ namespace TtsApi.ExternalApis.Twitch.Eventsub.Datatypes
                             ParseCondition<ChannelPointsCustomRewardRedemptionUpdateCondition>(sub)
                         );
                         break;
+                    case ConditionMap.ChannelBan:
+                        ChannelBans.Add(
+                            ParseCondition<ChannelBanCondition>(sub)
+                        );
+                        break;
                     case ConditionMap.UserAuthorizationRevoke:
                         UserAuthorizationRevokes.Add(
                             ParseCondition<UserAuthorizationRevokeCondition>(sub)
@@ -42,6 +47,9 @@ namespace TtsApi.ExternalApis.Twitch.Eventsub.Datatypes
         [JsonIgnore]
         public List<Subscription<ChannelPointsCustomRewardRedemptionUpdateCondition>>
             ChannelPointsCustomRewardRedemptionUpdates { get; } = new();
+
+        [JsonIgnore]
+        public List<Subscription<ChannelBanCondition>> ChannelBans { get; } = new();
 
         [JsonIgnore]
         public List<Subscription<UserAuthorizationRevokeCondition>> UserAuthorizationRevokes { get; } = new();

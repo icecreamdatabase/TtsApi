@@ -5,7 +5,6 @@ using Microsoft.Extensions.Logging;
 using TtsApi.ExternalApis.Twitch.Eventsub.Datatypes;
 using TtsApi.ExternalApis.Twitch.Eventsub.Datatypes.Conditions;
 using TtsApi.Model;
-using TtsApi.Model.Schema;
 
 namespace TtsApi.ExternalApis.Twitch.Eventsub
 {
@@ -20,24 +19,51 @@ namespace TtsApi.ExternalApis.Twitch.Eventsub
             _db = db;
         }
 
+        public async Task SetRequiredSubscriptionsForAllChannels()
+        {
+            GetResponse subscriptions = await GetSubscriptions("enabled");
+            List<string> databaseBroadcasterIds = _db.Channels
+                .Where(channel => channel.Enabled)
+                .Select(channel => channel.RoomId.ToString()).ToList();
+
+            await SetChannelBased(subscriptions.ChannelPointsCustomRewardRedemptionAdds, databaseBroadcasterIds);
+            await SetChannelBased(subscriptions.ChannelPointsCustomRewardRedemptionUpdates, databaseBroadcasterIds);
+            await SetChannelBased(subscriptions.ChannelBans, databaseBroadcasterIds);
+
+            await SetAuthorizationRevoked(subscriptions);
+        }
+
+        public async Task UnsubscribeAll()
+        {
+            GetResponse subs = await GetSubscriptions();
+
+            List<string> ids = new();
+            ids.AddRange(subs.ChannelPointsCustomRewardRedemptionAdds.Select(subscription => subscription.Id));
+            ids.AddRange(subs.ChannelPointsCustomRewardRedemptionUpdates.Select(subscription => subscription.Id));
+            ids.AddRange(subs.ChannelBans.Select(subscription => subscription.Id));
+            ids.AddRange(subs.UserAuthorizationRevokes.Select(subscription => subscription.Id));
+
+            foreach (string id in ids)
+                await DeleteSubscription(id);
+        }
+
         public async Task<GetResponse> GetSubscriptions(string status = null)
         {
             string clientId = BotDataAccess.ClientId;
             string appAccessToken = BotDataAccess.GetAppAccessToken(_db.BotData);
 
-            return await SubscriptionsStatics.GetSubscription(clientId, appAccessToken);
+            return await SubscriptionsStatics.GetSubscription(clientId, appAccessToken, status);
         }
 
-        public async Task CreateSubscription(Request request)
+        private async Task CreateSubscription(Request request)
         {
             string clientId = BotDataAccess.ClientId;
             string appAccessToken = BotDataAccess.GetAppAccessToken(_db.BotData);
 
-
             await SubscriptionsStatics.CreateSubscription(clientId, appAccessToken, request);
         }
 
-        public async Task DeleteSubscription(string id)
+        private async Task DeleteSubscription(string id)
         {
             string clientId = BotDataAccess.ClientId;
             string appAccessToken = BotDataAccess.GetAppAccessToken(_db.BotData);
@@ -45,24 +71,31 @@ namespace TtsApi.ExternalApis.Twitch.Eventsub
             await SubscriptionsStatics.DeleteSubscription(clientId, appAccessToken, id);
         }
 
-        public async Task SetRequiredSubscriptions()
+        public async Task ReenableNotificationFailuresExceeded()
         {
-            GetResponse subscriptions = await GetSubscriptions("enabled");
-            List<string> subscribedBroadcasterIds = subscriptions.ChannelPointsCustomRewardRedemptionAdds
+            GetResponse notificationFailureExceeded = await GetSubscriptions("notification_failure_exceeded");
+        }
+
+        private async Task SetChannelBased<T>(
+            IReadOnlyCollection<Subscription<T>> subscriptions,
+            IReadOnlyCollection<string> databaseBroadcasterIds
+        ) where T : BroadcasterUserIdBase
+        {
+            string subscriptionType = ConditionMap.Map[typeof(T)];
+
+            List<string> subscribedBroadcasterIds = subscriptions
                 .Select(subscription => subscription.Condition.BroadcasterUserId)
                 .ToList();
-
-            List<string> databaseBroadcasterIds = _db.Channels.Select(channel => channel.RoomId.ToString()).ToList();
-
-            databaseBroadcasterIds.Remove("38949074");
 
             // Need to remove
             foreach (string broadcasterUserId in subscribedBroadcasterIds.Except(databaseBroadcasterIds))
             {
-                string subscriptionId = subscriptions.ChannelPointsCustomRewardRedemptionAdds
-                    .First(subscription => subscription.Condition.BroadcasterUserId == broadcasterUserId).Id;
+                string subscriptionId = subscriptions
+                    .First(subscription => subscription.Condition.BroadcasterUserId ==
+                                           broadcasterUserId).Id;
                 await DeleteSubscription(subscriptionId);
-                _logger.LogInformation("Unsubscribed to {0}", broadcasterUserId);
+                _logger.LogInformation("Unsubscribed to {0} for channel {1}",
+                    subscriptionType, broadcasterUserId);
             }
 
             // Need to add
@@ -70,34 +103,35 @@ namespace TtsApi.ExternalApis.Twitch.Eventsub
             {
                 Request request = new Request
                 {
-                    Type = ConditionMap.ChannelPointsCustomRewardRedemptionAdd,
+                    Type = subscriptionType,
                     Version = "1",
-                    Condition = new ChannelPointsCustomRewardRedemptionAddCondition
+                    Condition = new BroadcasterUserIdBase
                     {
                         BroadcasterUserId = broadcasterUserId
                     }
                 };
                 await CreateSubscription(request);
-                _logger.LogInformation("Subscribed to {0}", broadcasterUserId);
+                _logger.LogInformation("Subscribed to {0} for channel {1}",
+                    subscriptionType, broadcasterUserId);
             }
         }
 
-        public async Task UnsubscribeAll()
+        private async Task SetAuthorizationRevoked(GetResponse getResponse)
         {
-            GetResponse subs = await GetSubscriptions("enabled");
-
-            List<string> ids = new();
-            ids.AddRange(subs.ChannelPointsCustomRewardRedemptionAdds.Select(subscription => subscription.Id));
-            ids.AddRange(subs.ChannelPointsCustomRewardRedemptionUpdates.Select(subscription => subscription.Id));
-            ids.AddRange(subs.UserAuthorizationRevokes.Select(subscription => subscription.Id));
-
-            foreach (string id in ids)
-                await DeleteSubscription(id);
-        }
-
-        public async Task ReenableNotificationFailuresExceeded()
-        {
-            GetResponse notificationFailureExceeded = await GetSubscriptions("notification_failure_exceeded");
+            if (getResponse.UserAuthorizationRevokes.Count == 0)
+            {
+                Request request = new Request
+                {
+                    Type = ConditionMap.UserAuthorizationRevoke,
+                    Version = "1",
+                    Condition = new UserAuthorizationRevokeCondition
+                    {
+                        ClientId = BotDataAccess.ClientId
+                    }
+                };
+                await CreateSubscription(request);
+                _logger.LogInformation("Subscribed to {0}", ConditionMap.UserAuthorizationRevoke);
+            }
         }
     }
 }
