@@ -20,7 +20,7 @@ namespace TtsApi.ExternalApis.Twitch.Eventsub.Datatypes
         public int Cost { get; init; }
         
         [JsonPropertyName("transport")]
-        public Transport Transport { get; init; }
+        public Transport Transport { get; init; } = Transport.Default;
 
         [JsonPropertyName("created_at")]
         public string CreatedAt { get; init; }

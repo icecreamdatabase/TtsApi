@@ -37,14 +37,14 @@ namespace TtsApi.Controllers
         [HttpPost]
         public async Task<ActionResult> Post()
         {
-            await _subscriptions.CreateSubscription();
+            await _subscriptions.SetRequiredSubscriptions();
             return NoContent();
         }
 
         [HttpDelete]
-        public async Task<ActionResult> Delete([FromQuery] string id)
+        public async Task<ActionResult> Delete()
         {
-            await _subscriptions.DeleteSubscription(id);
+            await _subscriptions.UnsubscribeAll();
             return NoContent();
         }
 

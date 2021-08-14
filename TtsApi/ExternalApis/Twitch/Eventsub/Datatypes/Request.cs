@@ -11,9 +11,9 @@ namespace TtsApi.ExternalApis.Twitch.Eventsub.Datatypes
         public string Version { get; init; }
 
         [JsonPropertyName("condition")]
-        public Condition Condition { get; init; }
-        
+        public dynamic Condition { get; init; }
+
         [JsonPropertyName("transport")]
-        public Transport Transport { get; init; }
+        public Transport Transport { get; init; } = Transport.Default;
     }
 }

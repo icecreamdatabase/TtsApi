@@ -5,13 +5,13 @@ namespace TtsApi.ExternalApis.Twitch.Eventsub.Datatypes.Events
     public class ChannelBanEvent
     {
         [JsonPropertyName("broadcaster_user_id")]
-        public string BroadCasterUserId { get; init; }
+        public string BroadcasterUserId { get; init; }
 
         [JsonPropertyName("broadcaster_user_login")]
-        public string BroadCasterUserLogin { get; init; }
+        public string BroadcasterUserLogin { get; init; }
 
         [JsonPropertyName("broadcaster_user_name")]
-        public string BroadCasterUserName { get; init; }
+        public string BroadcasterUserName { get; init; }
 
         [JsonPropertyName("moderator_user_id")]
         public string ModeratorUserId { get; init; }

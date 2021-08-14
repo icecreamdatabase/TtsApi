@@ -1,9 +1,18 @@
 ﻿using System.Text.Json.Serialization;
+using TtsApi.Model;
 
 namespace TtsApi.ExternalApis.Twitch.Eventsub.Datatypes
 {
     public class Transport
     {
+        [JsonIgnore]
+        public static readonly Transport Default = new()
+        {
+            Method = "webhook",
+            Callback = "https://apitest.icdb.dev/eventsub",
+            Secret = BotDataAccess.Hmacsha256Key
+        };
+
         [JsonPropertyName("method")]
         public string Method { get; init; }
 
