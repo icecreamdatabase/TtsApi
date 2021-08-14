@@ -2,11 +2,11 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using TtsApi.ExternalApis.Twitch.Eventsub.Datatypes;
-using TtsApi.ExternalApis.Twitch.Eventsub.Datatypes.Conditions;
+using TtsApi.ExternalApis.Twitch.Helix.Eventsub.Datatypes;
+using TtsApi.ExternalApis.Twitch.Helix.Eventsub.Datatypes.Conditions;
 using TtsApi.Model;
 
-namespace TtsApi.ExternalApis.Twitch.Eventsub
+namespace TtsApi.ExternalApis.Twitch.Helix.Eventsub
 {
     public class Subscriptions
     {

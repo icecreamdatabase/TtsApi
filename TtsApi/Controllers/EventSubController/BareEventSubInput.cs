@@ -1,5 +1,5 @@
 ﻿using System.Text.Json.Serialization;
-using TtsApi.ExternalApis.Twitch.Eventsub.Datatypes;
+using TtsApi.ExternalApis.Twitch.Helix.Eventsub.Datatypes;
 
 namespace TtsApi.Controllers.EventSubController
 {

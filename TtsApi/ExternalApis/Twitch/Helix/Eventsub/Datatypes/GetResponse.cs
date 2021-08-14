@@ -2,9 +2,9 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using TtsApi.ExternalApis.Twitch.Eventsub.Datatypes.Conditions;
+using TtsApi.ExternalApis.Twitch.Helix.Eventsub.Datatypes.Conditions;
 
-namespace TtsApi.ExternalApis.Twitch.Eventsub.Datatypes
+namespace TtsApi.ExternalApis.Twitch.Helix.Eventsub.Datatypes
 {
     [SuppressMessage("ReSharper", "CollectionNeverQueried.Global")]
     public class GetResponse

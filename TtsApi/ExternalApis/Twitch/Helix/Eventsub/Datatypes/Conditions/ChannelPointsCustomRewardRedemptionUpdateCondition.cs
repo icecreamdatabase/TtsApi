@@ -1,4 +1,4 @@
-﻿namespace TtsApi.ExternalApis.Twitch.Eventsub.Datatypes.Conditions
+﻿namespace TtsApi.ExternalApis.Twitch.Helix.Eventsub.Datatypes.Conditions
 {
     public class ChannelPointsCustomRewardRedemptionUpdateCondition : ChannelPointsCustomRewardRedemptionAddCondition
     {

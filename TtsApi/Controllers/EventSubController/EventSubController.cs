@@ -10,9 +10,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
-using TtsApi.ExternalApis.Twitch.Eventsub;
-using TtsApi.ExternalApis.Twitch.Eventsub.Datatypes.Conditions;
-using TtsApi.ExternalApis.Twitch.Eventsub.Datatypes.Events;
+using TtsApi.ExternalApis.Twitch.Helix.Eventsub;
+using TtsApi.ExternalApis.Twitch.Helix.Eventsub.Datatypes.Conditions;
+using TtsApi.ExternalApis.Twitch.Helix.Eventsub.Datatypes.Events;
 using TtsApi.Model;
 
 namespace TtsApi.Controllers.EventSubController

@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace TtsApi.ExternalApis.Twitch.Eventsub.Datatypes.Events
+namespace TtsApi.ExternalApis.Twitch.Helix.Eventsub.Datatypes.Events
 {
     public class Reward
     {

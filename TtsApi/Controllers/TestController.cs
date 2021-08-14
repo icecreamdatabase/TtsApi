@@ -5,8 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using TtsApi.Authentication.Policies;
 using TtsApi.Authentication.Roles;
-using TtsApi.ExternalApis.Twitch.Eventsub;
-using TtsApi.ExternalApis.Twitch.Eventsub.Datatypes;
+using TtsApi.ExternalApis.Twitch.Helix.Eventsub;
+using TtsApi.ExternalApis.Twitch.Helix.Eventsub.Datatypes;
 using TtsApi.Model;
 
 namespace TtsApi.Controllers

@@ -1,7 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 using TtsApi.Model;
 
-namespace TtsApi.ExternalApis.Twitch.Eventsub.Datatypes
+namespace TtsApi.ExternalApis.Twitch.Helix.Eventsub.Datatypes
 {
     public class Transport
     {

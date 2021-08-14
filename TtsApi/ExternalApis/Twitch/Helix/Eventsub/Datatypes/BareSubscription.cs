@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace TtsApi.ExternalApis.Twitch.Eventsub.Datatypes
+namespace TtsApi.ExternalApis.Twitch.Helix.Eventsub.Datatypes
 {
     public class BareSubscription
     {

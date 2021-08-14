@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace TtsApi.ExternalApis.Twitch.Eventsub.Datatypes.Conditions
+namespace TtsApi.ExternalApis.Twitch.Helix.Eventsub.Datatypes.Conditions
 {
     public static class ConditionMap
     {

@@ -7,9 +7,9 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Primitives;
-using TtsApi.ExternalApis.Twitch.Eventsub.Datatypes;
+using TtsApi.ExternalApis.Twitch.Helix.Eventsub.Datatypes;
 
-namespace TtsApi.ExternalApis.Twitch.Eventsub
+namespace TtsApi.ExternalApis.Twitch.Helix.Eventsub
 {
     public static class SubscriptionsStatics
     {
