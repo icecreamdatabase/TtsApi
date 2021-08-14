@@ -11,6 +11,6 @@ namespace TtsApi.ExternalApis.Twitch.Eventsub.Datatypes
         public string Callback { get; init; }
 
         [JsonPropertyName("secret")]
-        public string Secert { get; init; }
+        public string Secret { get; init; }
     }
 }

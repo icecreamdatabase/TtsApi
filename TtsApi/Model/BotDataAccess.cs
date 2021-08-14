@@ -6,21 +6,22 @@ namespace TtsApi.Model
 {
     public static class BotDataAccess
     {
-        public static string GetClientId(DbSet<BotData> botData)
-        {
-            return Get(botData, "clientId");
-        }
+        public static string Hmacsha256Key { get; private set; }
+        public static string ClientId { get; private set; }
+        public static string ClientSecret { get; private set; }
 
-        public static string GetClientSecret(DbSet<BotData> botData)
+        public static void Prefetch(DbSet<BotData> botData)
         {
-            return Get(botData, "clientSecret");
+            Hmacsha256Key = Get(botData, "hmacSha256Key");
+            ClientId = Get(botData, "clientId");
+            ClientSecret = Get(botData, "clientSecret");
         }
 
         public static string GetAppAccessToken(DbSet<BotData> botData)
         {
             return Get(botData, "appAccessToken");
         }
-        
+
         public static void SetAppAccessToken(DbSet<BotData> botData, string appAccessToken)
         {
             Set(botData, "appAccessToken", appAccessToken);
@@ -38,7 +39,7 @@ namespace TtsApi.Model
                 entry.Value = value;
             else
             {
-                botData.Add(new BotData {Key = key, Value = value});
+                botData.Add(new BotData { Key = key, Value = value });
             }
         }
     }

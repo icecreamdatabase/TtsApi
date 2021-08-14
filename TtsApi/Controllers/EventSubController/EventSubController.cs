@@ -86,8 +86,12 @@ namespace TtsApi.Controllers.EventSubController
             )
                 return false;
 
+            // Setup hasn't ran yet and we haven't fetched the key yet.
+            if (string.IsNullOrEmpty(BotDataAccess.Hmacsha256Key))
+                return false;
+
             string hmacMessage = messageId + messageTimestamp + bodyAsRawString;
-            HMACSHA256 hash = new HMACSHA256(Encoding.ASCII.GetBytes("icecreamdatabase"));
+            HMACSHA256 hash = new HMACSHA256(Encoding.ASCII.GetBytes(BotDataAccess.Hmacsha256Key));
             byte[] signature = hash.ComputeHash(Encoding.ASCII.GetBytes(hmacMessage));
             string expectedSignature = "sha256=" + BitConverter.ToString(signature).Replace("-", "");
 

@@ -20,7 +20,7 @@ namespace TtsApi.ExternalApis.Twitch.Helix.Moderation
 
         public async Task<bool> IsModerator(Channel channel, int userIdToCheck)
         {
-            string clientId = BotDataAccess.GetClientId(_db.BotData);
+            string clientId = BotDataAccess.ClientId;
             // Try first time
             DataHolder<TwitchModerators> rewardData =
                 await ModerationStatics.Moderators(clientId, channel, userIdToCheck.ToString());

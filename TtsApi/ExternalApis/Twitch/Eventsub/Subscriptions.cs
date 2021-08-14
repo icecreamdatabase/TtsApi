@@ -16,9 +16,9 @@ namespace TtsApi.ExternalApis.Twitch.Eventsub
             _db = db;
         }
 
-        public async Task<GetResponse> GetSubscriptions()
+        public async Task<GetResponse> GetSubscriptions(string status = null)
         {
-            string clientId = BotDataAccess.GetClientId(_db.BotData);
+            string clientId = BotDataAccess.ClientId;
             string appAccessToken = BotDataAccess.GetAppAccessToken(_db.BotData);
 
             return await SubscriptionsStatics.GetSubscription(clientId, appAccessToken);
@@ -26,7 +26,7 @@ namespace TtsApi.ExternalApis.Twitch.Eventsub
 
         public async Task CreateSubscription()
         {
-            string clientId = BotDataAccess.GetClientId(_db.BotData);
+            string clientId = BotDataAccess.ClientId;
             string appAccessToken = BotDataAccess.GetAppAccessToken(_db.BotData);
 
             Request request = new Request
@@ -37,11 +37,11 @@ namespace TtsApi.ExternalApis.Twitch.Eventsub
                 {
                     BroadcasterUserId = "38949074"
                 },
-                Transport = new Transport()
+                Transport = new Transport
                 {
                     Method = "webhook",
                     Callback = "https://apitest.icdb.dev/eventsub",
-                    Secert = "icecreamdatabase"
+                    Secret = BotDataAccess.Hmacsha256Key
                 }
             };
 
@@ -50,7 +50,7 @@ namespace TtsApi.ExternalApis.Twitch.Eventsub
 
         public async Task DeleteSubscription(string id)
         {
-            string clientId = BotDataAccess.GetClientId(_db.BotData);
+            string clientId = BotDataAccess.ClientId;
             string appAccessToken = BotDataAccess.GetAppAccessToken(_db.BotData);
 
             await SubscriptionsStatics.DeleteSubscription(clientId, appAccessToken, id);

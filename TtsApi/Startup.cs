@@ -143,6 +143,7 @@ namespace TtsApi
             services.AddAWSService<IAmazonPolly>();
             services.AddSingleton<Polly>();
             services.AddHostedService<PrefetchPollyData>();
+            services.AddHostedService<PrefetchStaticBotData>();
 
             services.AddHostedService<IngestQueueHandler>();
             // Helix

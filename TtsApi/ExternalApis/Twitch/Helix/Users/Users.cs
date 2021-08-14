@@ -38,7 +38,7 @@ namespace TtsApi.ExternalApis.Twitch.Helix.Users
 
         public async Task<List<TwitchUser>> GetList(string[] userIdsToCheck = null, string[] userLoginsToCheck = null)
         {
-            string clientId = BotDataAccess.GetClientId(_db.BotData);
+            string clientId = BotDataAccess.ClientId;
             string appAccessToken = BotDataAccess.GetAppAccessToken(_db.BotData);
 
             // Try first time
@@ -49,7 +49,7 @@ namespace TtsApi.ExternalApis.Twitch.Helix.Users
                 return rewardData.Data;
 
             // Else refresh the oauth
-            string clientSecret = BotDataAccess.GetClientSecret(_db.BotData);
+            string clientSecret = BotDataAccess.ClientSecret;
             _logger.LogInformation("Fetching new AppAccessToken");
             TwitchTokenResult token = await Auth.Authentication.GetAppAccessToken(clientId, clientSecret);
             BotDataAccess.SetAppAccessToken(_db.BotData, token.AccessToken);
