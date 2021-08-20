@@ -86,15 +86,16 @@ namespace TtsApi.ExternalApis.Twitch.Helix.Eventsub
             return results.All(everythingSuccessful => everythingSuccessful);
         }
 
-        public async Task<bool> UnsubscribeAll()
+        public async Task<bool> UnsubscribeAll(bool ignoreTransportEquality = false)
         {
             GetResponse getResponse = await GetSubscriptions();
 
             if (getResponse == null)
                 return false;
 
-            IEnumerable<Task<bool>> unsubscribeTasks =
-                getResponse.Data.Select(subscription => DeleteSubscription(subscription.Id));
+            IEnumerable<Task<bool>> unsubscribeTasks = getResponse.Data
+                .Where(subscription => ignoreTransportEquality || subscription.Transport == Transport.Default)
+                .Select(subscription => DeleteSubscription(subscription.Id));
             bool[] unsubscribeResults = await Task.WhenAll(unsubscribeTasks);
             return unsubscribeResults.All(everythingSuccessful => everythingSuccessful);
         }
