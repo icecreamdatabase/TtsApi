@@ -64,7 +64,7 @@ namespace TtsApi.Controllers.EventSubController
 
                 if (!VerifySubscription(bodyAsRawString))
                 {
-                    _logger.LogWarning(bodyAsRawString);
+                    _logger.LogWarning("{Body}", bodyAsRawString);
                     return Forbid();
                 }
             }
@@ -73,7 +73,7 @@ namespace TtsApi.Controllers.EventSubController
                 return BadRequest();
             }
 
-            _logger.LogInformation(bodyAsRawString);
+            _logger.LogInformation("{Body}", bodyAsRawString);
             HandleData(data, bodyAsRawString);
 
             return string.IsNullOrEmpty(data.Challenge)

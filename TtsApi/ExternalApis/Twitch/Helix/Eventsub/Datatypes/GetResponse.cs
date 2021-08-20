@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using TtsApi.ExternalApis.Twitch.Helix.Eventsub.Datatypes.Conditions;
@@ -87,6 +88,12 @@ namespace TtsApi.ExternalApis.Twitch.Helix.Eventsub.Datatypes
                 CreatedAt = sub.CreatedAt,
                 Condition = parsed
             };
+        }
+
+        public static List<Subscription<T>> FilterByTransportData<T>(IEnumerable<Subscription<T>> subscriptions,
+            Transport transport)
+        {
+            return subscriptions.Where(subscription => subscription.Transport == transport).ToList();
         }
     }
 }
