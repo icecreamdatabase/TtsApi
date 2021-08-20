@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using TtsApi.ExternalApis.Aws;
+using TtsApi.ExternalApis.Twitch.Helix.Moderation;
 using TtsApi.Hubs.TtsHub.TransferClasses;
 using TtsApi.Model;
 using TtsApi.Model.Schema;
@@ -79,8 +80,15 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
                 return;
             }
 
-            /* Was timed out or deleted */
-            if (rqi.WasTimedOut)
+            /* Was timed out TODO: or deleted */
+            int additionalWaitSRequiredBeforeTimeoutCheck = (int)(DateTime.UtcNow - rqi.RequestTimestamp).TotalSeconds -
+                                                            rqi.Reward.Channel.TimeoutCheckTime;
+            if (additionalWaitSRequiredBeforeTimeoutCheck > 0)
+                await Task.Delay(additionalWaitSRequiredBeforeTimeoutCheck * 1000);
+
+            if (rqi.WasTimedOut || ModerationBannedUsers.UserWasTimedOutSinceRedemption(
+                rqi.Reward.ChannelId.ToString(), rqi.RequesterId.ToString(), rqi.RequestTimestamp)
+            )
             {
                 await DoneWithPlaying(
                     rqi.Reward.ChannelId,

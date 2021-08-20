@@ -10,5 +10,8 @@ namespace TtsApi.Controllers.EventSubController
         
         [JsonPropertyName("subscription")]
         public BareSubscription Subscription { get; init; }
+        
+        [JsonIgnore]
+        public EventSubHeaders EventSubHeaders { get; set; }
     }
 }

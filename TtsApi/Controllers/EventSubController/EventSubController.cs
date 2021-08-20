@@ -13,6 +13,7 @@ using Microsoft.Extensions.Primitives;
 using TtsApi.ExternalApis.Twitch.Helix.Eventsub;
 using TtsApi.ExternalApis.Twitch.Helix.Eventsub.Datatypes.Conditions;
 using TtsApi.ExternalApis.Twitch.Helix.Eventsub.Datatypes.Events;
+using TtsApi.ExternalApis.Twitch.Helix.Moderation;
 using TtsApi.Model;
 
 namespace TtsApi.Controllers.EventSubController
@@ -73,7 +74,7 @@ namespace TtsApi.Controllers.EventSubController
                 return BadRequest();
             }
 
-            _logger.LogInformation("{Body}", bodyAsRawString);
+            _logger.LogInformation("Raw body: {Body}", bodyAsRawString);
             HandleData(data, bodyAsRawString);
 
             return string.IsNullOrEmpty(data.Challenge)
@@ -115,10 +116,25 @@ namespace TtsApi.Controllers.EventSubController
         [SuppressMessage("ReSharper", "SuggestVarOrType_Elsewhere")] // Because fuck 4 line parse statements :)
         private void HandleData(BareEventSubInput data, string bodyAsRawString)
         {
-            // If we have already handled this ID discard it. This won't help after a restart.
-            if (AlreadyHandledMessages.Contains(data.Subscription.Id))
+            // Don't handle setup messages
+            if (data.Subscription.Status != "enabled")
                 return;
-            AlreadyHandledMessages.Add(data.Subscription.Id);
+
+
+            try
+            {
+                data.EventSubHeaders = new EventSubHeaders(Request.Headers);
+            }
+            catch (Exception e)
+            {
+                return;
+            }
+
+
+            // If we have already handled this ID discard it. This won't help after a restart.
+            if (AlreadyHandledMessages.Contains(data.EventSubHeaders.MessageId))
+                return;
+            AlreadyHandledMessages.Add(data.EventSubHeaders.MessageId);
 
             // If the queue is over 500 elements long remove the first / oldest 200 elements
             if (AlreadyHandledMessages.Count > 500)
@@ -129,33 +145,45 @@ namespace TtsApi.Controllers.EventSubController
             {
                 case (ConditionMap.ChannelPointsCustomRewardRedemptionAdd, "1"):
                 {
-                    var parsed = JsonSerializer
-                        .Deserialize<EventSubInput<ChannelPointsCustomRewardRedemptionAddCondition,
-                            ChannelPointsCustomRewardRedemptionEvent>>(bodyAsRawString);
+                    var parsed =
+                        ParseEventSubInput<ChannelPointsCustomRewardRedemptionAddCondition,
+                            ChannelPointsCustomRewardRedemptionEvent>(data, bodyAsRawString);
+
                     break;
                 }
                 case (ConditionMap.ChannelPointsCustomRewardRedemptionUpdate, "1"):
                 {
-                    var parsed = JsonSerializer
-                        .Deserialize<EventSubInput<ChannelPointsCustomRewardRedemptionUpdateCondition,
-                            ChannelPointsCustomRewardRedemptionEvent>>(bodyAsRawString);
+                    var parsed =
+                        ParseEventSubInput<ChannelPointsCustomRewardRedemptionAddCondition,
+                            ChannelPointsCustomRewardRedemptionEvent>(data, bodyAsRawString);
                     break;
                 }
                 case (ConditionMap.UserAuthorizationRevoke, "1"):
                 {
-                    var parsed = JsonSerializer
-                        .Deserialize<EventSubInput<UserAuthorizationRevokeCondition,
-                            UserAuthorizationRevokeEvent>>(bodyAsRawString);
+                    var parsed =
+                        ParseEventSubInput<UserAuthorizationRevokeCondition,
+                            UserAuthorizationRevokeEvent>(data, bodyAsRawString);
                     break;
                 }
                 case (ConditionMap.ChannelBan, "1"):
                 {
-                    var parsed = JsonSerializer
-                        .Deserialize<EventSubInput<ChannelBanCondition,
-                            ChannelBanEvent>>(bodyAsRawString);
+                    var parsed =
+                        ParseEventSubInput<ChannelBanCondition,
+                            ChannelBanEvent>(data, bodyAsRawString);
+                    ModerationBannedUsers.HandleEventSubBanEvent(parsed);
                     break;
                 }
             }
+        }
+
+        private static EventSubInput<TCondition, TEvent> ParseEventSubInput<TCondition, TEvent>(BareEventSubInput data,
+            string bodyAsRawString)
+        {
+            EventSubInput<TCondition, TEvent> parsed =
+                JsonSerializer.Deserialize<EventSubInput<TCondition, TEvent>>(bodyAsRawString);
+            if (parsed != null)
+                parsed.EventSubHeaders = data.EventSubHeaders;
+            return parsed;
         }
     }
 }

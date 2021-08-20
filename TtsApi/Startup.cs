@@ -19,7 +19,6 @@ using TtsApi.Authentication.Roles;
 using TtsApi.BackgroundServices;
 using TtsApi.ExternalApis.Aws;
 using TtsApi.ExternalApis.Discord;
-using TtsApi.ExternalApis.Twitch.Helix;
 using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints;
 using TtsApi.ExternalApis.Twitch.Helix.Eventsub;
 using TtsApi.ExternalApis.Twitch.Helix.Moderation;

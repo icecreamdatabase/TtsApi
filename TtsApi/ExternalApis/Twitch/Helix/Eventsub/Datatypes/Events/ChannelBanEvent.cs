@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System;
+using System.Text.Json.Serialization;
 
 namespace TtsApi.ExternalApis.Twitch.Helix.Eventsub.Datatypes.Events
 {
@@ -36,6 +37,9 @@ namespace TtsApi.ExternalApis.Twitch.Helix.Eventsub.Datatypes.Events
 
         [JsonPropertyName("ends_at")]
         public string EndsAt { get; init; }
+
+        [JsonIgnore]
+        public DateTime EndsAtDateTime => DateTime.Parse(EndsAt);
 
         [JsonPropertyName("is_permanent")]
         public bool IsPermanent { get; init; }
