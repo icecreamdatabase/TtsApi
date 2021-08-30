@@ -2,7 +2,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
-using Org.BouncyCastle.Ocsp;
 using TtsApi.Controllers.EventSubController;
 using TtsApi.ExternalApis.Twitch.Helix.Eventsub.Datatypes.Conditions;
 using TtsApi.ExternalApis.Twitch.Helix.Eventsub.Datatypes.Events;
