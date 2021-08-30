@@ -53,7 +53,7 @@ namespace TtsApi
             services.AddRouting(options => options.LowercaseUrls = true);
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo {Title = "TtsApi", Version = "v1"});
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "TtsApi", Version = "v1" });
 
                 // This is more or less a hotfix due to the way I currently run docker. 
                 // Once I cleanup the docker file this won't be needed anymore.
@@ -142,8 +142,7 @@ namespace TtsApi
             services.AddDefaultAWSOptions(Configuration.GetAWSOptions());
             services.AddAWSService<IAmazonPolly>();
             services.AddSingleton<Polly>();
-            services.AddHostedService<PrefetchPollyData>();
-            services.AddHostedService<PrefetchStaticBotData>();
+            services.AddHostedService<PrepareBotAndPrefetchData>();
 
             services.AddHostedService<IngestQueueHandler>();
             // Helix
