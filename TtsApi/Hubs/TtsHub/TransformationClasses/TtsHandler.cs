@@ -44,6 +44,9 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
         public void CreateNewTtsRequest(EventSubInput<ChannelPointsCustomRewardRedemptionAddCondition,
             ChannelPointsCustomRewardRedemptionEvent> input)
         {
+            if (!_ttsDbContext.Rewards.Any(reward => reward.RewardId == input.Event.Reward.Id))
+                return;
+
             _ttsDbContext.RequestQueueIngest.Add(new RequestQueueIngest(input));
             _ttsDbContext.SaveChanges();
         }
