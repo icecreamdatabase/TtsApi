@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,7 +26,7 @@ namespace TtsApi.BackgroundServices
             if (db is null || ttsHandler is null)
                 return;
 
-            db.RequestQueueIngest
+            IEnumerable<Task> requestTasks = db.RequestQueueIngest
                 .Include(r => r.Reward)
                 .Include(r => r.Reward.Channel)
                 .Where(rqi =>
@@ -36,7 +37,9 @@ namespace TtsApi.BackgroundServices
                 .Select(rqi => rqi.Reward.ChannelId)
                 .Distinct()
                 .ToList()
-                .ForEach(async roomId => await ttsHandler.TrySendNextTtsRequestForChannel(roomId));
+                .Select(ttsHandler.TrySendNextTtsRequestForChannel);
+
+            await Task.WhenAll(requestTasks);
         }
     }
 }
