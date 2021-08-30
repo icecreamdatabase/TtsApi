@@ -199,8 +199,8 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
         {
             if (ActiveRequests.TryGetValue(roomId, out string activeMessageId) && activeMessageId == messageId)
             {
-                ActiveRequests.Remove(roomId);
                 await MoveRqiToTtsLog(messageId, reason);
+                ActiveRequests.Remove(roomId);
             }
         }
 
