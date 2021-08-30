@@ -14,6 +14,7 @@ using TtsApi.ExternalApis.Twitch.Helix.Eventsub;
 using TtsApi.ExternalApis.Twitch.Helix.Eventsub.Datatypes.Conditions;
 using TtsApi.ExternalApis.Twitch.Helix.Eventsub.Datatypes.Events;
 using TtsApi.ExternalApis.Twitch.Helix.Moderation;
+using TtsApi.Hubs.TtsHub.TransformationClasses;
 using TtsApi.Model;
 
 namespace TtsApi.Controllers.EventSubController
@@ -26,14 +27,16 @@ namespace TtsApi.Controllers.EventSubController
         private readonly ILogger<EventSubController> _logger;
         private readonly TtsDbContext _ttsDbContext;
         private readonly Subscriptions _subscriptions;
-        private static readonly UTF8Encoding Utf8Encoding = new();
+        private readonly TtsHandler _ttsHandler;
+        private static readonly List<string> AlreadyHandledMessages = new();
 
         public EventSubController(ILogger<EventSubController> logger, TtsDbContext ttsDbContext,
-            Subscriptions subscriptions)
+            Subscriptions subscriptions, TtsHandler ttsHandler)
         {
             _logger = logger;
             _ttsDbContext = ttsDbContext;
             _subscriptions = subscriptions;
+            _ttsHandler = ttsHandler;
         }
 
         /// <summary>
@@ -111,8 +114,6 @@ namespace TtsApi.Controllers.EventSubController
             return (DateTime.Now - messageDateTime).TotalMinutes < 10;
         }
 
-        private static readonly List<string> AlreadyHandledMessages = new();
-
         [SuppressMessage("ReSharper", "SuggestVarOrType_Elsewhere")] // Because fuck 4 line parse statements :)
         private void HandleData(BareEventSubInput data, string bodyAsRawString)
         {
@@ -148,7 +149,7 @@ namespace TtsApi.Controllers.EventSubController
                     var parsed =
                         ParseEventSubInput<ChannelPointsCustomRewardRedemptionAddCondition,
                             ChannelPointsCustomRewardRedemptionEvent>(data, bodyAsRawString);
-
+                    _ttsHandler.CreateNewTtsRequest(parsed);
                     break;
                 }
                 case (ConditionMap.ChannelPointsCustomRewardRedemptionUpdate, "1"):

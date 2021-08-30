@@ -8,7 +8,10 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using TtsApi.Controllers.EventSubController;
 using TtsApi.ExternalApis.Aws;
+using TtsApi.ExternalApis.Twitch.Helix.Eventsub.Datatypes.Conditions;
+using TtsApi.ExternalApis.Twitch.Helix.Eventsub.Datatypes.Events;
 using TtsApi.ExternalApis.Twitch.Helix.Moderation;
 using TtsApi.Hubs.TtsHub.TransferClasses;
 using TtsApi.Model;
@@ -36,6 +39,13 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
             // We can't give the DB through the constructor parameters.
             IServiceProvider serviceProvider = serviceScopeFactory.CreateScope().ServiceProvider;
             _ttsDbContext = serviceProvider.GetService<TtsDbContext>();
+        }
+
+        public void CreateNewTtsRequest(EventSubInput<ChannelPointsCustomRewardRedemptionAddCondition,
+            ChannelPointsCustomRewardRedemptionEvent> input)
+        {
+            _ttsDbContext.RequestQueueIngest.Add(new RequestQueueIngest(input));
+            _ttsDbContext.SaveChanges();
         }
 
         public async Task TrySendNextTtsRequestForChannel(int roomId)
