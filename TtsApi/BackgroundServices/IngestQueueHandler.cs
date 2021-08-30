@@ -11,7 +11,7 @@ namespace TtsApi.BackgroundServices
 {
     public class IngestQueueHandler : TimedHostedService
     {
-        protected override TimeSpan Interval { get; } = TimeSpan.FromSeconds(0.5);
+        protected override TimeSpan Interval { get; } = TimeSpan.FromSeconds(1.0);
         protected override TimeSpan FirstRunAfter { get; } = TimeSpan.FromSeconds(1);
 
         public IngestQueueHandler(IServiceProvider services) : base(services)
