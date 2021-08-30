@@ -8,8 +8,7 @@ namespace TtsApi.Controllers.EventSubController
     {
         public string MessageId { get; }
         public DateTime MessageTimestamp { get; }
-        
-        
+
         public EventSubHeaders(IHeaderDictionary headers)
         {
             if (!headers.TryGetValue("Twitch-Eventsub-Message-Id", out StringValues messageId) ||

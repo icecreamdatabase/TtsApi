@@ -4,7 +4,7 @@ namespace TtsApi.Hubs.TtsHub.TransferClasses
 {
     public class TtsRequest
     {
-        public string Id { get; set; }
+        public string MessageId { get; set; }
 
         public float MaxMessageTimeSeconds { get; set; }
 

@@ -28,16 +28,15 @@ namespace TtsApi.BackgroundServices
             db.RequestQueueIngest
                 .Include(r => r.Reward)
                 .Include(r => r.Reward.Channel)
-                .ToList()
-                .GroupBy(req => req.Reward.ChannelId)
-                .Select(ingests => ingests.FirstOrDefault())
                 .Where(rqi =>
                     rqi != null &&
                     TtsHandler.ConnectClients.Values.Contains(rqi.Reward.ChannelId.ToString())
                     // rqi.RewardId is already being checked
                 )
+                .Select(rqi => rqi.Reward.ChannelId)
+                .Distinct()
                 .ToList()
-                .ForEach(async rqi => await ttsHandler.SendTtsRequest(rqi.Id));
+                .ForEach(async roomId => await ttsHandler.TrySendNextTtsRequestForChannel(roomId));
         }
     }
 }

@@ -64,30 +64,30 @@ namespace TtsApi.Controllers.RedemptionController
         /// </summary>
         /// <param name="roomId">Id of the channel. Must match auth permissions
         ///     Parameter name defined by <see cref="ApiKeyAuthenticationHandler.RoomIdQueryStringName"/>.</param>
-        /// <param name="redemptionId">Id of the redemption. Must match roomId. If left empty it will use the first one.</param>
+        /// <param name="messageId">MessageId of the redemption. Must match roomId. If left empty it will use the first one.</param>
         /// <returns></returns>
         /// <response code="204">Reward successfully skipped.</response>
         /// <response code="404">Channel or reward in Channel not found or nothing to skip.</response>
         [HttpDelete]
         [ProducesResponseType((int) HttpStatusCode.NoContent)]
-        public async Task<ActionResult> Delete([FromQuery] int roomId, [FromQuery] string redemptionId = null)
+        public async Task<ActionResult> Delete([FromQuery] int roomId, [FromQuery] string messageId = null)
         {
             IIncludableQueryable<RequestQueueIngest, Channel> query = _ttsDbContext.RequestQueueIngest
                 .Include(r => r.Reward)
                 .Include(r => r.Reward.Channel);
 
-            RequestQueueIngest rqi = string.IsNullOrEmpty(redemptionId)
+            RequestQueueIngest rqi = string.IsNullOrEmpty(messageId)
                 //First one
                 ? query.FirstOrDefault(r => r.Reward.ChannelId == roomId)
                 //Specific one
-                : query.FirstOrDefault(r => r.Id.ToString() == redemptionId);
+                : query.FirstOrDefault(r => r.MessageId == messageId);
 
             if (rqi is null || rqi.Reward.ChannelId != roomId)
                 return NotFound();
 
             // Do we need to skip the currently playing one?
-            if (TtsHandler.ActiveRequests.TryGetValue(rqi.Reward.ChannelId, out string redId) &&
-                redId == rqi.Id.ToString())
+            if (TtsHandler.ActiveRequests.TryGetValue(rqi.Reward.ChannelId, out string activeMessageId) &&
+                activeMessageId == rqi.MessageId)
             {
                 List<string> clients = TtsHandler.ConnectClients
                     .Where(pair => pair.Value == roomId.ToString())
@@ -97,10 +97,10 @@ namespace TtsApi.Controllers.RedemptionController
                 if (clients.Any())
                     await _ttsHub.Clients.Clients(clients).TtsSkipCurrent();
                 else
-                    await _ttsHandler.MoveRqiToTtsLog(rqi.Id.ToString(), MessageType.Skipped);
+                    await _ttsHandler.MoveRqiToTtsLog(rqi.MessageId, MessageType.Skipped);
             }
             else
-                await _ttsHandler.MoveRqiToTtsLog(rqi.Id.ToString(), MessageType.SkippedBeforePlaying);
+                await _ttsHandler.MoveRqiToTtsLog(rqi.MessageId, MessageType.SkippedBeforePlaying);
 
             return NoContent();
         }
