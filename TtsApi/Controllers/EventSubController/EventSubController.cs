@@ -25,18 +25,16 @@ namespace TtsApi.Controllers.EventSubController
     public class EventSubController : ControllerBase
     {
         private readonly ILogger<EventSubController> _logger;
-        private readonly TtsDbContext _ttsDbContext;
-        private readonly Subscriptions _subscriptions;
-        private readonly TtsHandler _ttsHandler;
+        private readonly TtsAddRemoveHandler _ttsAddRemoveHandler;
+        private readonly ModerationBannedUsers _moderationBannedUsers;
         private static readonly List<string> AlreadyHandledMessages = new();
 
-        public EventSubController(ILogger<EventSubController> logger, TtsDbContext ttsDbContext,
-            Subscriptions subscriptions, TtsHandler ttsHandler)
+        public EventSubController(ILogger<EventSubController> logger, TtsAddRemoveHandler ttsAddRemoveHandler,
+            ModerationBannedUsers moderationBannedUsers)
         {
             _logger = logger;
-            _ttsDbContext = ttsDbContext;
-            _subscriptions = subscriptions;
-            _ttsHandler = ttsHandler;
+            _ttsAddRemoveHandler = ttsAddRemoveHandler;
+            _moderationBannedUsers = moderationBannedUsers;
         }
 
         /// <summary>
@@ -121,7 +119,6 @@ namespace TtsApi.Controllers.EventSubController
             if (data.Subscription.Status != "enabled")
                 return;
 
-
             try
             {
                 data.EventSubHeaders = new EventSubHeaders(Request.Headers);
@@ -130,7 +127,6 @@ namespace TtsApi.Controllers.EventSubController
             {
                 return;
             }
-
 
             // If we have already handled this ID discard it. This won't help after a restart.
             if (AlreadyHandledMessages.Contains(data.EventSubHeaders.MessageId))
@@ -149,7 +145,7 @@ namespace TtsApi.Controllers.EventSubController
                     var parsed =
                         ParseEventSubInput<ChannelPointsCustomRewardRedemptionAddCondition,
                             ChannelPointsCustomRewardRedemptionEvent>(data, bodyAsRawString);
-                    _ttsHandler.CreateNewTtsRequest(parsed);
+                    _ttsAddRemoveHandler.CreateNewTtsRequest(parsed);
                     break;
                 }
                 case (ConditionMap.ChannelPointsCustomRewardRedemptionUpdate, "1"):
@@ -171,7 +167,7 @@ namespace TtsApi.Controllers.EventSubController
                     var parsed =
                         ParseEventSubInput<ChannelBanCondition,
                             ChannelBanEvent>(data, bodyAsRawString);
-                    ModerationBannedUsers.HandleEventSubBanEvent(parsed);
+                    _moderationBannedUsers.HandleEventSubBanEvent(parsed);
                     break;
                 }
             }

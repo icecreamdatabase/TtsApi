@@ -147,8 +147,10 @@ namespace TtsApi
             services.AddHostedService<IngestQueueHandler>();
             // Helix
             services.AddTransient<TtsHandler>();
+            services.AddTransient<TtsAddRemoveHandler>();
             services.AddTransient<ChannelPoints>();
             services.AddTransient<Moderation>();
+            services.AddTransient<ModerationBannedUsers>();
             services.AddTransient<Users>();
             // EventSub
             services.AddTransient<Subscriptions>();
