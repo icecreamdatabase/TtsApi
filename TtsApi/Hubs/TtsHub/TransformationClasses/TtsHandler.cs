@@ -98,10 +98,11 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
             }
 
             /* Was timed out TODO: or deleted */
-            int additionalWaitSRequiredBeforeTimeoutCheck = (int)(DateTime.UtcNow - rqi.RequestTimestamp).TotalSeconds -
-                                                            rqi.Reward.Channel.TimeoutCheckTime;
-            if (additionalWaitSRequiredBeforeTimeoutCheck > 0)
-                await Task.Delay(additionalWaitSRequiredBeforeTimeoutCheck * 1000);
+            double secondsSinceRequest = (DateTime.Now - rqi.RequestTimestamp).TotalSeconds;
+            double waitSRequiredBeforeTimeoutCheck = rqi.Reward.Channel.TimeoutCheckTime - secondsSinceRequest;
+
+            if (waitSRequiredBeforeTimeoutCheck > 0)
+                await Task.Delay((int)(waitSRequiredBeforeTimeoutCheck * 1000));
 
             if (rqi.WasTimedOut || ModerationBannedUsers.UserWasTimedOutSinceRedemption(
                 rqi.Reward.ChannelId.ToString(), rqi.RequesterId.ToString(), rqi.RequestTimestamp)
