@@ -59,7 +59,7 @@ namespace TtsApi.ExternalApis.Twitch.Helix.Eventsub.Datatypes
         // JsonSerializer.Deserialize<T>(((JsonElement)subscriptions.Data[0].Condition).GetRawText());
         // Check Constructor and ParseCondition<T>()
         [JsonPropertyName("data")]
-        public Subscription<dynamic>[] Data { get; init; }
+        public Subscription<dynamic>[] Data { get; set; }
 
         [JsonPropertyName("total")]
         public int Total { get; init; }

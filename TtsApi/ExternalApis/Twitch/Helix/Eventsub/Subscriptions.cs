@@ -24,9 +24,17 @@ namespace TtsApi.ExternalApis.Twitch.Helix.Eventsub
             _appAccessToken = BotDataAccess.GetAppAccessToken(_db.BotData);
         }
 
-        public Task<GetResponse> GetSubscriptions(string status = null)
+        public async Task<GetResponse> GetSubscriptions(string status = null, bool ignoreTransportEquality = false)
         {
-            return SubscriptionsStatics.GetSubscription(_clientId, _appAccessToken, status);
+            GetResponse getResponse = await SubscriptionsStatics.GetSubscription(_clientId, _appAccessToken, status);
+            if (!ignoreTransportEquality)
+            {
+                getResponse.Data = getResponse.Data
+                    .Where(subscription => subscription.Transport == Transport.Default)
+                    .ToArray();
+            }
+
+            return getResponse;
         }
 
         private Task<bool> CreateSubscription(Request request)
