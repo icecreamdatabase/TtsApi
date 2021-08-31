@@ -14,9 +14,4 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.1.4" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="ExternalApis\Twitch\Gql" />
-    <Folder Include="ExternalApis\Twitch\Kraken" />
-  </ItemGroup>
-
 </Project>

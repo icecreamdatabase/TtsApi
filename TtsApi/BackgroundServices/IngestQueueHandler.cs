@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,7 +12,7 @@ namespace TtsApi.BackgroundServices
 {
     public class IngestQueueHandler : TimedHostedService
     {
-        protected override TimeSpan Interval { get; } = TimeSpan.FromSeconds(2.5);
+        protected override TimeSpan Interval { get; } = TimeSpan.FromSeconds(1.0);
         protected override TimeSpan FirstRunAfter { get; } = TimeSpan.FromSeconds(1);
 
         public IngestQueueHandler(IServiceProvider services) : base(services)
@@ -25,19 +26,20 @@ namespace TtsApi.BackgroundServices
             if (db is null || ttsHandler is null)
                 return;
 
-            db.RequestQueueIngest
+            IEnumerable<Task> requestTasks = db.RequestQueueIngest
                 .Include(r => r.Reward)
                 .Include(r => r.Reward.Channel)
-                .ToList()
-                .GroupBy(req => req.Reward.ChannelId)
-                .Select(ingests => ingests.FirstOrDefault())
                 .Where(rqi =>
                     rqi != null &&
                     TtsHandler.ConnectClients.Values.Contains(rqi.Reward.ChannelId.ToString())
                     // rqi.RewardId is already being checked
                 )
+                .Select(rqi => rqi.Reward.ChannelId)
+                .Distinct()
                 .ToList()
-                .ForEach(async rqi => await ttsHandler.SendTtsRequest(rqi.Id));
+                .Select(ttsHandler.TrySendNextTtsRequestForChannel);
+
+            await Task.WhenAll(requestTasks);
         }
     }
 }

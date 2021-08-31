@@ -32,7 +32,7 @@ namespace TtsApi.Model.Schema
         public int MaxMessageTimeSeconds { get; set; } = 0;
 
         [Required]
-        public int MaxTtsCharactersPerRequest { get; set; } = 500;
+        public int MaxTtsCharactersPerRequest { get; set; } = 500; // TODO: Make this Reward specific
 
         [Required]
         public int MinCooldown { get; set; } = 0;

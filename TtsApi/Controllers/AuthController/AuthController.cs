@@ -62,8 +62,8 @@ namespace TtsApi.Controllers.AuthController
             if (string.IsNullOrEmpty(code))
                 return BadRequest();
 
-            string clientId = BotDataAccess.GetClientId(_db.BotData);
-            string clientSecret = BotDataAccess.GetClientSecret(_db.BotData);
+            string clientId = BotDataAccess.ClientId;
+            string clientSecret = BotDataAccess.ClientSecret;
             TwitchTokenResult tokenResult = await GenerateAccessToken(clientId, clientSecret, code);
             if (string.IsNullOrEmpty(tokenResult.AccessToken))
                 return Forbid();

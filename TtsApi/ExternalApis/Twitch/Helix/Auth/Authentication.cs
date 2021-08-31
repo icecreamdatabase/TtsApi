@@ -53,8 +53,8 @@ namespace TtsApi.ExternalApis.Twitch.Helix.Auth
         public static async Task<bool> Refresh(TtsDbContext db, Channel channel)
         {
             TwitchTokenResult result = await Refresh(
-                BotDataAccess.GetClientId(db.BotData),
-                BotDataAccess.GetClientSecret(db.BotData),
+                BotDataAccess.ClientId,
+                BotDataAccess.ClientSecret,
                 channel.RefreshToken
             );
             if (string.IsNullOrEmpty(result.AccessToken))

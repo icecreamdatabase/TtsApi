@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using TtsApi.ExternalApis.Aws;
+using TtsApi.ExternalApis.Twitch.Helix.Moderation;
 using TtsApi.Hubs.TtsHub.TransferClasses;
 using TtsApi.Model;
 using TtsApi.Model.Schema;
@@ -37,28 +38,35 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
             _ttsDbContext = serviceProvider.GetService<TtsDbContext>();
         }
 
-        public async Task SendTtsRequest(int rqiId)
+        public async Task TrySendNextTtsRequestForChannel(int roomId)
         {
             RequestQueueIngest rqi = _ttsDbContext.RequestQueueIngest
                 .Include(r => r.Reward)
                 .Include(r => r.Reward.Channel)
                 .Include(r => r.Reward.Channel.ChannelUserBlacklist)
-                .FirstOrDefault(r => r.Id == rqiId);
+                .FirstOrDefault(r => r.Reward.ChannelId == roomId);
 
+            // No request for channel
             if (rqi == null)
                 return;
 
+            // A request is already running for this channel
             if (ActiveRequests.ContainsKey(rqi.Reward.ChannelId))
                 return;
 
-            ActiveRequests.Add(rqi.Reward.ChannelId, rqi.Id.ToString());
+            await SendTtsRequest(rqi);
+        }
+
+        private async Task SendTtsRequest(RequestQueueIngest rqi)
+        {
+            ActiveRequests.Add(rqi.Reward.ChannelId, rqi.MessageId);
 
             /* Global user blacklist */
             if (_ttsDbContext.GlobalUserBlacklist.Any(gub => gub.UserId == rqi.RequesterId))
             {
                 await DoneWithPlaying(
                     rqi.Reward.ChannelId,
-                    rqi.Id.ToString(),
+                    rqi.MessageId,
                     MessageType.NotPlayedIsOnGlobalBlacklist
                 );
                 return;
@@ -73,18 +81,26 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
             {
                 await DoneWithPlaying(
                     rqi.Reward.ChannelId,
-                    rqi.Id.ToString(),
+                    rqi.MessageId,
                     MessageType.NotPlayedIsOnChannelBlacklist
                 );
                 return;
             }
 
-            /* Was timed out or deleted */
-            if (rqi.WasTimedOut)
+            /* Was timed out TODO: or deleted */
+            double secondsSinceRequest = (DateTime.Now - rqi.RequestTimestamp).TotalSeconds;
+            double waitSRequiredBeforeTimeoutCheck = rqi.Reward.Channel.TimeoutCheckTime - secondsSinceRequest;
+
+            if (waitSRequiredBeforeTimeoutCheck > 0)
+                await Task.Delay((int)(waitSRequiredBeforeTimeoutCheck * 1000));
+
+            if (rqi.WasTimedOut || ModerationBannedUsers.UserWasTimedOutSinceRedemption(
+                rqi.Reward.ChannelId.ToString(), rqi.RequesterId.ToString(), rqi.RequestTimestamp)
+            )
             {
                 await DoneWithPlaying(
                     rqi.Reward.ChannelId,
-                    rqi.Id.ToString(),
+                    rqi.MessageId,
                     MessageType.NotPlayedTimedOut
                 );
                 return;
@@ -95,7 +111,7 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
             {
                 await DoneWithPlaying(
                     rqi.Reward.ChannelId,
-                    rqi.Id.ToString(),
+                    rqi.MessageId,
                     MessageType.NotPlayedSubOnly
                 );
                 return;
@@ -114,7 +130,7 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
                     await _hubContext.Clients.Clients(clients).TtsPlayRequest(ttsRequest);
                 else
                 {
-                    throw new Exception($"No message parts for reward id {rqi.Id}");
+                    throw new Exception($"No message parts for RequestQueueIngest id {rqi.Id}");
                 }
             }
         }
@@ -123,7 +139,7 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
         {
             TtsRequest ttsRequest = new()
             {
-                Id = rqi.Id.ToString(),
+                MessageId = rqi.MessageId,
                 MaxMessageTimeSeconds = rqi.Reward.Channel.MaxMessageTimeSeconds,
             };
 
@@ -159,30 +175,31 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
             return ttsRequest;
         }
 
-        public async Task ConfirmTtsSkipped(string contextConnectionId, string contextUserIdentifier, string id)
+        public async Task ConfirmTtsSkipped(string contextConnectionId, string contextUserIdentifier, string messageId)
         {
-            await DoneWithPlaying(int.Parse(contextUserIdentifier), id, MessageType.Skipped);
+            await DoneWithPlaying(int.Parse(contextUserIdentifier), messageId, MessageType.Skipped);
         }
 
-        public async Task ConfirmTtsFullyPlayed(string contextConnectionId, string contextUserIdentifier, string id)
+        public async Task ConfirmTtsFullyPlayed(string contextConnectionId, string contextUserIdentifier,
+            string messageId)
         {
-            await DoneWithPlaying(int.Parse(contextUserIdentifier), id, MessageType.PlayedFully);
+            await DoneWithPlaying(int.Parse(contextUserIdentifier), messageId, MessageType.PlayedFully);
         }
 
-        private async Task DoneWithPlaying(int roomId, string id, MessageType reason)
+        private async Task DoneWithPlaying(int roomId, string messageId, MessageType reason)
         {
-            if (ActiveRequests.ContainsKey(roomId) && ActiveRequests[roomId] == id)
+            if (ActiveRequests.TryGetValue(roomId, out string activeMessageId) && activeMessageId == messageId)
             {
+                await MoveRqiToTtsLog(messageId, reason);
                 ActiveRequests.Remove(roomId);
-                await MoveRqiToTtsLog(id, reason);
             }
         }
 
-        public async Task MoveRqiToTtsLog(string id, MessageType reason)
+        public async Task MoveRqiToTtsLog(string messageId, MessageType reason)
         {
             RequestQueueIngest rqi = await _ttsDbContext.RequestQueueIngest
                 .Include(r => r.Reward)
-                .FirstOrDefaultAsync(r => r.Id == int.Parse(id));
+                .FirstOrDefaultAsync(r => r.MessageId == messageId);
 
             //TODO: this shouldn't happen. This stuff runs in parallel. We need to lock the lockfile Pepega
             if (rqi is null)

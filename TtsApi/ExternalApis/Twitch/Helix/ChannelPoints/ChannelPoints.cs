@@ -20,7 +20,7 @@ namespace TtsApi.ExternalApis.Twitch.Helix.ChannelPoints
 
         public async Task<DataHolder<TwitchCustomReward>> GetCustomReward(Channel channel, Reward reward = null)
         {
-            string clientId = BotDataAccess.GetClientId(_db.BotData);
+            string clientId = BotDataAccess.ClientId;
             // Try first time
             DataHolder<TwitchCustomReward> rewardData =
                 await ChannelPointsStatics.GetCustomReward(clientId, channel, reward);
@@ -37,7 +37,7 @@ namespace TtsApi.ExternalApis.Twitch.Helix.ChannelPoints
         public async Task<DataHolder<TwitchCustomReward>> CreateCustomReward(Channel channel,
             TwitchCustomRewardInputCreate twitchCustomRewardInputCreate)
         {
-            string clientId = BotDataAccess.GetClientId(_db.BotData);
+            string clientId = BotDataAccess.ClientId;
             // Try first time
             DataHolder<TwitchCustomReward> rewardData =
                 await ChannelPointsStatics.CreateCustomReward(clientId, channel, twitchCustomRewardInputCreate);
@@ -54,7 +54,7 @@ namespace TtsApi.ExternalApis.Twitch.Helix.ChannelPoints
         public async Task<DataHolder<TwitchCustomReward>> UpdateCustomReward(Reward reward,
             TwitchCustomRewardInputUpdate twitchCustomRewardInputUpdate)
         {
-            string clientId = BotDataAccess.GetClientId(_db.BotData);
+            string clientId = BotDataAccess.ClientId;
             // Try first time
             DataHolder<TwitchCustomReward> rewardData =
                 await ChannelPointsStatics.UpdateCustomReward(clientId, reward.Channel, reward,
@@ -73,7 +73,7 @@ namespace TtsApi.ExternalApis.Twitch.Helix.ChannelPoints
 
         public async Task<bool> DeleteCustomReward(Reward reward)
         {
-            string clientId = BotDataAccess.GetClientId(_db.BotData);
+            string clientId = BotDataAccess.ClientId;
             // Try first time
             DataHolder<object> rewardData =
                 await ChannelPointsStatics.DeleteCustomReward(clientId, reward);

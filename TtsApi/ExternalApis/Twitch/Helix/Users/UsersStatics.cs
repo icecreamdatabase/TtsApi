@@ -15,12 +15,12 @@ namespace TtsApi.ExternalApis.Twitch.Helix.Users
     {
         private static readonly HttpClient Client = new();
         private const string BaseUrlCustomRewards = @"https://api.twitch.tv/helix/users";
-        private static readonly JsonSerializerOptions JsonIgnoreNullValues = new() {IgnoreNullValues = true};
+        private static readonly JsonSerializerOptions JsonIgnoreNullValues = new() { IgnoreNullValues = true };
 
         internal static async Task<DataHolder<TwitchUser>> Users(string clientId, string accessToken,
             StringValues idsToCheck = new(), StringValues loginsToCheck = new())
         {
-            using HttpRequestMessage requestMessage = new() {Method = HttpMethod.Get};
+            using HttpRequestMessage requestMessage = new() { Method = HttpMethod.Get };
 
             switch (idsToCheck.Count + loginsToCheck.Count)
             {
@@ -43,11 +43,14 @@ namespace TtsApi.ExternalApis.Twitch.Helix.Users
                 query
             );
 
+            while (!HelixRatelimit.Bucket.TakeTicket())
+                await Task.Delay(100);
+
             HttpResponseMessage response = await Client.SendAsync(requestMessage);
             string responseFromServer = await response.Content.ReadAsStringAsync();
 
             return string.IsNullOrEmpty(responseFromServer)
-                ? new DataHolder<TwitchUser> {Status = (int) response.StatusCode}
+                ? new DataHolder<TwitchUser> { Status = (int)response.StatusCode }
                 : JsonSerializer.Deserialize<DataHolder<TwitchUser>>(responseFromServer, JsonIgnoreNullValues);
         }
 

@@ -20,6 +20,7 @@ using TtsApi.BackgroundServices;
 using TtsApi.ExternalApis.Aws;
 using TtsApi.ExternalApis.Discord;
 using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints;
+using TtsApi.ExternalApis.Twitch.Helix.Eventsub;
 using TtsApi.ExternalApis.Twitch.Helix.Moderation;
 using TtsApi.ExternalApis.Twitch.Helix.Users;
 using TtsApi.Hubs.TtsHub;
@@ -52,7 +53,7 @@ namespace TtsApi
             services.AddRouting(options => options.LowercaseUrls = true);
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo {Title = "TtsApi", Version = "v1"});
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "TtsApi", Version = "v1" });
 
                 // This is more or less a hotfix due to the way I currently run docker. 
                 // Once I cleanup the docker file this won't be needed anymore.
@@ -141,13 +142,18 @@ namespace TtsApi
             services.AddDefaultAWSOptions(Configuration.GetAWSOptions());
             services.AddAWSService<IAmazonPolly>();
             services.AddSingleton<Polly>();
-            services.AddHostedService<PrefetchPollyData>();
+            services.AddHostedService<PrepareBotAndPrefetchData>();
 
             services.AddHostedService<IngestQueueHandler>();
+            // Helix
             services.AddTransient<TtsHandler>();
+            services.AddTransient<TtsAddRemoveHandler>();
             services.AddTransient<ChannelPoints>();
             services.AddTransient<Moderation>();
+            services.AddTransient<ModerationBannedUsers>();
             services.AddTransient<Users>();
+            // EventSub
+            services.AddTransient<Subscriptions>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
