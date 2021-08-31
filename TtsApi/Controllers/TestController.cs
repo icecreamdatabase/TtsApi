@@ -14,6 +14,7 @@ namespace TtsApi.Controllers
     [ApiController]
     [Route("[controller]")]
     [ApiExplorerSettings(IgnoreApi = true)]
+    [Authorize(Roles = Roles.BotOwner)]
     public class TestController : ControllerBase
     {
         private readonly ILogger<TestController> _logger;
