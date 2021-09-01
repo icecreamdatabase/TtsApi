@@ -10,7 +10,6 @@ using Microsoft.Extensions.Logging;
 using TtsApi.Authentication;
 using TtsApi.Authentication.Policies;
 using TtsApi.ExternalApis.Twitch.Helix;
-using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints;
 using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.CustomRewards;
 using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.CustomRewards.DataTypes;
 using TtsApi.Hubs.TtsHub;

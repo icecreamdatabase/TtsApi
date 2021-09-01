@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Amazon.Polly;
 using Amazon.Polly.Model;
@@ -10,7 +9,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using TtsApi.ExternalApis.Aws;
-using TtsApi.ExternalApis.Twitch.Helix;
 using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.Redemptions;
 using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.Redemptions.DataTypes;
 using TtsApi.ExternalApis.Twitch.Helix.Moderation;
