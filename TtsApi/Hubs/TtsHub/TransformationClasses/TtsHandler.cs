@@ -232,11 +232,33 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
             _ttsDbContext.RequestQueueIngest.Remove(rqi);
             await _ttsDbContext.SaveChangesAsync();
 
-            // always refund bot admins / owners because why not :)
+            TwitchCustomRewardsRedemptionsInput twitchCustomRewardsRedemptionsInput;
+            switch (reason)
+            {
+                case MessageType.SkippedBeforePlaying:
+                case MessageType.NotPlayedTimedOut:
+                case MessageType.NotPlayedSubOnly:
+                case MessageType.NotPlayedIsOnGlobalBlacklist:
+                case MessageType.NotPlayedIsOnChannelBlacklist:
+                case MessageType.FailedNoParts:
+                    twitchCustomRewardsRedemptionsInput = TwitchCustomRewardsRedemptionsInput.Canceled;
+                    break;
+                case MessageType.PlayedFully:
+                case MessageType.Skipped:
+                case MessageType.SkippedAfterTime:
+                case MessageType.SkippedNoQueue:
+                    twitchCustomRewardsRedemptionsInput = TwitchCustomRewardsRedemptionsInput.Fulfilled;
+                    break;
+                default:
+                    twitchCustomRewardsRedemptionsInput = TwitchCustomRewardsRedemptionsInput.Fulfilled;
+                    break;
+            }
+
+            // always refund special users because why not :^)
             if (_ttsDbContext.BotSpecialUsers.Any(bsu => bsu.UserId == rqi.RequesterId))
-                await _customRewardsRedemptions.UpdateCustomReward(rqi, TwitchCustomRewardsRedemptionsInput.Canceled);
-            else
-                await _customRewardsRedemptions.UpdateCustomReward(rqi, TwitchCustomRewardsRedemptionsInput.Fulfilled);
+                twitchCustomRewardsRedemptionsInput = TwitchCustomRewardsRedemptionsInput.Canceled;
+
+            await _customRewardsRedemptions.UpdateCustomReward(rqi, twitchCustomRewardsRedemptionsInput);
         }
 
         public static void ClientDisconnected(string contextConnectionId, string contextUserIdentifier)
