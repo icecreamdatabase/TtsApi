@@ -229,9 +229,6 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
                 CharacterCostNeural = rqi.CharacterCostNeural ?? 0
             });
 
-            _ttsDbContext.RequestQueueIngest.Remove(rqi);
-            await _ttsDbContext.SaveChangesAsync();
-
             TwitchCustomRewardsRedemptionsInput twitchCustomRewardsRedemptionsInput;
             switch (reason)
             {
@@ -259,6 +256,10 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
                 twitchCustomRewardsRedemptionsInput = TwitchCustomRewardsRedemptionsInput.Canceled;
 
             await _customRewardsRedemptions.UpdateCustomReward(rqi, twitchCustomRewardsRedemptionsInput);
+
+            // Don't remove rqi before we are done with it. (We might have to refresh tokens!!!)
+            _ttsDbContext.RequestQueueIngest.Remove(rqi);
+            await _ttsDbContext.SaveChangesAsync();
         }
 
         public static void ClientDisconnected(string contextConnectionId, string contextUserIdentifier)
