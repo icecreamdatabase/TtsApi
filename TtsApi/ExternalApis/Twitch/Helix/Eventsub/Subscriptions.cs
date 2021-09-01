@@ -67,15 +67,15 @@ namespace TtsApi.ExternalApis.Twitch.Helix.Eventsub
                     shouldIdsFromDb
                 )
             );
-            tasks.AddRange(
-                SetChannelBased(
-                    GetResponse.FilterByTransportData(
-                        getResponse.ChannelPointsCustomRewardRedemptionUpdates,
-                        Transport.Default
-                    ),
-                    shouldIdsFromDb
-                )
-            );
+            //tasks.AddRange(
+            //    SetChannelBased(
+            //        GetResponse.FilterByTransportData(
+            //            getResponse.ChannelPointsCustomRewardRedemptionUpdates,
+            //            Transport.Default
+            //        ),
+            //        shouldIdsFromDb
+            //    )
+            //);
             tasks.AddRange(
                 SetChannelBased(
                     GetResponse.FilterByTransportData(
