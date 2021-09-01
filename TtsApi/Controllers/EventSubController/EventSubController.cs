@@ -65,7 +65,8 @@ namespace TtsApi.Controllers.EventSubController
 
                 if (!VerifySubscription(bodyAsRawString))
                 {
-                    _logger.LogWarning("{Body}", bodyAsRawString);
+                    _logger.LogWarning("{Body}\n{Headers}", bodyAsRawString,
+                        JsonSerializer.Serialize(new EventSubHeaders(Request.Headers)));
                     return Forbid();
                 }
             }
@@ -105,6 +106,8 @@ namespace TtsApi.Controllers.EventSubController
             if (!string.Equals(messageSignature, expectedSignature, StringComparison.InvariantCultureIgnoreCase))
                 return false;
 
+            return true;
+            
             // Check valid age
             if (!DateTime.TryParse(messageTimestamp, out DateTime messageDateTime))
                 return false;
