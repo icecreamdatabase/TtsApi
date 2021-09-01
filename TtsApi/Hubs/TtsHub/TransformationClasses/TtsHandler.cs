@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Amazon.Polly;
 using Amazon.Polly.Model;
@@ -9,6 +10,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using TtsApi.ExternalApis.Aws;
+using TtsApi.ExternalApis.Twitch.Helix;
+using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.Redemptions;
+using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.Redemptions.DataTypes;
 using TtsApi.ExternalApis.Twitch.Helix.Moderation;
 using TtsApi.Hubs.TtsHub.TransferClasses;
 using TtsApi.Model;
@@ -25,13 +29,15 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
         private readonly TtsDbContext _ttsDbContext;
         private readonly IHubContext<TtsHub, ITtsHub> _hubContext;
         private readonly Polly _polly;
+        private readonly CustomRewardsRedemptions _customRewardsRedemptions;
 
         public TtsHandler(ILogger<TtsHandler> logger, IHubContext<TtsHub, ITtsHub> hubContext, Polly polly,
-            IServiceScopeFactory serviceScopeFactory)
+            CustomRewardsRedemptions customRewardsRedemptions, IServiceScopeFactory serviceScopeFactory)
         {
             _logger = logger;
             _hubContext = hubContext;
             _polly = polly;
+            _customRewardsRedemptions = customRewardsRedemptions;
 
             // We can't give the DB through the constructor parameters.
             IServiceProvider serviceProvider = serviceScopeFactory.CreateScope().ServiceProvider;
@@ -199,6 +205,7 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
         {
             RequestQueueIngest rqi = await _ttsDbContext.RequestQueueIngest
                 .Include(r => r.Reward)
+                .Include(r => r.Reward.Channel)
                 .FirstOrDefaultAsync(r => r.MessageId == messageId);
 
             //TODO: this shouldn't happen. This stuff runs in parallel. We need to lock the lockfile Pepega
@@ -224,6 +231,12 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
 
             _ttsDbContext.RequestQueueIngest.Remove(rqi);
             await _ttsDbContext.SaveChangesAsync();
+
+            // always refund bot admins / owners because why not :)
+            if (_ttsDbContext.BotSpecialUsers.Any(bsu => bsu.UserId == rqi.RequesterId))
+                await _customRewardsRedemptions.UpdateCustomReward(rqi, TwitchCustomRewardsRedemptionsInput.Canceled);
+            else
+                await _customRewardsRedemptions.UpdateCustomReward(rqi, TwitchCustomRewardsRedemptionsInput.Fulfilled);
         }
 
         public static void ClientDisconnected(string contextConnectionId, string contextUserIdentifier)

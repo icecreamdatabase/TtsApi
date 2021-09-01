@@ -2,11 +2,11 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
-namespace TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.DataTypes
+namespace TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.CustomRewards.DataTypes
 {
     [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
     [SuppressMessage("ReSharper", "PropertyCanBeMadeInitOnly.Global")]
-    public class TwitchCustomRewardInputCreate
+    public class TwitchCustomRewardsInputCreate
     {
         [JsonPropertyName("title")]
         public string? Title { get; set; }

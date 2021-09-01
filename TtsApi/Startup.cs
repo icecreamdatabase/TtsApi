@@ -19,7 +19,8 @@ using TtsApi.Authentication.Roles;
 using TtsApi.BackgroundServices;
 using TtsApi.ExternalApis.Aws;
 using TtsApi.ExternalApis.Discord;
-using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints;
+using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.CustomRewards;
+using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.Redemptions;
 using TtsApi.ExternalApis.Twitch.Helix.Eventsub;
 using TtsApi.ExternalApis.Twitch.Helix.Moderation;
 using TtsApi.ExternalApis.Twitch.Helix.Users;
@@ -148,7 +149,8 @@ namespace TtsApi
             // Helix
             services.AddTransient<TtsHandler>();
             services.AddTransient<TtsAddRemoveHandler>();
-            services.AddTransient<ChannelPoints>();
+            services.AddTransient<CustomRewards>();
+            services.AddTransient<CustomRewardsRedemptions>();
             services.AddTransient<Moderation>();
             services.AddTransient<ModerationBannedUsers>();
             services.AddTransient<Users>();

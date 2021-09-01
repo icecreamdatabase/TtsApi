@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using TtsApi.ExternalApis.Twitch.Helix.Auth.DataTypes;
+using TtsApi.ExternalApis.Twitch.Helix.Eventsub;
 using TtsApi.ExternalApis.Twitch.Helix.Users;
 using TtsApi.ExternalApis.Twitch.Helix.Users.DataTypes;
 using TtsApi.Model;
@@ -20,17 +21,19 @@ namespace TtsApi.Controllers.AuthController
         private readonly ILogger<AuthController> _logger;
         private readonly TtsDbContext _db;
         private readonly Users _users;
+        private readonly Subscriptions _subscriptions;
 
         private static readonly List<string> RegisterRequiredScopes = new()
             {"channel:manage:redemptions", "channel:read:redemptions", "moderation:read", "channel:moderate"};
 
         private static readonly string[] ValidSignupBroadcasterTypes = {"partner", "affiliate"};
 
-        public AuthController(ILogger<AuthController> logger, TtsDbContext db, Users users)
+        public AuthController(ILogger<AuthController> logger, TtsDbContext db, Users users, Subscriptions subscriptions)
         {
             _logger = logger;
             _db = db;
             _users = users;
+            _subscriptions = subscriptions;
         }
 
         /// <summary>

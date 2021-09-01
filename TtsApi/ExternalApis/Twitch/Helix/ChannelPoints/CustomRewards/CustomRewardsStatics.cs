@@ -6,18 +6,18 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.WebUtilities;
-using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.DataTypes;
+using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.CustomRewards.DataTypes;
 using TtsApi.Model.Schema;
 
-namespace TtsApi.ExternalApis.Twitch.Helix.ChannelPoints
+namespace TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.CustomRewards
 {
-    public static class ChannelPointsStatics
+    public static class CustomRewardsStatics
     {
         private static readonly HttpClient Client = new();
         private const string BaseUrlCustomRewards = @"https://api.twitch.tv/helix/channel_points/custom_rewards";
         private static readonly JsonSerializerOptions JsonIgnoreNullValues = new() { IgnoreNullValues = true };
 
-        internal static async Task<DataHolder<TwitchCustomReward>> GetCustomReward(string clientId,
+        internal static async Task<DataHolder<TwitchCustomRewards>> GetCustomReward(string clientId,
             Channel targetChannel, Reward targetReward = null)
         {
             using HttpRequestMessage requestMessage = new() { Method = HttpMethod.Get };
@@ -43,12 +43,12 @@ namespace TtsApi.ExternalApis.Twitch.Helix.ChannelPoints
             string responseFromServer = await response.Content.ReadAsStringAsync();
 
             return string.IsNullOrEmpty(responseFromServer)
-                ? new DataHolder<TwitchCustomReward> { Status = (int)response.StatusCode }
-                : JsonSerializer.Deserialize<DataHolder<TwitchCustomReward>>(responseFromServer, JsonIgnoreNullValues);
+                ? new DataHolder<TwitchCustomRewards> { Status = (int)response.StatusCode }
+                : JsonSerializer.Deserialize<DataHolder<TwitchCustomRewards>>(responseFromServer, JsonIgnoreNullValues);
         }
 
-        internal static async Task<DataHolder<TwitchCustomReward>> CreateCustomReward(string clientId,
-            Channel targetChannel, TwitchCustomRewardInputCreate twitchCustomRewardInputCreate)
+        internal static async Task<DataHolder<TwitchCustomRewards>> CreateCustomReward(string clientId,
+            Channel targetChannel, TwitchCustomRewardsInputCreate twitchCustomRewardsInputCreate)
         {
             using HttpRequestMessage requestMessage = new() { Method = HttpMethod.Post };
             GetRequest(
@@ -59,7 +59,7 @@ namespace TtsApi.ExternalApis.Twitch.Helix.ChannelPoints
                 {
                     { "broadcaster_id", targetChannel.RoomId.ToString() },
                 },
-                twitchCustomRewardInputCreate
+                twitchCustomRewardsInputCreate
             );
 
             while (!HelixRatelimit.Bucket.TakeTicket())
@@ -69,12 +69,12 @@ namespace TtsApi.ExternalApis.Twitch.Helix.ChannelPoints
             string responseFromServer = await response.Content.ReadAsStringAsync();
 
             return string.IsNullOrEmpty(responseFromServer)
-                ? new DataHolder<TwitchCustomReward> { Status = (int)response.StatusCode }
-                : JsonSerializer.Deserialize<DataHolder<TwitchCustomReward>>(responseFromServer, JsonIgnoreNullValues);
+                ? new DataHolder<TwitchCustomRewards> { Status = (int)response.StatusCode }
+                : JsonSerializer.Deserialize<DataHolder<TwitchCustomRewards>>(responseFromServer, JsonIgnoreNullValues);
         }
 
-        internal static async Task<DataHolder<TwitchCustomReward>> UpdateCustomReward(string clientId,
-            Channel targetChannel, Reward targetReward, TwitchCustomRewardInputUpdate twitchCustomRewardInputUpdate)
+        internal static async Task<DataHolder<TwitchCustomRewards>> UpdateCustomReward(string clientId,
+            Channel targetChannel, Reward targetReward, TwitchCustomRewardsesInputUpdate twitchCustomRewardsesInputUpdate)
         {
             using HttpRequestMessage requestMessage = new() { Method = HttpMethod.Patch };
             GetRequest(
@@ -86,7 +86,7 @@ namespace TtsApi.ExternalApis.Twitch.Helix.ChannelPoints
                     { "broadcaster_id", targetChannel.RoomId.ToString() },
                     { "id", targetReward.RewardId }
                 },
-                twitchCustomRewardInputUpdate
+                twitchCustomRewardsesInputUpdate
             );
 
             while (!HelixRatelimit.Bucket.TakeTicket())
@@ -96,8 +96,8 @@ namespace TtsApi.ExternalApis.Twitch.Helix.ChannelPoints
             string responseFromServer = await response.Content.ReadAsStringAsync();
 
             return string.IsNullOrEmpty(responseFromServer)
-                ? new DataHolder<TwitchCustomReward> { Status = (int)response.StatusCode }
-                : JsonSerializer.Deserialize<DataHolder<TwitchCustomReward>>(responseFromServer, JsonIgnoreNullValues);
+                ? new DataHolder<TwitchCustomRewards> { Status = (int)response.StatusCode }
+                : JsonSerializer.Deserialize<DataHolder<TwitchCustomRewards>>(responseFromServer, JsonIgnoreNullValues);
         }
 
         internal static async Task<DataHolder<object>> DeleteCustomReward(string clientId,

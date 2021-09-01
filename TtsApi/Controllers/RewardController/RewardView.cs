@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.DataTypes;
+using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.CustomRewards.DataTypes;
 using TtsApi.Model.Schema;
 
 namespace TtsApi.Controllers.RewardController
@@ -16,9 +16,9 @@ namespace TtsApi.Controllers.RewardController
         public bool IsSubOnly { get; }
         public int Cooldown { get; }
 
-        public TwitchCustomReward TwitchCustomReward { get; }
+        public TwitchCustomRewards TwitchCustomRewards { get; }
 
-        public RewardView(Reward reward, TwitchCustomReward twitchCustomReward)
+        public RewardView(Reward reward, TwitchCustomRewards twitchCustomRewards)
         {
             if (reward is not null)
             {
@@ -31,7 +31,7 @@ namespace TtsApi.Controllers.RewardController
                 Cooldown = reward.Cooldown;
             }
 
-            TwitchCustomReward = twitchCustomReward;
+            TwitchCustomRewards = twitchCustomRewards;
         }
     }
 }

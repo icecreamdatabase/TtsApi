@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using Amazon.Polly;
-using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.DataTypes;
+using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.CustomRewards.DataTypes;
 
 namespace TtsApi.Controllers.RewardController
 {
-    public class RewardUpdateInput : TwitchCustomRewardInputUpdate, IValidatableObject
+    public class RewardsesUpdateInput : TwitchCustomRewardsesInputUpdate, IValidatableObject
     {
         public string? VoiceId { get; set; }
         public VoiceId GetVoiceId() => Amazon.Polly.VoiceId.FindValue(VoiceId);

@@ -1,10 +1,10 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
-namespace TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.DataTypes
+namespace TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.CustomRewards.DataTypes
 {
     [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
-    public class TwitchCustomReward
+    public class TwitchCustomRewards
     {
         [JsonPropertyName("broadcaster_id")]
         public string BroadcasterId { get; set; }

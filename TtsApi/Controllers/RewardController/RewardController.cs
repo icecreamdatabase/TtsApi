@@ -11,7 +11,8 @@ using TtsApi.Authentication;
 using TtsApi.Authentication.Policies;
 using TtsApi.ExternalApis.Twitch.Helix;
 using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints;
-using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.DataTypes;
+using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.CustomRewards;
+using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.CustomRewards.DataTypes;
 using TtsApi.Hubs.TtsHub;
 using TtsApi.Model;
 using TtsApi.Model.Schema;
@@ -26,15 +27,15 @@ namespace TtsApi.Controllers.RewardController
         private const string ErrorDuplicateReward = "CREATE_CUSTOM_REWARD_DUPLICATE_REWARD";
         private readonly ILogger<RewardController> _logger;
         private readonly TtsDbContext _ttsDbContext;
-        private readonly ChannelPoints _channelPoints;
+        private readonly CustomRewards _customRewards;
         private readonly IHubContext<TtsHub, ITtsHub> _ttsHub;
 
         public RewardController(ILogger<RewardController> logger, TtsDbContext ttsDbContext,
-            ChannelPoints channelPoints, IHubContext<TtsHub, ITtsHub> ttsHub)
+            CustomRewards customRewards, IHubContext<TtsHub, ITtsHub> ttsHub)
         {
             _logger = logger;
             _ttsDbContext = ttsDbContext;
-            _channelPoints = channelPoints;
+            _customRewards = customRewards;
             _ttsHub = ttsHub;
         }
 
@@ -68,7 +69,10 @@ namespace TtsApi.Controllers.RewardController
                 inputChannel = _ttsDbContext.Channels.FirstOrDefault(channel => channel.RoomId == roomId);
             }
 
-            DataHolder<TwitchCustomReward> dataHolder = await _channelPoints.GetCustomReward(inputChannel, inputReward);
+            if (inputChannel is null)
+                return NotFound();
+
+            DataHolder<TwitchCustomRewards> dataHolder = await _customRewards.GetCustomReward(inputChannel, inputReward);
 
             List<RewardView> rewardViews = dataHolder.Data
                 .Select(twitchCustomReward =>
@@ -101,7 +105,7 @@ namespace TtsApi.Controllers.RewardController
             if (channel is null)
                 return NotFound();
 
-            TwitchCustomRewardInputCreate twitchInput = new()
+            TwitchCustomRewardsInputCreate twitchInput = new()
             {
                 Title = input.Title,
                 Prompt = input.Prompt,
@@ -111,25 +115,25 @@ namespace TtsApi.Controllers.RewardController
                 ShouldRedemptionsSkipRequestQueue = false
             };
 
-            DataHolder<TwitchCustomReward> dataHolder =
-                await _channelPoints.CreateCustomReward(channel, twitchInput);
+            DataHolder<TwitchCustomRewards> dataHolder =
+                await _customRewards.CreateCustomReward(channel, twitchInput);
 
             if (dataHolder.Data is {Count: > 0})
             {
-                TwitchCustomReward twitchCustomReward = dataHolder.Data.First();
-                if (twitchCustomReward?.Id is null)
+                TwitchCustomRewards twitchCustomRewards = dataHolder.Data.First();
+                if (twitchCustomRewards?.Id is null)
                     return Problem(null, null, (int) HttpStatusCode.ServiceUnavailable);
                 Reward newReward = new()
                 {
-                    RewardId = twitchCustomReward.Id,
-                    ChannelId = int.Parse(twitchCustomReward.BroadcasterId),
+                    RewardId = twitchCustomRewards.Id,
+                    ChannelId = int.Parse(twitchCustomRewards.BroadcasterId),
                     VoiceId = input.VoiceId
                 };
                 _ttsDbContext.Rewards.Add(newReward);
                 await _ttsDbContext.SaveChangesAsync();
 
-                return Created($"{@Url.Action("Get")}/{twitchCustomReward.Id}",
-                    new RewardView(newReward, twitchCustomReward));
+                return Created($"{@Url.Action("Get")}/{twitchCustomRewards.Id}",
+                    new RewardView(newReward, twitchCustomRewards));
             }
 
             return dataHolder is {Status: (int) HttpStatusCode.BadRequest, Message: ErrorDuplicateReward}
@@ -151,7 +155,7 @@ namespace TtsApi.Controllers.RewardController
         [HttpPatch]
         [ProducesResponseType((int) HttpStatusCode.NoContent)]
         public async Task<ActionResult> Update([FromQuery] int roomId, [FromQuery] string rewardId,
-            [FromBody] RewardUpdateInput input)
+            [FromBody] RewardsesUpdateInput input)
         {
             Reward dbReward = _ttsDbContext.Rewards
                 .Include(r => r.Channel)
@@ -180,11 +184,11 @@ namespace TtsApi.Controllers.RewardController
             if (input.IsUserInputRequired is not null)
                 input.IsUserInputRequired = true;
 
-            DataHolder<TwitchCustomReward> dataHolder = await _channelPoints.UpdateCustomReward(dbReward, input);
+            DataHolder<TwitchCustomRewards> dataHolder = await _customRewards.UpdateCustomReward(dbReward, input);
             if (dataHolder.Data is {Count: > 0})
             {
-                TwitchCustomReward reward = dataHolder.Data.First();
-                return reward?.Id is null
+                TwitchCustomRewards rewards = dataHolder.Data.First();
+                return rewards?.Id is null
                     ? Problem(null, null, (int) HttpStatusCode.ServiceUnavailable)
                     : NoContent();
                 //TODO: duplicate title
@@ -215,7 +219,7 @@ namespace TtsApi.Controllers.RewardController
             if (dbReward.ChannelId != roomId)
                 return NotFound();
 
-            if (await _channelPoints.DeleteCustomReward(dbReward))
+            if (await _customRewards.DeleteCustomReward(dbReward))
             {
                 _ttsDbContext.Rewards.Remove(dbReward);
                 await _ttsDbContext.SaveChangesAsync();

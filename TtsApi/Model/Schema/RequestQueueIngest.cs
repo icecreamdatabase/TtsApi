@@ -60,7 +60,7 @@ namespace TtsApi.Model.Schema
             RequesterDisplayName = input.Event.UserLogin;
             IsSubOrHigher = false; // TODO
             RawMessage = input.Event.UserInput;
-            MessageId = input.EventSubHeaders.MessageId;
+            MessageId = input.Event.Id; // TODO: MessageId is too close to the header MessageId. Name it RedemptionId instead.
             WasTimedOut = false; // TODO;
             RequestTimestamp = input.EventSubHeaders.MessageTimestamp;
         }
