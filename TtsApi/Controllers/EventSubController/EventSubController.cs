@@ -65,8 +65,10 @@ namespace TtsApi.Controllers.EventSubController
 
                 if (!VerifySubscription(bodyAsRawString))
                 {
-                    _logger.LogWarning("{Body}\n{Headers}", bodyAsRawString,
-                        JsonSerializer.Serialize(new EventSubHeaders(Request.Headers)));
+                    _logger.LogWarning("Eventsub verification failed:\nHeaders: {Headers}\nBody: {Body}",
+                        JsonSerializer.Serialize(new EventSubHeaders(Request.Headers)),
+                        bodyAsRawString
+                    );
                     return Forbid();
                 }
             }
@@ -75,7 +77,7 @@ namespace TtsApi.Controllers.EventSubController
                 return BadRequest();
             }
 
-            _logger.LogInformation("Raw body: {Body}", bodyAsRawString);
+            _logger.LogInformation("New Eventsub data:\nBody: {Body}", bodyAsRawString);
             HandleData(data, bodyAsRawString);
 
             return string.IsNullOrEmpty(data.Challenge)
@@ -103,15 +105,7 @@ namespace TtsApi.Controllers.EventSubController
             //_logger.LogInformation("------\n{1}\n{2}\n{3}\n------", hmacMessage, expectedSignature, messageSignature);
 
             // Check valid signature
-            if (!string.Equals(messageSignature, expectedSignature, StringComparison.InvariantCultureIgnoreCase))
-                return false;
-
-            return true;
-            
-            // Check valid age
-            if (!DateTime.TryParse(messageTimestamp, out DateTime messageDateTime))
-                return false;
-            return (DateTime.Now - messageDateTime).TotalMinutes < 10;
+            return string.Equals(messageSignature, expectedSignature, StringComparison.InvariantCultureIgnoreCase);
         }
 
         [SuppressMessage("ReSharper", "SuggestVarOrType_Elsewhere")] // Because fuck 4 line parse statements :)
@@ -138,6 +132,10 @@ namespace TtsApi.Controllers.EventSubController
             // If the queue is over 500 elements long remove the first / oldest 200 elements
             if (AlreadyHandledMessages.Count > 500)
                 AlreadyHandledMessages.RemoveRange(0, 200);
+
+            // Check valid age ... There is currently no need for it. The id should be good enough for now
+            //if ((DateTime.Now - data.EventSubHeaders.MessageTimestamp).TotalMinutes < 10)
+            //    return;
 
             // Handle Type and Version
             switch (data.Subscription.Type, data.Subscription.Version)
