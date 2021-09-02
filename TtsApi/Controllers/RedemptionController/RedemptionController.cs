@@ -58,17 +58,17 @@ namespace TtsApi.Controllers.RedemptionController
         /// </summary>
         /// <param name="roomId">Id of the channel. Must match auth permissions
         ///     Parameter name defined by <see cref="ApiKeyAuthenticationHandler.RoomIdQueryStringName"/>.</param>
-        /// <param name="messageId">MessageId of the redemption. Must match roomId. If left empty it will use the first one.</param>
+        /// <param name="redemptionId">RedemptionId of the redemption. Must match roomId. If left empty it will use the first one.</param>
         /// <returns></returns>
         /// <response code="204">Reward successfully skipped.</response>
         /// <response code="404">Channel or reward in Channel not found or nothing to skip.</response>
         [HttpDelete]
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
-        public async Task<ActionResult> Delete([FromQuery] int roomId, [FromQuery] string messageId = null)
+        public async Task<ActionResult> Delete([FromQuery] int roomId, [FromQuery] string redemptionId = null)
         {
-            bool successful = string.IsNullOrEmpty(messageId)
+            bool successful = string.IsNullOrEmpty(redemptionId)
                 ? await _ttsAddRemoveHandler.SkipCurrentTtsRequest(roomId)
-                : await _ttsAddRemoveHandler.SkipTtsRequest(roomId, messageId);
+                : await _ttsAddRemoveHandler.SkipTtsRequest(roomId, redemptionId);
             return successful ? NoContent() : NotFound();
         }
     }

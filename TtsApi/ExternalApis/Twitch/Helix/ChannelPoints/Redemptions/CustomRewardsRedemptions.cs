@@ -19,12 +19,12 @@ namespace TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.Redemptions
         }
 
         public async Task<DataHolder<TwitchCustomRewardsRedemptions>> GetCustomRewardsRedemptions(Reward reward,
-            string messageId = null)
+            string redemptionId = null)
         {
             string clientId = BotDataAccess.ClientId;
             // Try first time
             DataHolder<TwitchCustomRewardsRedemptions> rewardData =
-                await CustomRewardsRedemptionsStatics.GetCustomReward(clientId, reward, messageId);
+                await CustomRewardsRedemptionsStatics.GetCustomReward(clientId, reward, redemptionId);
             // If we don't have an Unauthorized result return it
             if (rewardData is not { Status: (int)HttpStatusCode.Unauthorized })
                 return rewardData;
@@ -33,7 +33,7 @@ namespace TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.Redemptions
                 reward.Channel.ChannelName);
             await Auth.Authentication.Refresh(_db, reward.Channel);
             // Try again. If this still returns null then so be it.
-            return await CustomRewardsRedemptionsStatics.GetCustomReward(clientId, reward, messageId);
+            return await CustomRewardsRedemptionsStatics.GetCustomReward(clientId, reward, redemptionId);
         }
 
         public async Task<DataHolder<TwitchCustomRewardsRedemptions>> UpdateCustomReward(RequestQueueIngest targetRqi,

@@ -63,14 +63,14 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
 
         private async Task SendTtsRequest(RequestQueueIngest rqi)
         {
-            ActiveRequests.Add(rqi.Reward.ChannelId, rqi.MessageId);
+            ActiveRequests.Add(rqi.Reward.ChannelId, rqi.RedemptionId);
 
             /* Global user blacklist */
             if (_ttsDbContext.GlobalUserBlacklist.Any(gub => gub.UserId == rqi.RequesterId))
             {
                 await DoneWithPlaying(
                     rqi.Reward.ChannelId,
-                    rqi.MessageId,
+                    rqi.RedemptionId,
                     MessageType.NotPlayedIsOnGlobalBlacklist
                 );
                 return;
@@ -85,7 +85,7 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
             {
                 await DoneWithPlaying(
                     rqi.Reward.ChannelId,
-                    rqi.MessageId,
+                    rqi.RedemptionId,
                     MessageType.NotPlayedIsOnChannelBlacklist
                 );
                 return;
@@ -104,7 +104,7 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
             {
                 await DoneWithPlaying(
                     rqi.Reward.ChannelId,
-                    rqi.MessageId,
+                    rqi.RedemptionId,
                     MessageType.NotPlayedTimedOut
                 );
                 return;
@@ -115,7 +115,7 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
             {
                 await DoneWithPlaying(
                     rqi.Reward.ChannelId,
-                    rqi.MessageId,
+                    rqi.RedemptionId,
                     MessageType.NotPlayedSubOnly
                 );
                 return;
@@ -143,7 +143,7 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
         {
             TtsRequest ttsRequest = new()
             {
-                MessageId = rqi.MessageId,
+                RedemptionId = rqi.RedemptionId,
                 MaxMessageTimeSeconds = rqi.Reward.Channel.MaxMessageTimeSeconds,
             };
 
@@ -179,32 +179,33 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
             return ttsRequest;
         }
 
-        public async Task ConfirmTtsSkipped(string contextConnectionId, string contextUserIdentifier, string messageId)
+        public async Task ConfirmTtsSkipped(string contextConnectionId, string contextUserIdentifier,
+            string redemptionId)
         {
-            await DoneWithPlaying(int.Parse(contextUserIdentifier), messageId, MessageType.Skipped);
+            await DoneWithPlaying(int.Parse(contextUserIdentifier), redemptionId, MessageType.Skipped);
         }
 
         public async Task ConfirmTtsFullyPlayed(string contextConnectionId, string contextUserIdentifier,
-            string messageId)
+            string redemptionId)
         {
-            await DoneWithPlaying(int.Parse(contextUserIdentifier), messageId, MessageType.PlayedFully);
+            await DoneWithPlaying(int.Parse(contextUserIdentifier), redemptionId, MessageType.PlayedFully);
         }
 
-        private async Task DoneWithPlaying(int roomId, string messageId, MessageType reason)
+        private async Task DoneWithPlaying(int roomId, string redemptionId, MessageType reason)
         {
-            if (ActiveRequests.TryGetValue(roomId, out string activeMessageId) && activeMessageId == messageId)
+            if (ActiveRequests.TryGetValue(roomId, out string activeRedemptionId) && activeRedemptionId == redemptionId)
             {
-                await MoveRqiToTtsLog(messageId, reason);
+                await MoveRqiToTtsLog(redemptionId, reason);
                 ActiveRequests.Remove(roomId);
             }
         }
 
-        public async Task MoveRqiToTtsLog(string messageId, MessageType reason)
+        public async Task MoveRqiToTtsLog(string redemptionId, MessageType reason)
         {
             RequestQueueIngest rqi = await _ttsDbContext.RequestQueueIngest
                 .Include(r => r.Reward)
                 .Include(r => r.Reward.Channel)
-                .FirstOrDefaultAsync(r => r.MessageId == messageId);
+                .FirstOrDefaultAsync(r => r.RedemptionId == redemptionId);
 
             //TODO: this shouldn't happen. This stuff runs in parallel. We need to lock the lockfile Pepega
             if (rqi is null)
@@ -221,7 +222,7 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
                 WasTimedOut = rqi.WasTimedOut,
                 MessageType = reason,
                 RequestTimestamp = rqi.RequestTimestamp,
-                MessageId = rqi.MessageId,
+                RedemptionId = rqi.RedemptionId,
                 // If skipped before even requesting we won't have a cost
                 CharacterCostStandard = rqi.CharacterCostStandard ?? 0,
                 CharacterCostNeural = rqi.CharacterCostNeural ?? 0

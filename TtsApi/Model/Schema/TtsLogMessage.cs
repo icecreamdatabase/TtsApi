@@ -58,7 +58,7 @@ namespace TtsApi.Model.Schema
         public DateTime RequestTimestamp { get; set; }
 
         [Required]
-        public string MessageId { get; set; }
+        public string RedemptionId { get; set; }
 
         [Required]
         public int CharacterCostStandard { get; set; } = 0;

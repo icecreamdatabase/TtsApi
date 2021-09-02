@@ -20,7 +20,7 @@ namespace TtsApi.Controllers.RedemptionController
 
         public string RawMessage { get; }
 
-        public string MessageId { get; }
+        public string RedemptionId { get; }
 
         public DateTime RequestTimestamp { get; }
 
@@ -32,7 +32,7 @@ namespace TtsApi.Controllers.RedemptionController
             RequesterDisplayName = rqi.RequesterDisplayName;
             IsSubOrHigher = rqi.IsSubOrHigher;
             RawMessage = rqi.RawMessage;
-            MessageId = rqi.MessageId;
+            RedemptionId = rqi.RedemptionId;
             RequestTimestamp = rqi.RequestTimestamp;
         }
     }

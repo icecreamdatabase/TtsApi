@@ -46,15 +46,15 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
 
         private async void SkipAllRequestsByUserInChannel(int roomId, int userId)
         {
-            List<string> messageIds = _ttsDbContext.RequestQueueIngest
+            List<string> redemptionIds = _ttsDbContext.RequestQueueIngest
                 .Include(r => r.Reward)
                 .Where(rqi => rqi.Reward.ChannelId == roomId && rqi.RequesterId == userId)
-                .Select(rqi => rqi.MessageId)
+                .Select(rqi => rqi.RedemptionId)
                 .ToList();
 
             // This needs to happen one at a time!
-            foreach (string messageId in messageIds)
-                await SkipTtsRequest(roomId, messageId, true);
+            foreach (string redemptionId in redemptionIds)
+                await SkipTtsRequest(roomId, redemptionId, true);
         }
 
         public async Task<bool> SkipCurrentTtsRequest(int roomId, bool wasTimedOut = false)
@@ -66,21 +66,21 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
             if (rqi is null)
                 return false;
 
-            return await SkipTtsRequest(roomId, rqi.MessageId);
+            return await SkipTtsRequest(roomId, rqi.RedemptionId);
         }
 
-        public async Task<bool> SkipTtsRequest(int roomId, string messageId = null, bool wasTimedOut = false)
+        public async Task<bool> SkipTtsRequest(int roomId, string redemptoinId = null, bool wasTimedOut = false)
         {
             RequestQueueIngest rqi = _ttsDbContext.RequestQueueIngest
                 .Include(r => r.Reward)
-                .FirstOrDefault(r => r.MessageId == messageId);
+                .FirstOrDefault(r => r.RedemptionId == redemptoinId);
 
             if (rqi is null || rqi.Reward.ChannelId != roomId)
                 return false;
 
             // Do we need to skip the currently playing one?
-            if (TtsHandler.ActiveRequests.TryGetValue(rqi.Reward.ChannelId, out string activeMessageId) &&
-                activeMessageId == rqi.MessageId)
+            if (TtsHandler.ActiveRequests.TryGetValue(rqi.Reward.ChannelId, out string activeRedemptionId) &&
+                activeRedemptionId == rqi.RedemptionId)
             {
                 List<string> clients = TtsHandler.ConnectClients
                     .Where(pair => pair.Value == roomId.ToString())
@@ -90,13 +90,13 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
                 if (clients.Any())
                     await _ttsHub.Clients.Clients(clients).TtsSkipCurrent();
                 else
-                    await _ttsHandler.MoveRqiToTtsLog(rqi.MessageId, wasTimedOut
+                    await _ttsHandler.MoveRqiToTtsLog(rqi.RedemptionId, wasTimedOut
                         ? MessageType.NotPlayedTimedOut
                         : MessageType.Skipped
                     );
             }
             else
-                await _ttsHandler.MoveRqiToTtsLog(rqi.MessageId, wasTimedOut
+                await _ttsHandler.MoveRqiToTtsLog(rqi.RedemptionId, wasTimedOut
                     ? MessageType.NotPlayedTimedOut
                     : MessageType.SkippedBeforePlaying
                 );

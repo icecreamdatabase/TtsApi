@@ -35,7 +35,7 @@ namespace TtsApi.Model.Schema
         public string RawMessage { get; set; }
 
         [Required]
-        public string MessageId { get; set; }
+        public string RedemptionId { get; set; }
 
         [Required]
         public bool WasTimedOut { get; set; }
@@ -60,7 +60,7 @@ namespace TtsApi.Model.Schema
             RequesterDisplayName = input.Event.UserLogin;
             IsSubOrHigher = false; // TODO
             RawMessage = input.Event.UserInput;
-            MessageId = input.Event.Id; // TODO: MessageId is too close to the header MessageId. Name it RedemptionId instead.
+            RedemptionId = input.Event.Id;
             WasTimedOut = false; // TODO;
             RequestTimestamp = input.EventSubHeaders.MessageTimestamp;
         }

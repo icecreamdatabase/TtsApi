@@ -21,7 +21,7 @@ namespace TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.Redemptions
         private static readonly JsonSerializerOptions JsonIgnoreNullValues = new() { IgnoreNullValues = true };
 
         internal static async Task<DataHolder<TwitchCustomRewardsRedemptions>> GetCustomReward(string clientId,
-            Reward targetReward, string messageId = null, string status = "UNFULFILLED")
+            Reward targetReward, string redemptionId = null, string status = "UNFULFILLED")
         {
             using HttpRequestMessage requestMessage = new() { Method = HttpMethod.Get };
 
@@ -31,8 +31,8 @@ namespace TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.Redemptions
                 { "reward_id", targetReward.RewardId },
                 { "status", status }
             };
-            if (!string.IsNullOrEmpty(messageId))
-                query.Add("id", messageId);
+            if (!string.IsNullOrEmpty(redemptionId))
+                query.Add("id", redemptionId);
             GetRequest(
                 requestMessage,
                 clientId,
@@ -63,7 +63,7 @@ namespace TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.Redemptions
                 new Dictionary<string, string>
                 {
                     { "broadcaster_id", targetRqi.Reward.ChannelId.ToString() },
-                    { "id", targetRqi.MessageId },
+                    { "id", targetRqi.RedemptionId },
                     { "reward_id", targetRqi.RewardId }
                 },
                 twitchCustomRewardInput
