@@ -10,5 +10,7 @@ namespace TtsApi.Hubs.TtsHub
         Task TtsPlayRequest(TtsRequest request);
 
         Task TtsSkipCurrent();
+
+        Task Reload();
     }
 }

@@ -1,7 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using TtsApi.Authentication.Policies;
 using TtsApi.Authentication.Roles;
@@ -54,14 +53,6 @@ namespace TtsApi.Controllers
         public async Task<ActionResult> Get([FromRoute] string channelId)
         {
             return Ok($"xD {channelId}");
-        }
-
-        [HttpGet("GetDb")]
-        [Authorize(Roles = Roles.BotOwner)]
-        public ActionResult GetDb()
-        {
-            _ttsDbContext.Database.EnsureCreated();
-            return Ok(_ttsDbContext.Database.GenerateCreateScript());
         }
     }
 }
