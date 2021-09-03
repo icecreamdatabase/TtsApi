@@ -126,7 +126,8 @@ namespace TtsApi.Controllers.RewardController
                 {
                     RewardId = twitchCustomRewards.Id,
                     ChannelId = int.Parse(twitchCustomRewards.BroadcasterId),
-                    VoiceId = input.VoiceId
+                    VoiceId = input.VoiceId,
+                    VoiceEngine = input.VoiceEngine
                 };
                 _ttsDbContext.Rewards.Add(newReward);
                 await _ttsDbContext.SaveChangesAsync();
