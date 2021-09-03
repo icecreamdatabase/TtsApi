@@ -95,8 +95,16 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
             double secondsSinceRequest = (DateTime.Now - rqi.RequestTimestamp).TotalSeconds;
             double waitSRequiredBeforeTimeoutCheck = rqi.Reward.Channel.TimeoutCheckTime - secondsSinceRequest;
 
+            // This shouldn't matter ... but better safe than sorry monkaS
+            waitSRequiredBeforeTimeoutCheck = Math.Max(waitSRequiredBeforeTimeoutCheck, -15);
+            waitSRequiredBeforeTimeoutCheck = Math.Min(waitSRequiredBeforeTimeoutCheck, 15);
+
             if (waitSRequiredBeforeTimeoutCheck > 0)
+            {
+                _logger.LogInformation("Request: {Request} has to wait {Wait}",
+                    rqi.RedemptionId, (int)(waitSRequiredBeforeTimeoutCheck * 1000));
                 await Task.Delay((int)(waitSRequiredBeforeTimeoutCheck * 1000));
+            }
 
             if (rqi.WasTimedOut || ModerationBannedUsers.UserWasTimedOutSinceRedemption(
                 rqi.Reward.ChannelId.ToString(), rqi.RequesterId.ToString(), rqi.RequestTimestamp)
