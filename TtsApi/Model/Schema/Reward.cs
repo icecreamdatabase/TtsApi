@@ -36,16 +36,16 @@ namespace TtsApi.Model.Schema
         public Engine VoiceEngine { get; set; }
 
         [Required]
-        public bool IsConversation { get; set; }
-        
-        [Required]
-        public float DefaultPlaybackSpeed { get; set; }
+        public bool IsConversation { get; set; } = true;
 
         [Required]
-        public bool IsSubOnly { get; set; }
+        public float DefaultPlaybackSpeed { get; set; } = 1.0f;
 
         [Required]
-        public int Cooldown { get; set; }
+        public bool IsSubOnly { get; set; } = false;
+
+        [Required]
+        public int Cooldown { get; set; } = 0;
 
         public virtual List<RequestQueueIngest> RequestQueueIngests { get; set; }
 
