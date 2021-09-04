@@ -44,24 +44,26 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
 
         public async Task TrySendNextTtsRequestForChannel(int roomId)
         {
-            RequestQueueIngest rqi = _ttsDbContext.RequestQueueIngest
+            List<RequestQueueIngest> rqis = _ttsDbContext.RequestQueueIngest
                 .Include(r => r.Reward)
                 .Include(r => r.Reward.Channel)
                 .Include(r => r.Reward.Channel.ChannelUserBlacklist)
-                .FirstOrDefault(r => r.Reward.ChannelId == roomId);
+                .Where(r => r.Reward.ChannelId == roomId)
+                .OrderBy(r => r.RequestTimestamp)
+                .ToList();
 
             // No request for channel
-            if (rqi == null)
+            if (rqis.Count == 0)
                 return;
 
             // A request is already running for this channel
-            if (ActiveRequests.ContainsKey(rqi.Reward.ChannelId))
+            if (ActiveRequests.ContainsKey(rqis[0].Reward.ChannelId))
                 return;
 
-            await SendTtsRequest(rqi);
+            await SendTtsRequest(rqis[0], rqis.Count);
         }
 
-        private async Task SendTtsRequest(RequestQueueIngest rqi)
+        private async Task SendTtsRequest(RequestQueueIngest rqi, int queueLength)
         {
             ActiveRequests.Add(rqi.Reward.ChannelId, rqi.RedemptionId);
 
