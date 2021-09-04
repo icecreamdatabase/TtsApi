@@ -51,8 +51,10 @@ namespace TtsApi.Controllers.EventSubController
             // We are not using [FromBody] because I need access to the raw json input data. 
             // We can't serialize the [FromBody] object back to a json string either.
             // We need the original order of the json attributes.
-            using StreamReader reader = new StreamReader(Request.Body, Encoding.UTF8);
-            string bodyAsRawString = await reader.ReadToEndAsync();
+            await using MemoryStream memoryStream = new MemoryStream();
+            await Request.Body.CopyToAsync(memoryStream);
+            byte[] bodyAsByteArray = memoryStream.ToArray();
+            string bodyAsRawString = Encoding.UTF8.GetString(bodyAsByteArray);
 
             // Generic EventSubInput parsing because we don't know the exact type yet
             BareEventSubInput data;
@@ -63,7 +65,7 @@ namespace TtsApi.Controllers.EventSubController
                 if (data == null)
                     return BadRequest();
 
-                if (!VerifySubscription(bodyAsRawString))
+                if (!VerifySubscription(bodyAsByteArray))
                 {
                     _logger.LogWarning("Eventsub verification failed:\nHeaders: {Headers}\nBody: {Body}",
                         JsonSerializer.Serialize(new EventSubHeaders(Request.Headers)),
@@ -85,7 +87,7 @@ namespace TtsApi.Controllers.EventSubController
                 : Ok(data.Challenge);
         }
 
-        private bool VerifySubscription(string bodyAsRawString)
+        private bool VerifySubscription(IEnumerable<byte> bodyBytes)
         {
             if (!Request.Headers.TryGetValue("Twitch-Eventsub-Message-Id", out StringValues messageId) ||
                 !Request.Headers.TryGetValue("Twitch-Eventsub-Message-Timestamp", out StringValues messageTimestamp) ||
@@ -97,9 +99,14 @@ namespace TtsApi.Controllers.EventSubController
             if (string.IsNullOrEmpty(BotDataAccess.Hmacsha256Key))
                 return false;
 
-            string hmacMessage = messageId + messageTimestamp + bodyAsRawString;
+            List<byte> hmacMessage = new();
+            hmacMessage.AddRange(Encoding.Default.GetBytes(messageId));
+            hmacMessage.AddRange(Encoding.Default.GetBytes(messageTimestamp));
+            hmacMessage.AddRange(bodyBytes);
+
+            //string hmacMessage = messageId + messageTimestamp + bodyAsRawString;
             HMACSHA256 hash = new HMACSHA256(Encoding.ASCII.GetBytes(BotDataAccess.Hmacsha256Key));
-            byte[] signature = hash.ComputeHash(Encoding.ASCII.GetBytes(hmacMessage));
+            byte[] signature = hash.ComputeHash(hmacMessage.ToArray());
             string expectedSignature = "sha256=" + BitConverter.ToString(signature).Replace("-", "");
 
             //_logger.LogInformation("------\n{1}\n{2}\n{3}\n------", hmacMessage, expectedSignature, messageSignature);
