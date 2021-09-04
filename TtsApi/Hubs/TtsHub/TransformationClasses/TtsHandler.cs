@@ -103,7 +103,7 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
 
             if (waitSRequiredBeforeTimeoutCheck > 0)
             {
-                _logger.LogInformation("Request: {Request} has to wait {Wait}",
+                _logger.LogInformation("Request: {Request} has to wait {Wait} ms",
                     rqi.RedemptionId, (int)(waitSRequiredBeforeTimeoutCheck * 1000));
                 await Task.Delay((int)(waitSRequiredBeforeTimeoutCheck * 1000));
             }
