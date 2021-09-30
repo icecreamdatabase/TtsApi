@@ -4,6 +4,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using TtsApi.Controllers.AuthController.AuthData;
 using TtsApi.ExternalApis.Twitch.Helix.Auth.DataTypes;
 using TtsApi.ExternalApis.Twitch.Helix.Eventsub;
 using TtsApi.ExternalApis.Twitch.Helix.Users;
@@ -37,16 +38,31 @@ namespace TtsApi.Controllers.AuthController
         }
 
         /// <summary>
-        /// Get the Twitch auth data required in the application.
+        /// Redirects to the <c>oauth2/authorize</c> endpoint url required to login into the dashboard.
+        /// The resulting code will then need to be sent to the <see cref="Register"/> endpoint.<br />
+        /// <br />
         /// </summary>
         /// <returns></returns>
-        /// <response code="200"></response>
-        [HttpGet("Links")]
-        [ProducesResponseType((int) HttpStatusCode.OK)]
-        [Produces("application/json")]
-        public ActionResult<AuthDataView> Get()
+        /// <response code="302"></response>
+        [HttpGet("Links/LoginForDashboard")]
+        [ProducesResponseType((int) HttpStatusCode.Redirect)]
+        public ActionResult GetLinkLogin()
         {
-            return Ok(AuthDataView.Instance);
+            return Redirect(AuthDataLogin.FullUrl);
+        }
+        
+        /// <summary>
+        /// Redirects to the <c>oauth2/authorize</c> endpoint url required to signup for tts.
+        /// The resulting code will then need to be sent to the <see cref="Register"/> endpoint.<br />
+        /// <br />
+        /// </summary>
+        /// <returns></returns>
+        /// <response code="302"></response>
+        [HttpGet("Links/SignupForTts")]
+        [ProducesResponseType((int) HttpStatusCode.Redirect)]
+        public ActionResult GetLinkSignup()
+        {
+            return Redirect(AuthDataSignup.FullUrl);
         }
 
         /// <summary>

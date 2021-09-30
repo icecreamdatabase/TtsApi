@@ -3,7 +3,6 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text.Json.Serialization;
 using Amazon.Polly;
-using Amazon.Polly.Model;
 using TtsApi.ExternalApis.Aws;
 
 namespace TtsApi.Controllers.RewardController
