@@ -43,7 +43,7 @@ namespace TtsApi.Controllers.AuthController
         /// <br />
         /// </summary>
         /// <returns></returns>
-        /// <response code="302"></response>
+        /// <response code="302">Redirecting to uri</response>
         [HttpGet("Links/LoginForDashboard")]
         [ProducesResponseType((int) HttpStatusCode.Redirect)]
         public ActionResult GetLinkLogin()
@@ -57,7 +57,7 @@ namespace TtsApi.Controllers.AuthController
         /// <br />
         /// </summary>
         /// <returns></returns>
-        /// <response code="302"></response>
+        /// <response code="302">Redirecting to uri</response>
         [HttpGet("Links/SignupForTts")]
         [ProducesResponseType((int) HttpStatusCode.Redirect)]
         public ActionResult GetLinkSignup()
