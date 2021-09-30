@@ -26,6 +26,7 @@ namespace TtsApi.ExternalApis.Twitch.Helix.Eventsub
 
         public async Task<GetResponse> GetSubscriptions(string status = null, bool ignoreTransportEquality = false)
         {
+            // TODO: deal with invalid access token like done in Users.cs GetList()
             GetResponse getResponse = await SubscriptionsStatics.GetSubscription(_clientId, _appAccessToken, status);
             if (!ignoreTransportEquality)
             {
