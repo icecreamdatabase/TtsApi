@@ -7,7 +7,14 @@
     }
   },
   "AllowedHosts": "*",
+  "ConnectionStrings": {
+    "TtsDb": "server=XXXX;database=XXXX;user=XXXX;password=XXXX;SslMode=none"
+  },
   "DiscordWebhooks": {
     "Main": "000000000000000000/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  },
+  "AWS": {
+    "Profile": "xxxxxxxx",
+    "Region": "eu-west-1"
   }
 }

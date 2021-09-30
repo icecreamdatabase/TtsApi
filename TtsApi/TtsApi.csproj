@@ -10,7 +10,7 @@
   <ItemGroup>
     <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="3.7.1" />
     <PackageReference Include="AWSSDK.Polly" Version="3.7.3.16" />
-    <PackageReference Include="MySql.EntityFrameworkCore" Version="5.0.3.1" />
+    <PackageReference Include="MySql.EntityFrameworkCore" Version="5.0.5" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.2" />
   </ItemGroup>
 
