@@ -33,9 +33,13 @@ namespace TtsApi
     public class Startup
     {
         /// <summary>
-        /// <c>TreatTinyAsBoolean=false</c> results in using bit(1) instead of tinyint(1) for <see cref="bool"/>.
+        /// <c>TreatTinyAsBoolean=false</c> results in using bit(1) instead of tinyint(1) for <see cref="bool"/>.<br/>
+        /// <br/>
+        /// In 5.0.5 SSL was enabled by default. It isn't necessary for our usage.
+        /// (We don't expose the DB to the internet.)
+        /// https://stackoverflow.com/a/45108611
         /// </summary>
-        private const string AdditionalMySqlConfigurationParameters = ";TreatTinyAsBoolean=false";
+        private const string AdditionalMySqlConfigurationParameters = ";TreatTinyAsBoolean=false;SslMode=none";
 
         private IConfiguration Configuration { get; }
         private IHostEnvironment HostingEnvironment { get; }

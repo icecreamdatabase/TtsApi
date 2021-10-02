@@ -8,7 +8,7 @@
   },
   "AllowedHosts": "*",
   "ConnectionStrings": {
-    "TtsDb": "server=XXXX;database=XXXX;user=XXXX;password=XXXX;SslMode=none"
+    "TtsDb": "server=XXXX;database=XXXX;user=XXXX;password=XXXX"
   },
   "DiscordWebhooks": {
     "Main": "000000000000000000/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
