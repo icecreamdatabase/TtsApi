@@ -13,7 +13,7 @@ namespace TtsApi.ExternalApis.Twitch.Helix.Eventsub.Datatypes
         public static readonly Transport DefaultDevelopment = new()
         {
             Method = "webhook",
-            Callback = "https://apitest.icdb.dev/eventsub",
+            Callback = "https://ttsapitest.icdb.dev/eventsub",
             Secret = BotDataAccess.Hmacsha256Key
         };
 
@@ -21,7 +21,7 @@ namespace TtsApi.ExternalApis.Twitch.Helix.Eventsub.Datatypes
         public static readonly Transport DefaultProduction = new()
         {
             Method = "webhook",
-            Callback = "https://api.icdb.dev/eventsub",
+            Callback = "https://ttsapi.icdb.dev/eventsub",
             Secret = BotDataAccess.Hmacsha256Key
         };
 
