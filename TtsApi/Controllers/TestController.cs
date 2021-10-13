@@ -47,12 +47,5 @@ namespace TtsApi.Controllers
             await _subscriptions.UnsubscribeAll();
             return NoContent();
         }
-
-        [HttpGet("{channelId}")]
-        [Authorize(Policy = Policies.CanAccessQueue)]
-        public async Task<ActionResult> Get([FromRoute] string channelId)
-        {
-            return Ok($"xD {channelId}");
-        }
     }
 }
