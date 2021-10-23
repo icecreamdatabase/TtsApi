@@ -31,7 +31,7 @@ namespace TtsApi.Model.Schema
         {
             modelBuilder.Entity<ChannelUserBlacklist>(entity =>
             {
-                entity.HasKey(nameof(ChannelId), nameof(UserId));
+                entity.HasKey(nameof(ChannelId), nameof(UserId), nameof(AddDate));
                 entity.Property(e => e.AddDate)
                     .HasDefaultValueSql("UTC_TIMESTAMP()")
                     .ValueGeneratedOnAdd();
