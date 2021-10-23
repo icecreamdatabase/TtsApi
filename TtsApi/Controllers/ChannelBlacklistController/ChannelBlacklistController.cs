@@ -56,23 +56,28 @@ namespace TtsApi.Controllers.ChannelBlacklistController
         public async Task<ActionResult> AddUserToChannelBlacklist([FromQuery] int roomId,
             [FromBody] ChannelBlacklistInput input)
         {
-            ChannelUserBlacklist channelUserBlacklist =
-                await _ttsDbContext.ChannelUserBlacklist.FindAsync(roomId, input.UserId);
-            if (channelUserBlacklist != null)
+            List<ChannelUserBlacklist> allUserInChannelBans =
+                _ttsDbContext.ChannelUserBlacklist.Where(cub =>
+                    cub.ChannelId == roomId &&
+                    cub.UserId == input.UserId
+                ).ToList();
+            foreach (ChannelUserBlacklist userInChannelBan in allUserInChannelBans)
             {
-                _ttsDbContext.ChannelUserBlacklist.Remove(channelUserBlacklist);
-                await _ttsDbContext.SaveChangesAsync();
+                _ttsDbContext.ChannelUserBlacklist.Remove(userInChannelBan);
             }
+
+            await _ttsDbContext.SaveChangesAsync();
 
             ChannelUserBlacklist cub = new ChannelUserBlacklist
             {
                 ChannelId = roomId,
                 UserId = input.UserId,
+                AddDate = DateTime.UtcNow,
                 UntilDate = input.UntilDate
             };
             await _ttsDbContext.ChannelUserBlacklist.AddAsync(cub);
             await _ttsDbContext.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetChannelBlacklist), new { roomId }, cub);
+            return CreatedAtAction(nameof(GetChannelBlacklist), new { roomId }, new ChannelBlacklistView(cub));
         }
 
         /// <summary>
@@ -87,11 +92,19 @@ namespace TtsApi.Controllers.ChannelBlacklistController
         [ProducesResponseType((int)HttpStatusCode.NoContent)]
         public async Task<ActionResult> DeleteUserFromChannelBlacklist([FromQuery] int roomId, [FromQuery] int userId)
         {
-            ChannelUserBlacklist cub = await _ttsDbContext.ChannelUserBlacklist.FindAsync(roomId, userId);
-            if (cub is null)
+            List<ChannelUserBlacklist> allUserInChannelBans =
+                _ttsDbContext.ChannelUserBlacklist.Where(cub =>
+                    cub.ChannelId == roomId &&
+                    cub.UserId == userId
+                ).ToList();
+            if (allUserInChannelBans.Count == 0)
                 return NotFound();
 
-            _ttsDbContext.ChannelUserBlacklist.Remove(cub);
+            foreach (ChannelUserBlacklist userInChannelBan in allUserInChannelBans)
+            {
+                _ttsDbContext.ChannelUserBlacklist.Remove(userInChannelBan);
+            }
+
             await _ttsDbContext.SaveChangesAsync();
             return NoContent();
         }
