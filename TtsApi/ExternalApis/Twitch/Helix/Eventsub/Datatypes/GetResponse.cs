@@ -8,10 +8,12 @@ using TtsApi.ExternalApis.Twitch.Helix.Eventsub.Datatypes.Conditions;
 namespace TtsApi.ExternalApis.Twitch.Helix.Eventsub.Datatypes
 {
     [SuppressMessage("ReSharper", "CollectionNeverQueried.Global")]
-    public class GetResponse
+    public class GetResponse : TwitchErrorBase
     {
         public GetResponse(Subscription<dynamic>[] data)
         {
+            if (data == null) 
+                return;
             Data = data;
             foreach (Subscription<dynamic> sub in data)
             {

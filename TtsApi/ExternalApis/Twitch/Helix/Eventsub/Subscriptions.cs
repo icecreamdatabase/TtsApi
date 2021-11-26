@@ -1,8 +1,11 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using TtsApi.ExternalApis.Twitch.Helix.Auth.DataTypes;
 using TtsApi.ExternalApis.Twitch.Helix.Eventsub.Datatypes;
 using TtsApi.ExternalApis.Twitch.Helix.Eventsub.Datatypes.Conditions;
 using TtsApi.Model;
@@ -26,8 +29,22 @@ namespace TtsApi.ExternalApis.Twitch.Helix.Eventsub
 
         public async Task<GetResponse> GetSubscriptions(string status = null, bool ignoreTransportEquality = false)
         {
-            // TODO: deal with invalid access token like done in Users.cs GetList()
             GetResponse getResponse = await SubscriptionsStatics.GetSubscription(_clientId, _appAccessToken, status);
+
+            if (getResponse is { Status: (int)HttpStatusCode.Unauthorized })
+            {
+                string clientSecret = BotDataAccess.ClientSecret;
+                _logger.LogInformation("Fetching new AppAccessToken");
+                TwitchTokenResult token = await Auth.Authentication.GetAppAccessToken(_clientId, clientSecret);
+                BotDataAccess.SetAppAccessToken(_db.BotData, token.AccessToken);
+                await _db.SaveChangesAsync();
+
+                getResponse = await SubscriptionsStatics.GetSubscription(_clientId, token.AccessToken, status);
+            }
+
+            if (getResponse is { Status: { } } && getResponse.Status != (int)HttpStatusCode.OK)
+                throw new Exception("Unable to refresh AppAccessToken");
+
             if (!ignoreTransportEquality)
             {
                 getResponse.Data = getResponse.Data
