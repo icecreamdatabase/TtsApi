@@ -29,22 +29,27 @@ namespace TtsApi.ExternalApis.Twitch.Helix.Eventsub
 
         public async Task<GetResponse> GetSubscriptions(string status = null, bool ignoreTransportEquality = false)
         {
+            // Try first time
             GetResponse getResponse = await SubscriptionsStatics.GetSubscription(_clientId, _appAccessToken, status);
 
+            // Refresh the oauth if we where Unauthorized
             if (getResponse is { Status: (int)HttpStatusCode.Unauthorized })
             {
                 string clientSecret = BotDataAccess.ClientSecret;
                 _logger.LogInformation("Fetching new AppAccessToken");
-                TwitchTokenResult token = await Auth.Authentication.GetAppAccessToken(_clientId, clientSecret);
-                BotDataAccess.SetAppAccessToken(_db.BotData, token.AccessToken);
+                TwitchTokenResult tokenResult = await Auth.Authentication.GetAppAccessToken(_clientId, clientSecret);
+                BotDataAccess.SetAppAccessToken(_db.BotData, tokenResult.AccessToken);
                 await _db.SaveChangesAsync();
 
-                getResponse = await SubscriptionsStatics.GetSubscription(_clientId, token.AccessToken, status);
+                // Try again with the new token
+                getResponse = await SubscriptionsStatics.GetSubscription(_clientId, tokenResult.AccessToken, status);
             }
 
+            // If still not authorized --> throw exception
             if (getResponse is { Status: { } } && getResponse.Status != (int)HttpStatusCode.OK)
                 throw new Exception("Unable to refresh AppAccessToken");
 
+            // Differentiate between development and release api endpoints
             if (!ignoreTransportEquality)
             {
                 getResponse.Data = getResponse.Data
@@ -173,7 +178,7 @@ namespace TtsApi.ExternalApis.Twitch.Helix.Eventsub
             ICollection revokes)
         {
             if (revokes.Count > 0)
-                return System.Array.Empty<Task<bool>>();
+                return Array.Empty<Task<bool>>();
 
             Request request = new Request
             {
