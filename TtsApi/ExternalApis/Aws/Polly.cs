@@ -18,14 +18,20 @@ namespace TtsApi.ExternalApis.Aws
             _amazonPolly = amazonPolly;
         }
 
-        public async Task<SynthesizeSpeechResponse> Synthesize(string text, VoiceId voiceId, Engine engine = null)
+        public async Task<SynthesizeSpeechResponse> Synthesize(string text, VoiceId voiceId, Engine engine, TextType textType = null)
         {
+            if (text.Trim().ToLowerInvariant().StartsWith("ssml: "))
+            {
+                text = text.Trim()[6..];
+                textType = TextType.Ssml;
+            }
             SynthesizeSpeechRequest speechRequest = new()
             {
                 Text = text,
                 OutputFormat = OutputFormat.Mp3,
                 VoiceId = voiceId,
-                Engine = engine
+                Engine = engine,
+                TextType = textType ?? TextType.Text
             };
             return await _amazonPolly.SynthesizeSpeechAsync(speechRequest);
         }
