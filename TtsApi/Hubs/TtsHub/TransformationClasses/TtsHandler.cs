@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Amazon.Polly;
 using Amazon.Polly.Model;
@@ -20,6 +21,10 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
 {
     public class TtsHandler
     {
+        private static readonly Regex BadWordRegex = new(
+            @"(?!nj43)(?:(?:\b(?<!-)|monka)(?:[Nn]|ñ|[Ii7]V)|\/\\\/)[\s\.]*?[liI1y!j\/]+[\s\.]*?(?:[GgbB6934Q🅱qğĜƃ၅5\*][\s\.]*?){2,}(?!arcS|l|Ktlw|ylul|ie217|64)"
+        );
+
         public static readonly Dictionary<string, string> ConnectClients = new();
         public static readonly Dictionary<int, string> ActiveRequests = new();
 
@@ -83,12 +88,23 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
                     cub.UserId == rqi.RequesterId &&
                     (cub.UntilDate == null || DateTime.Now < cub.UntilDate)
                 )
-            )
+               )
             {
                 await DoneWithPlaying(
                     rqi.Reward.ChannelId,
                     rqi.RedemptionId,
                     MessageType.NotPlayedIsOnChannelBlacklist
+                );
+                return;
+            }
+
+            /* Manual filter list */
+            if (BadWordRegex.IsMatch(rqi.RawMessage))
+            {
+                await DoneWithPlaying(
+                    rqi.Reward.ChannelId,
+                    rqi.RedemptionId,
+                    MessageType.BadWordFilter
                 );
                 return;
             }
@@ -109,8 +125,8 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
             }
 
             if (rqi.WasTimedOut || ModerationBannedUsers.UserWasTimedOutSinceRedemption(
-                rqi.Reward.ChannelId.ToString(), rqi.RequesterId.ToString(), rqi.RequestTimestamp)
-            )
+                    rqi.Reward.ChannelId.ToString(), rqi.RequesterId.ToString(), rqi.RequestTimestamp)
+               )
             {
                 await DoneWithPlaying(
                     rqi.Reward.ChannelId,
