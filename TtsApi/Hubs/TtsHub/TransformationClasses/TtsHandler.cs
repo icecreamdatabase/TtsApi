@@ -263,6 +263,7 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
                 case MessageType.NotPlayedIsOnGlobalBlacklist:
                 case MessageType.NotPlayedIsOnChannelBlacklist:
                 case MessageType.FailedNoParts:
+                case MessageType.BadWordFilter:
                     twitchCustomRewardsRedemptionsInput = TwitchCustomRewardsRedemptionsInput.Canceled;
                     break;
                 case MessageType.PlayedFully:
