@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,6 +20,7 @@ namespace TtsApi.BackgroundServices
         {
         }
 
+        [SuppressMessage("ReSharper.DPA", "DPA0006: Large number of DB commands")]
         protected override async Task RunJobAsync(IServiceProvider serviceProvider, CancellationToken stoppingToken)
         {
             TtsDbContext db = serviceProvider.GetService<TtsDbContext>();

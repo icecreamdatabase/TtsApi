@@ -70,7 +70,7 @@ namespace TtsApi.ExternalApis.Discord
                 FileContent = fileContent,
                 //PayloadJson = JsonSerializer.Serialize(
                 //    new WebhookCreateMessage {Embed = new List<WebhookEmbeds> {embed}},
-                //    new JsonSerializerOptions {IgnoreNullValues = true}),
+                //    new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull }),
             };
             GetInstance._messageQueue.Enqueue(content);
         }

@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.WebUtilities;
 using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.Redemptions.DataTypes;
@@ -18,7 +19,7 @@ namespace TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.Redemptions
         private const string BaseUrlCustomRewardsRedemptions =
             @"https://api.twitch.tv/helix/channel_points/custom_rewards/redemptions";
 
-        private static readonly JsonSerializerOptions JsonIgnoreNullValues = new() { IgnoreNullValues = true };
+        private static readonly JsonSerializerOptions JsonIgnoreNullValues = new() { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull};
 
         internal static async Task<DataHolder<TwitchCustomRewardsRedemptions>> GetCustomReward(string clientId,
             Reward targetReward, string redemptionId = null, string status = "UNFULFILLED")

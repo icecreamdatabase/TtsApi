@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Primitives;
@@ -15,7 +16,7 @@ namespace TtsApi.ExternalApis.Twitch.Helix.Users
     {
         private static readonly HttpClient Client = new();
         private const string BaseUrlCustomRewards = @"https://api.twitch.tv/helix/users";
-        private static readonly JsonSerializerOptions JsonIgnoreNullValues = new() { IgnoreNullValues = true };
+        private static readonly JsonSerializerOptions JsonIgnoreNullValues = new() { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
 
         internal static async Task<DataHolder<TwitchUser>> Users(string clientId, string accessToken,
             StringValues idsToCheck = new(), StringValues loginsToCheck = new())
