@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Text.Json.Serialization;
 using Amazon.Polly;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -54,7 +55,10 @@ namespace TtsApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+            services.AddControllers()
+                .AddJsonOptions(options =>
+                    options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                );
             services.AddRouting(options => options.LowercaseUrls = true);
             services.AddSwaggerGen(c =>
             {
@@ -97,7 +101,7 @@ namespace TtsApi
             services.AddDbContext<TtsDbContext>(opt =>
             {
                 //Try env var first else use appsettings.json
-                string dbConString = Environment.GetEnvironmentVariable(@"TTSAPI_CONNECTIONSTRINGS_DB");
+                string? dbConString = Environment.GetEnvironmentVariable(@"TTSAPI_CONNECTIONSTRINGS_DB");
                 if (string.IsNullOrEmpty(dbConString))
                     dbConString = Configuration.GetConnectionString("TtsDb");
                 opt.UseMySQL(dbConString + AdditionalMySqlConfigurationParameters);

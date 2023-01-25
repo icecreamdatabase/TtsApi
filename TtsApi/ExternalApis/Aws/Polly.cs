@@ -18,13 +18,15 @@ namespace TtsApi.ExternalApis.Aws
             _amazonPolly = amazonPolly;
         }
 
-        public async Task<SynthesizeSpeechResponse> Synthesize(string text, VoiceId voiceId, Engine engine, TextType textType = null)
+        public async Task<SynthesizeSpeechResponse> Synthesize(string text, VoiceId voiceId, Engine engine,
+            TextType? textType = null)
         {
             if (text.Trim().ToLowerInvariant().StartsWith("ssml: "))
             {
                 text = text.Trim()[6..];
                 textType = TextType.Ssml;
             }
+
             SynthesizeSpeechRequest speechRequest = new()
             {
                 Text = text,
@@ -36,11 +38,34 @@ namespace TtsApi.ExternalApis.Aws
             return await _amazonPolly.SynthesizeSpeechAsync(speechRequest);
         }
 
+        public async Task<SynthesizeSpeechResponse> SpeechMarks(string text, VoiceId voiceId, Engine engine,
+            TextType? textType = null)
+        {
+            if (text.Trim().ToLowerInvariant().StartsWith("ssml: "))
+            {
+                text = text.Trim()[6..];
+                textType = TextType.Ssml;
+            }
+
+            SynthesizeSpeechRequest speechRequest = new()
+            {
+                Text = text,
+                OutputFormat = OutputFormat.Json,
+                SpeechMarkTypes = new List<string>
+                    { SpeechMarkType.Sentence, SpeechMarkType.Word, SpeechMarkType.Viseme },
+                VoiceId = voiceId,
+                Engine = engine,
+                TextType = textType ?? TextType.Text
+            };
+            return await _amazonPolly.SynthesizeSpeechAsync(speechRequest);
+        }
+
         public static readonly List<Voice> VoicesData = new();
-        
+
         public async Task InitVoicesData()
         {
-            DescribeVoicesResponse voicesDescription = await _amazonPolly.DescribeVoicesAsync(new DescribeVoicesRequest());
+            DescribeVoicesResponse voicesDescription =
+                await _amazonPolly.DescribeVoicesAsync(new DescribeVoicesRequest());
             if (voicesDescription.HttpStatusCode == HttpStatusCode.OK)
                 VoicesData.AddRange(voicesDescription.Voices);
         }
