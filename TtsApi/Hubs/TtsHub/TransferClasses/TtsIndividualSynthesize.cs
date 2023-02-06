@@ -18,10 +18,10 @@ namespace TtsApi.Hubs.TtsHub.TransferClasses
 
         public int RequestCharacters { get; set; }
 
-        [Obsolete($"Use {nameof(TtsMessagePart)}.{nameof(TtsMessagePart.PlaybackSpeed)} instead")]
+        [Obsolete($"Use {nameof(TtsMessagePart)}.{nameof(TransformationClasses.TtsMessagePart.PlaybackSpeed)} instead")]
         public float PlaybackRate { get; set; } = 1.0f;
 
-        [Obsolete($"Use {nameof(TtsMessagePart)}.{nameof(TtsMessagePart.Volume)} instead")]
+        [Obsolete($"Use {nameof(TtsMessagePart)}.{nameof(TransformationClasses.TtsMessagePart.Volume)} instead")]
         public float Volume { get; set; } = 100;
 
 

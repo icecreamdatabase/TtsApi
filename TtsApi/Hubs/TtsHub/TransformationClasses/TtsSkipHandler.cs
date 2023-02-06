@@ -4,38 +4,27 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using TtsApi.Controllers.EventSubController;
-using TtsApi.ExternalApis.Twitch.Helix.Eventsub.Datatypes.Conditions;
-using TtsApi.ExternalApis.Twitch.Helix.Eventsub.Datatypes.Events;
 using TtsApi.Model;
 using TtsApi.Model.Schema;
 
 namespace TtsApi.Hubs.TtsHub.TransformationClasses
 {
-    public class TtsAddRemoveHandler
+    public class TtsSkipHandler
     {
-        private readonly ILogger<TtsAddRemoveHandler> _logger;
+        private readonly ILogger<TtsSkipHandler> _logger;
         private readonly TtsDbContext _ttsDbContext;
         private readonly IHubContext<TtsHub, ITtsHub> _ttsHub;
-        private readonly TtsHandler _ttsHandler;
+        private readonly TtsRequestHandler _ttsRequestHandler;
+        private readonly DoneWithRequest _doneWithRequest;
 
-        public TtsAddRemoveHandler(ILogger<TtsAddRemoveHandler> logger, TtsDbContext ttsDbContext,
-            IHubContext<TtsHub, ITtsHub> ttsHub, TtsHandler ttsHandler)
+        public TtsSkipHandler(ILogger<TtsSkipHandler> logger, TtsDbContext ttsDbContext,
+            IHubContext<TtsHub, ITtsHub> ttsHub, TtsRequestHandler ttsRequestHandler, DoneWithRequest doneWithRequest)
         {
             _logger = logger;
             _ttsDbContext = ttsDbContext;
             _ttsHub = ttsHub;
-            _ttsHandler = ttsHandler;
-        }
-
-        public void CreateNewTtsRequest(EventSubInput<ChannelPointsCustomRewardRedemptionAddCondition,
-            ChannelPointsCustomRewardRedemptionEvent> input)
-        {
-            if (!_ttsDbContext.Rewards.Any(reward => reward.RewardId == input.Event.Reward.Id))
-                return;
-
-            _ttsDbContext.RequestQueueIngest.Add(new RequestQueueIngest(input));
-            _ttsDbContext.SaveChanges();
+            _ttsRequestHandler = ttsRequestHandler;
+            _doneWithRequest = doneWithRequest;
         }
 
         public void SkipAllRequestsByUserInChannel(string roomId, string userId)
@@ -79,10 +68,10 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
                 return false;
 
             // Do we need to skip the currently playing one?
-            if (TtsHandler.ActiveRequests.TryGetValue(rqi.Reward.ChannelId, out string? activeRedemptionId) &&
+            if (TtsRequestHandler.ActiveRequests.TryGetValue(rqi.Reward.ChannelId, out string? activeRedemptionId) &&
                 activeRedemptionId == rqi.RedemptionId)
             {
-                List<string> clients = TtsHandler.ConnectClients
+                List<string> clients = TtsRequestHandler.ConnectClients
                     .Where(pair => pair.Value == roomId.ToString())
                     .Select(pair => pair.Key)
                     .Distinct()
@@ -90,13 +79,13 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
                 if (clients.Any())
                     await _ttsHub.Clients.Clients(clients).TtsSkipCurrent();
                 else
-                    await _ttsHandler.MoveRqiToTtsLog(rqi.RedemptionId, wasTimedOut
+                    await _doneWithRequest.MoveRqiToTtsLog(rqi.RedemptionId, wasTimedOut
                         ? MessageType.NotPlayedTimedOut
                         : MessageType.Skipped
                     );
             }
             else
-                await _ttsHandler.MoveRqiToTtsLog(rqi.RedemptionId, wasTimedOut
+                await _doneWithRequest.MoveRqiToTtsLog(rqi.RedemptionId, wasTimedOut
                     ? MessageType.NotPlayedTimedOut
                     : MessageType.SkippedBeforePlaying
                 );

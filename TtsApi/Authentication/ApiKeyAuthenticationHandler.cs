@@ -21,8 +21,6 @@ namespace TtsApi.Authentication
         /// </summary>
         private const string RoomIdQueryStringName = "roomId";
 
-        private const string VismeQueryStringName = "visme";
-
         private const string AccessTokenQueryStringName = "access_token";
         private const string ApiKeyHeaderName = "Authorization";
         private readonly TtsDbContext _ttsDbContext;
@@ -48,10 +46,10 @@ namespace TtsApi.Authentication
             if (Context.Request.Query.TryGetValue(RoomIdQueryStringName, out StringValues roomIdStringValues))
             {
                 string? roomId = roomIdStringValues.FirstOrDefault();
-                if (!string.IsNullOrEmpty(roomId)) 
+                if (!string.IsNullOrEmpty(roomId))
                     claims.Add(new Claim(ClaimTypes.NameIdentifier, roomId));
             }
-            
+
             //if (Context.Request.Query.ContainsKey("xxx"))
             //{
             //    claims.Add(new Claim("xxx", "true", ClaimValueTypes.Boolean));

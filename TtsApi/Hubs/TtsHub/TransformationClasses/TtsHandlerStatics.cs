@@ -10,7 +10,7 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
 {
     public static class TtsHandlerStatics
     {
-        private static readonly Regex CheckWord = new Regex(@"(\+)?(\w+)(\+)?(?:\(x?(\d*\.?\d*)\))?(\+)?:");
+        private static readonly Regex CheckWord = new(@"(\+)?(\w+)(\+)?(?:\(x?(\d*\.?\d*)\))?(\+)?:");
         private const int RegexGroupNeuralFront = 1;
         private const int RegexGroupVoice = 2;
         private const int RegexGroupNeuralMid = 3;

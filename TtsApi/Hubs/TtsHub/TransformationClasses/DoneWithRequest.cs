@@ -1,21 +1,35 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.Redemptions;
 using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.Redemptions.DataTypes;
+using TtsApi.Model;
 using TtsApi.Model.Schema;
 
 namespace TtsApi.Hubs.TtsHub.TransformationClasses;
 
-// TODO: move to their own class.
-public partial class TtsHandler
+public class DoneWithRequest
 {
-    private async Task DoneWithPlaying(int roomId, string redemptionId, MessageType reason)
+    private readonly ILogger<DoneWithRequest> _logger;
+    private readonly TtsDbContext _ttsDbContext;
+    private readonly CustomRewardsRedemptions _customRewardsRedemptions;
+
+    public DoneWithRequest(ILogger<DoneWithRequest> logger, TtsDbContext ttsDbContext,
+        CustomRewardsRedemptions customRewardsRedemptions)
     {
-        if (ActiveRequests.TryGetValue(roomId, out string? activeRedemptionId) &&
+        _logger = logger;
+        _ttsDbContext = ttsDbContext;
+        _customRewardsRedemptions = customRewardsRedemptions;
+    }
+
+    public async Task DoneWithPlaying(int roomId, string redemptionId, MessageType reason)
+    {
+        if (TtsRequestHandler.ActiveRequests.TryGetValue(roomId, out string? activeRedemptionId) &&
             activeRedemptionId == redemptionId)
         {
             await MoveRqiToTtsLog(redemptionId, reason);
-            ActiveRequests.Remove(roomId);
+            TtsRequestHandler.ActiveRequests.Remove(roomId);
         }
     }
 

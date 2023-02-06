@@ -13,12 +13,12 @@ namespace TtsApi.Hubs.TtsHub
     public class TtsHub : Hub<ITtsHub>
     {
         private readonly TtsDbContext _ttsDbContext;
-        private readonly TtsHandler _ttsHandler;
+        private readonly TtsRequestHandler _ttsRequestHandler;
 
-        public TtsHub(TtsDbContext ttsDbContext, TtsHandler ttsHandler)
+        public TtsHub(TtsDbContext ttsDbContext, TtsRequestHandler ttsRequestHandler)
         {
             _ttsDbContext = ttsDbContext;
-            _ttsHandler = ttsHandler;
+            _ttsRequestHandler = ttsRequestHandler;
         }
 
         public override async Task<Task> OnConnectedAsync()
@@ -29,7 +29,7 @@ namespace TtsApi.Hubs.TtsHub
             //bool xxx = Context.User?.HasClaim("xxx", "true") ?? false;
 
             await Groups.AddToGroupAsync(Context.ConnectionId, Context.UserIdentifier);
-            TtsHandler.ConnectClients.Add(Context.ConnectionId, Context.UserIdentifier);
+            TtsRequestHandler.ConnectClients.Add(Context.ConnectionId, Context.UserIdentifier);
             Console.WriteLine($"--> Connection Opened: {Context.ConnectionId} (roomId: {Context.UserIdentifier})");
             await Clients.Client(Context.ConnectionId).ConnId(Context.ConnectionId);
             return base.OnConnectedAsync();
@@ -41,8 +41,8 @@ namespace TtsApi.Hubs.TtsHub
                 throw new Exception($"{nameof(Context.UserIdentifier)} is null or empty");
 
             Console.WriteLine($"--> Connection Closed: {Context.ConnectionId} (roomId: {Context.UserIdentifier})");
-            TtsHandler.ConnectClients.Remove(Context.ConnectionId);
-            TtsHandler.ClientDisconnected(Context.ConnectionId, Context.UserIdentifier);
+            TtsRequestHandler.ConnectClients.Remove(Context.ConnectionId);
+            TtsRequestHandler.ClientDisconnected(Context.ConnectionId, Context.UserIdentifier);
             return base.OnDisconnectedAsync(exception);
         }
 
@@ -52,7 +52,7 @@ namespace TtsApi.Hubs.TtsHub
                 throw new Exception($"{nameof(Context.UserIdentifier)} is null or empty");
 
             Console.WriteLine($"Confirmed {Context.UserIdentifier} has fully played tts {redemptionId}");
-            await _ttsHandler.ConfirmTtsFullyPlayed(Context.ConnectionId, Context.UserIdentifier, redemptionId);
+            await _ttsRequestHandler.ConfirmTtsFullyPlayed(Context.ConnectionId, Context.UserIdentifier, redemptionId);
         }
 
         public async Task ConfirmTtsSkipped(string redemptionId)
@@ -61,7 +61,7 @@ namespace TtsApi.Hubs.TtsHub
                 throw new Exception($"{nameof(Context.UserIdentifier)} is null or empty");
 
             Console.WriteLine($"Confirmed {Context.UserIdentifier} has skipped tts {redemptionId}");
-            await _ttsHandler.ConfirmTtsSkipped(Context.ConnectionId, Context.UserIdentifier, redemptionId);
+            await _ttsRequestHandler.ConfirmTtsSkipped(Context.ConnectionId, Context.UserIdentifier, redemptionId);
         }
 
         public static async Task SendTtsRequest(IHubContext<TtsHub, ITtsHub> context, string roomId, TtsRequest request)

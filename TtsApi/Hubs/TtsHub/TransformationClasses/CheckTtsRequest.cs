@@ -4,18 +4,31 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using TtsApi.ExternalApis.Twitch.Helix.Moderation;
+using TtsApi.Model;
 using TtsApi.Model.Schema;
 
 namespace TtsApi.Hubs.TtsHub.TransformationClasses;
 
-public partial class TtsHandler
+public class CheckTtsRequest
 {
-    private async Task<bool> CheckGlobalUserBlacklist(RequestQueueIngest rqi)
+    private readonly ILogger<CheckTtsRequest> _logger;
+    private readonly TtsDbContext _ttsDbContext;
+    private readonly DoneWithRequest _doneWithRequest;
+
+    public CheckTtsRequest(ILogger<CheckTtsRequest> logger, TtsDbContext ttsDbContext,
+        DoneWithRequest doneWithRequest)
+    {
+        _logger = logger;
+        _ttsDbContext = ttsDbContext;
+        _doneWithRequest = doneWithRequest;
+    }
+
+    public async Task<bool> CheckGlobalUserBlacklist(RequestQueueIngest rqi)
     {
         /* Global user blacklist */
         if (_ttsDbContext.GlobalUserBlacklist.Any(gub => gub.UserId == rqi.RequesterId))
         {
-            await DoneWithPlaying(
+            await _doneWithRequest.DoneWithPlaying(
                 rqi.Reward.ChannelId,
                 rqi.RedemptionId,
                 MessageType.NotPlayedIsOnGlobalBlacklist
@@ -26,7 +39,7 @@ public partial class TtsHandler
         return false;
     }
 
-    private async Task<bool> CheckChannelUserBlacklist(RequestQueueIngest rqi)
+    public async Task<bool> CheckChannelUserBlacklist(RequestQueueIngest rqi)
     {
         /* Channel user blacklist */
         if (rqi.Reward.Channel.ChannelUserBlacklist.Any(cub =>
@@ -35,7 +48,7 @@ public partial class TtsHandler
             )
            )
         {
-            await DoneWithPlaying(
+            await _doneWithRequest.DoneWithPlaying(
                 rqi.Reward.ChannelId,
                 rqi.RedemptionId,
                 MessageType.NotPlayedIsOnChannelBlacklist
@@ -50,12 +63,12 @@ public partial class TtsHandler
         @"(?!nj43)(?:(?:\b(?<!-)|monka)(?:[Nn]|ñ|[Ii7]V)|\/\\\/)[\s\.]*?[liI1y!j\/]+[\s\.]*?(?:[GgbB6934Q🅱qğĜƃ၅5\*][\s\.]*?){2,}(?!arcS|l|Ktlw|ylul|ie217|64)"
     );
 
-    private async Task<bool> CheckManualFilterList(RequestQueueIngest rqi)
+    public async Task<bool> CheckManualFilterList(RequestQueueIngest rqi)
     {
         /* Manual filter list */
         if (BadWordRegex.IsMatch(rqi.RawMessage))
         {
-            await DoneWithPlaying(
+            await _doneWithRequest.DoneWithPlaying(
                 rqi.Reward.ChannelId,
                 rqi.RedemptionId,
                 MessageType.BadWordFilter
@@ -66,7 +79,7 @@ public partial class TtsHandler
         return false;
     }
 
-    private async Task<bool> CheckWasTimedOut(RequestQueueIngest rqi)
+    public async Task<bool> CheckWasTimedOut(RequestQueueIngest rqi)
     {
         /* Was timed out TODO: or deleted */
         double secondsSinceRequest = (DateTime.Now - rqi.RequestTimestamp).TotalSeconds;
@@ -87,7 +100,7 @@ public partial class TtsHandler
                 rqi.Reward.ChannelId.ToString(), rqi.RequesterId.ToString(), rqi.RequestTimestamp)
            )
         {
-            await DoneWithPlaying(
+            await _doneWithRequest.DoneWithPlaying(
                 rqi.Reward.ChannelId,
                 rqi.RedemptionId,
                 MessageType.NotPlayedTimedOut
@@ -98,12 +111,12 @@ public partial class TtsHandler
         return false;
     }
 
-    private async Task<bool> CheckSubMode(RequestQueueIngest rqi)
+    public async Task<bool> CheckSubMode(RequestQueueIngest rqi)
     {
         /* Sub mode */
         if (rqi.Reward.IsSubOnly && !rqi.IsSubOrHigher)
         {
-            await DoneWithPlaying(
+            await _doneWithRequest.DoneWithPlaying(
                 rqi.Reward.ChannelId,
                 rqi.RedemptionId,
                 MessageType.NotPlayedSubOnly

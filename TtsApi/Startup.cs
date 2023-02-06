@@ -155,8 +155,11 @@ namespace TtsApi
 
             services.AddHostedService<IngestQueueHandler>();
             // Helix
-            services.AddTransient<TtsHandler>();
-            services.AddTransient<TtsAddRemoveHandler>();
+            services.AddTransient<TtsRequestHandler>();
+            services.AddTransient<CreateTtsRequest>();
+            services.AddTransient<CheckTtsRequest>();
+            services.AddTransient<DoneWithRequest>();
+            services.AddTransient<TtsSkipHandler>();
             services.AddTransient<CustomRewards>();
             services.AddTransient<CustomRewardsRedemptions>();
             services.AddTransient<Moderation>();

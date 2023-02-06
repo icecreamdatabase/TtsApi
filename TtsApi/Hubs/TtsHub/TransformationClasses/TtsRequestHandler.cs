@@ -6,32 +6,37 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using TtsApi.ExternalApis.Aws;
-using TtsApi.ExternalApis.Twitch.Helix.ChannelPoints.Redemptions;
+using TtsApi.Controllers.EventSubController;
+using TtsApi.ExternalApis.Twitch.Helix.Eventsub.Datatypes.Conditions;
+using TtsApi.ExternalApis.Twitch.Helix.Eventsub.Datatypes.Events;
 using TtsApi.Hubs.TtsHub.TransferClasses;
 using TtsApi.Model;
 using TtsApi.Model.Schema;
 
 namespace TtsApi.Hubs.TtsHub.TransformationClasses
 {
-    public partial class TtsHandler
+    public class TtsRequestHandler
     {
         public static readonly Dictionary<string, string> ConnectClients = new();
         public static readonly Dictionary<int, string> ActiveRequests = new();
 
-        private readonly ILogger<TtsHandler> _logger;
+
+        private readonly ILogger<TtsRequestHandler> _logger;
         private readonly TtsDbContext _ttsDbContext;
         private readonly IHubContext<TtsHub, ITtsHub> _hubContext;
-        private readonly Polly _polly;
-        private readonly CustomRewardsRedemptions _customRewardsRedemptions;
+        private readonly DoneWithRequest _doneWithRequest;
+        private readonly CheckTtsRequest _checkTtsRequest;
+        private readonly CreateTtsRequest _createTtsRequest;
 
-        public TtsHandler(ILogger<TtsHandler> logger, IHubContext<TtsHub, ITtsHub> hubContext, Polly polly,
-            CustomRewardsRedemptions customRewardsRedemptions, IServiceScopeFactory serviceScopeFactory)
+        public TtsRequestHandler(ILogger<TtsRequestHandler> logger, IHubContext<TtsHub, ITtsHub> hubContext,
+            IServiceScopeFactory serviceScopeFactory, DoneWithRequest doneWithRequest,
+            CheckTtsRequest checkTtsRequest, CreateTtsRequest createTtsRequest)
         {
             _logger = logger;
             _hubContext = hubContext;
-            _polly = polly;
-            _customRewardsRedemptions = customRewardsRedemptions;
+            _doneWithRequest = doneWithRequest;
+            _checkTtsRequest = checkTtsRequest;
+            _createTtsRequest = createTtsRequest;
 
             // We can't give the DB through the constructor parameters.
             IServiceProvider serviceProvider = serviceScopeFactory.CreateScope().ServiceProvider;
@@ -39,36 +44,47 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
                             throw new Exception($"Could not fetch {nameof(TtsDbContext)}");
         }
 
+
+        public void CreateNewTtsRequest(EventSubInput<ChannelPointsCustomRewardRedemptionAddCondition,
+            ChannelPointsCustomRewardRedemptionEvent> eventSubInput)
+        {
+            if (!_ttsDbContext.Rewards.Any(reward => reward.RewardId == eventSubInput.Event.Reward.Id))
+                return;
+
+            _ttsDbContext.RequestQueueIngest.Add(new RequestQueueIngest(eventSubInput));
+            _ttsDbContext.SaveChanges();
+        }
+
         public async Task TrySendNextTtsRequestForChannel(int roomId)
         {
-            List<RequestQueueIngest> rqis = _ttsDbContext.RequestQueueIngest
+            RequestQueueIngest? rqi = await _ttsDbContext.RequestQueueIngest
                 .Include(r => r.Reward)
                 .Include(r => r.Reward.Channel)
                 .Include(r => r.Reward.Channel.ChannelUserBlacklist)
                 .Where(r => r.Reward.ChannelId == roomId)
                 .OrderBy(r => r.RequestTimestamp)
-                .ToList();
+                .FirstOrDefaultAsync();
 
             // No request for channel
-            if (rqis.Count == 0)
+            if (rqi == null)
                 return;
 
             // A request is already running for this channel
-            if (ActiveRequests.ContainsKey(rqis[0].Reward.ChannelId))
+            if (ActiveRequests.ContainsKey(rqi.Reward.ChannelId))
                 return;
 
-            await SendTtsRequest(rqis[0], rqis.Count);
+            await SendTtsRequest(rqi);
         }
 
-        private async Task SendTtsRequest(RequestQueueIngest rqi, int queueLength)
+        private async Task SendTtsRequest(RequestQueueIngest rqi)
         {
             ActiveRequests.Add(rqi.Reward.ChannelId, rqi.RedemptionId);
 
-            if (await CheckGlobalUserBlacklist(rqi)) return;
-            if (await CheckChannelUserBlacklist(rqi)) return;
-            if (await CheckManualFilterList(rqi)) return;
-            if (await CheckWasTimedOut(rqi)) return;
-            if (await CheckSubMode(rqi)) return;
+            if (await _checkTtsRequest.CheckGlobalUserBlacklist(rqi)) return;
+            if (await _checkTtsRequest.CheckChannelUserBlacklist(rqi)) return;
+            if (await _checkTtsRequest.CheckManualFilterList(rqi)) return;
+            if (await _checkTtsRequest.CheckWasTimedOut(rqi)) return;
+            if (await _checkTtsRequest.CheckSubMode(rqi)) return;
 
             List<string> clients = ConnectClients
                 .Where(pair => pair.Value == rqi.Reward.ChannelId.ToString())
@@ -77,47 +93,28 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
                 .ToList();
             if (clients.Any())
             {
-                TtsRequest ttsRequest = await GetTtsRequest(rqi);
+                TtsRequest ttsRequest = await _createTtsRequest.GetTtsRequest(rqi);
+                await _ttsDbContext.SaveChangesAsync();
 
                 if (ttsRequest.TtsIndividualSynthesizes.Count > 0)
                     await _hubContext.Clients.Clients(clients).TtsPlayRequest(ttsRequest);
                 else
-                {
                     throw new Exception($"No message parts for RequestQueueIngest id {rqi.Id}");
-                }
             }
-        }
-
-        private async Task<TtsRequest> GetTtsRequest(RequestQueueIngest rqi)
-        {
-            TtsRequest ttsRequest = new()
-            {
-                RedemptionId = rqi.RedemptionId,
-                MaxMessageTimeSeconds = rqi.Reward.Channel.MaxMessageTimeSeconds,
-            };
-
-            List<Task<TtsIndividualSynthesize>> tasks = TtsHandlerStatics.SplitMessage(rqi)
-                .Select(part => GenerateIndividualSynthesizeTask(rqi, part))
-                .ToList();
-
-            TtsIndividualSynthesize[] ttsIndividualSynthesizes = await Task.WhenAll(tasks);
-
-            await _ttsDbContext.SaveChangesAsync();
-            ttsRequest.TtsIndividualSynthesizes = ttsIndividualSynthesizes.ToList();
-
-            return ttsRequest;
         }
 
         public async Task ConfirmTtsSkipped(string contextConnectionId, string contextUserIdentifier,
             string redemptionId)
         {
-            await DoneWithPlaying(int.Parse(contextUserIdentifier), redemptionId, MessageType.Skipped);
+            await _doneWithRequest.DoneWithPlaying(int.Parse(contextUserIdentifier), redemptionId,
+                MessageType.Skipped);
         }
 
         public async Task ConfirmTtsFullyPlayed(string contextConnectionId, string contextUserIdentifier,
             string redemptionId)
         {
-            await DoneWithPlaying(int.Parse(contextUserIdentifier), redemptionId, MessageType.PlayedFully);
+            await _doneWithRequest.DoneWithPlaying(int.Parse(contextUserIdentifier), redemptionId,
+                MessageType.PlayedFully);
         }
 
         public static void ClientDisconnected(string contextConnectionId, string contextUserIdentifier)
