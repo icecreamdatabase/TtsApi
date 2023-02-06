@@ -5,6 +5,7 @@ using Amazon.Polly;
 using Microsoft.Extensions.Logging;
 using TtsApi.ExternalApis.Aws;
 using TtsApi.Hubs.TtsHub.TransferClasses;
+using TtsApi.Model;
 using TtsApi.Model.Schema;
 
 namespace TtsApi.Hubs.TtsHub.TransformationClasses;
@@ -20,6 +21,11 @@ public class CreateTtsRequest
         _polly = polly;
     }
 
+    /// <summary>
+    /// Saving a <see cref="TtsDbContext"/> from within this class does not save changes to <paramref name="rqi"/>!
+    /// </summary>
+    /// <param name="rqi"></param>
+    /// <returns></returns>
     public async Task<TtsRequest> GetTtsRequest(RequestQueueIngest rqi)
     {
         List<Task<TtsIndividualSynthesize>> tasks = TtsHandlerStatics.SplitMessage(rqi)

@@ -23,6 +23,11 @@ public class CheckTtsRequest
         _doneWithRequest = doneWithRequest;
     }
 
+    /// <summary>
+    /// Saving <see cref="_ttsDbContext"/> does not save changes to <paramref name="rqi"/>!
+    /// </summary>
+    /// <param name="rqi"></param>
+    /// <returns>Returns true if this filter triggered and no TTS should be send.</returns>
     public async Task<bool> CheckGlobalUserBlacklist(RequestQueueIngest rqi)
     {
         /* Global user blacklist */
@@ -39,6 +44,11 @@ public class CheckTtsRequest
         return false;
     }
 
+    /// <summary>
+    /// Saving <see cref="_ttsDbContext"/> does not save changes to <paramref name="rqi"/>!
+    /// </summary>
+    /// <param name="rqi"></param>
+    /// <returns>Returns true if this filter triggered and no TTS should be send.</returns>
     public async Task<bool> CheckChannelUserBlacklist(RequestQueueIngest rqi)
     {
         /* Channel user blacklist */
@@ -63,6 +73,11 @@ public class CheckTtsRequest
         @"(?!nj43)(?:(?:\b(?<!-)|monka)(?:[Nn]|ñ|[Ii7]V)|\/\\\/)[\s\.]*?[liI1y!j\/]+[\s\.]*?(?:[GgbB6934Q🅱qğĜƃ၅5\*][\s\.]*?){2,}(?!arcS|l|Ktlw|ylul|ie217|64)"
     );
 
+    /// <summary>
+    /// Saving <see cref="_ttsDbContext"/> does not save changes to <paramref name="rqi"/>!
+    /// </summary>
+    /// <param name="rqi"></param>
+    /// <returns>Returns true if this filter triggered and no TTS should be send.</returns>
     public async Task<bool> CheckManualFilterList(RequestQueueIngest rqi)
     {
         /* Manual filter list */
@@ -79,6 +94,11 @@ public class CheckTtsRequest
         return false;
     }
 
+    /// <summary>
+    /// Saving <see cref="_ttsDbContext"/> does not save changes to <paramref name="rqi"/>!
+    /// </summary>
+    /// <param name="rqi"></param>
+    /// <returns>Returns true if this filter triggered and no TTS should be send.</returns>
     public async Task<bool> CheckWasTimedOut(RequestQueueIngest rqi)
     {
         /* Was timed out TODO: or deleted */
@@ -111,6 +131,11 @@ public class CheckTtsRequest
         return false;
     }
 
+    /// <summary>
+    /// Saving <see cref="_ttsDbContext"/> does not save changes to <paramref name="rqi"/>!
+    /// </summary>
+    /// <param name="rqi"></param>
+    /// <returns>Returns true if this filter triggered and no TTS should be send.</returns>
     public async Task<bool> CheckSubMode(RequestQueueIngest rqi)
     {
         /* Sub mode */
