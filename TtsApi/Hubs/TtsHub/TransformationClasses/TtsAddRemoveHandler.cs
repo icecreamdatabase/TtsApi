@@ -59,7 +59,7 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
 
         public async Task<bool> SkipCurrentTtsRequest(int roomId, bool wasTimedOut = false)
         {
-            RequestQueueIngest rqi = _ttsDbContext.RequestQueueIngest
+            RequestQueueIngest? rqi = _ttsDbContext.RequestQueueIngest
                 .Include(r => r.Reward)
                 .FirstOrDefault(r => r.Reward.ChannelId == roomId);
 
@@ -69,9 +69,9 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
             return await SkipTtsRequest(roomId, rqi.RedemptionId);
         }
 
-        public async Task<bool> SkipTtsRequest(int roomId, string redemptoinId = null, bool wasTimedOut = false)
+        public async Task<bool> SkipTtsRequest(int roomId, string? redemptoinId = null, bool wasTimedOut = false)
         {
-            RequestQueueIngest rqi = _ttsDbContext.RequestQueueIngest
+            RequestQueueIngest? rqi = _ttsDbContext.RequestQueueIngest
                 .Include(r => r.Reward)
                 .FirstOrDefault(r => r.RedemptionId == redemptoinId);
 
@@ -79,7 +79,7 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
                 return false;
 
             // Do we need to skip the currently playing one?
-            if (TtsHandler.ActiveRequests.TryGetValue(rqi.Reward.ChannelId, out string activeRedemptionId) &&
+            if (TtsHandler.ActiveRequests.TryGetValue(rqi.Reward.ChannelId, out string? activeRedemptionId) &&
                 activeRedemptionId == rqi.RedemptionId)
             {
                 List<string> clients = TtsHandler.ConnectClients

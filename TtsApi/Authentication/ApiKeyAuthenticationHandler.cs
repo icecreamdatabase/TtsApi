@@ -20,6 +20,9 @@ namespace TtsApi.Authentication
         /// and is used all around the application for auth in regards to a channel
         /// </summary>
         private const string RoomIdQueryStringName = "roomId";
+
+        private const string VismeQueryStringName = "visme";
+
         private const string AccessTokenQueryStringName = "access_token";
         private const string ApiKeyHeaderName = "Authorization";
         private readonly TtsDbContext _ttsDbContext;
@@ -38,13 +41,23 @@ namespace TtsApi.Authentication
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
         {
             List<Claim> claims = new();
+
+            // Websocket SignalR stuff
+
             // get roomId query parameter. We cannot use custom headers for websockets. Using query parameters instead
             if (Context.Request.Query.TryGetValue(RoomIdQueryStringName, out StringValues roomIdStringValues))
             {
-                string roomId = roomIdStringValues.FirstOrDefault();
-                if (!string.IsNullOrEmpty(roomId))
+                string? roomId = roomIdStringValues.FirstOrDefault();
+                if (!string.IsNullOrEmpty(roomId)) 
                     claims.Add(new Claim(ClaimTypes.NameIdentifier, roomId));
             }
+            
+            //if (Context.Request.Query.ContainsKey("xxx"))
+            //{
+            //    claims.Add(new Claim("xxx", "true", ClaimValueTypes.Boolean));
+            //}
+
+            // Regular oauth
 
             StringValues oAuthHeader = StringValues.Empty;
             if (
@@ -59,7 +72,7 @@ namespace TtsApi.Authentication
             }
 
             // Try to use the OAuth header first. If that is empty use the access_token 
-            string providedApiKey = oAuthHeader.FirstOrDefault();
+            string? providedApiKey = oAuthHeader.FirstOrDefault();
             if (string.IsNullOrEmpty(providedApiKey))
                 providedApiKey = accessToken.FirstOrDefault();
 
@@ -67,9 +80,7 @@ namespace TtsApi.Authentication
             if (!string.IsNullOrWhiteSpace(providedApiKey))
             {
                 // Get claims based on the provided api key
-                List<Claim> oAuthClaims = await CheckTwitchOAuth(providedApiKey);
-                if (oAuthClaims != null)
-                    claims.AddRange(oAuthClaims);
+                claims.AddRange(await GetTwitchOAuthClaims(providedApiKey));
             }
 
             // No claims means we can't authenticate --> No result
@@ -78,16 +89,17 @@ namespace TtsApi.Authentication
 
             // Generate ticket based on the claims
             ClaimsIdentity identity = new(claims, ApiKeyAuthenticationOptions.AuthenticationType);
-            List<ClaimsIdentity> identities = new() {identity};
+            List<ClaimsIdentity> identities = new() { identity };
             ClaimsPrincipal principal = new(identities);
             AuthenticationTicket ticket = new(principal, ApiKeyAuthenticationOptions.Scheme);
 
             return AuthenticateResult.Success(ticket);
         }
 
-        private async Task<List<Claim>> CheckTwitchOAuth(string providedApiKey)
+        private async Task<List<Claim>> GetTwitchOAuthClaims(string providedApiKey)
         {
-            if (!providedApiKey.StartsWith("OAuth")) return null;
+            if (!providedApiKey.StartsWith("OAuth"))
+                return new List<Claim>();
 
             TwitchValidateResult validate = await TwitchOAuthHandler.Validate(providedApiKey);
 
@@ -96,7 +108,7 @@ namespace TtsApi.Authentication
             {
                 //Response.StatusCode = validate.Status;
                 //await Response.WriteAsync(validate.Message);
-                return null;
+                return new List<Claim>();
             }
 
             // Generate all possible claims from the TwitchValidateResult
@@ -122,7 +134,7 @@ namespace TtsApi.Authentication
                 return;
 
             string claimRole = string.Empty;
-            BotSpecialUser dbUser = _ttsDbContext.BotSpecialUsers.Find(userId);
+            BotSpecialUser? dbUser = _ttsDbContext.BotSpecialUsers.Find(userId);
 
             if (dbUser?.IsIrcBot ?? false)
                 claimRole = Roles.Roles.IrcBot;
@@ -132,10 +144,10 @@ namespace TtsApi.Authentication
                 claimRole = Roles.Roles.BotAdmin;
 
             // Get channelId from Route 
-            else if (Request.RouteValues.TryGetValue("channelId", out object channelIdStr) &&
+            else if (Request.RouteValues.TryGetValue("channelId", out object? channelIdStr) &&
                      channelIdStr != null &&
                      int.TryParse(channelIdStr.ToString(), out int channelId)
-            )
+                    )
             {
                 // Broadcaster check
                 if (channelId == userId)

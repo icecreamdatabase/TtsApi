@@ -18,7 +18,7 @@ namespace TtsApi.ExternalApis.Aws
             _amazonPolly = amazonPolly;
         }
 
-        public async Task<SynthesizeSpeechResponse> Synthesize(string text, VoiceId voiceId, Engine engine,
+        public Task<SynthesizeSpeechResponse> Synthesize(string text, VoiceId voiceId, Engine engine,
             TextType? textType = null)
         {
             if (text.Trim().ToLowerInvariant().StartsWith("ssml: "))
@@ -35,10 +35,10 @@ namespace TtsApi.ExternalApis.Aws
                 Engine = engine,
                 TextType = textType ?? TextType.Text
             };
-            return await _amazonPolly.SynthesizeSpeechAsync(speechRequest);
+            return _amazonPolly.SynthesizeSpeechAsync(speechRequest);
         }
 
-        public async Task<SynthesizeSpeechResponse> SpeechMarks(string text, VoiceId voiceId, Engine engine,
+        public Task<SynthesizeSpeechResponse> SpeechMarks(string text, VoiceId voiceId, Engine engine,
             TextType? textType = null)
         {
             if (text.Trim().ToLowerInvariant().StartsWith("ssml: "))
@@ -57,7 +57,7 @@ namespace TtsApi.ExternalApis.Aws
                 Engine = engine,
                 TextType = textType ?? TextType.Text
             };
-            return await _amazonPolly.SynthesizeSpeechAsync(speechRequest);
+            return _amazonPolly.SynthesizeSpeechAsync(speechRequest);
         }
 
         public static readonly List<Voice> VoicesData = new();

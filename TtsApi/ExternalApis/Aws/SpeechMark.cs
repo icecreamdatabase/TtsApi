@@ -1,4 +1,9 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 
 namespace TtsApi.ExternalApis.Aws;
 
@@ -18,4 +23,14 @@ public class SpeechMark
 
     [JsonPropertyName("value")]
     public string? Value { get; set; }
+
+    public static async Task<List<SpeechMark>> ParseSpeechMarks(Stream stream)
+    {
+        using TextReader textReader = new StreamReader(stream);
+        string text = await textReader.ReadToEndAsync();
+        return text.Trim().Split('\n')
+            .Select(line => JsonSerializer.Deserialize<SpeechMark>(line))
+            .Where(speechMark => speechMark != null)
+            .ToList()!;
+    }
 }

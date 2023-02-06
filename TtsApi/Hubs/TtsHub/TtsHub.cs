@@ -23,16 +23,23 @@ namespace TtsApi.Hubs.TtsHub
 
         public override async Task<Task> OnConnectedAsync()
         {
-            if (!string.IsNullOrEmpty(Context.UserIdentifier))
-                await Groups.AddToGroupAsync(Context.ConnectionId, Context.UserIdentifier);
+            if (string.IsNullOrEmpty(Context.UserIdentifier))
+                throw new Exception($"{nameof(Context.UserIdentifier)} is null or empty");
+
+            //bool xxx = Context.User?.HasClaim("xxx", "true") ?? false;
+
+            await Groups.AddToGroupAsync(Context.ConnectionId, Context.UserIdentifier);
             TtsHandler.ConnectClients.Add(Context.ConnectionId, Context.UserIdentifier);
             Console.WriteLine($"--> Connection Opened: {Context.ConnectionId} (roomId: {Context.UserIdentifier})");
             await Clients.Client(Context.ConnectionId).ConnId(Context.ConnectionId);
             return base.OnConnectedAsync();
         }
 
-        public override Task OnDisconnectedAsync(Exception exception)
+        public override Task OnDisconnectedAsync(Exception? exception)
         {
+            if (string.IsNullOrEmpty(Context.UserIdentifier))
+                throw new Exception($"{nameof(Context.UserIdentifier)} is null or empty");
+
             Console.WriteLine($"--> Connection Closed: {Context.ConnectionId} (roomId: {Context.UserIdentifier})");
             TtsHandler.ConnectClients.Remove(Context.ConnectionId);
             TtsHandler.ClientDisconnected(Context.ConnectionId, Context.UserIdentifier);
@@ -41,12 +48,18 @@ namespace TtsApi.Hubs.TtsHub
 
         public async Task ConfirmTtsFullyPlayed(string redemptionId)
         {
+            if (string.IsNullOrEmpty(Context.UserIdentifier))
+                throw new Exception($"{nameof(Context.UserIdentifier)} is null or empty");
+
             Console.WriteLine($"Confirmed {Context.UserIdentifier} has fully played tts {redemptionId}");
             await _ttsHandler.ConfirmTtsFullyPlayed(Context.ConnectionId, Context.UserIdentifier, redemptionId);
         }
 
         public async Task ConfirmTtsSkipped(string redemptionId)
         {
+            if (string.IsNullOrEmpty(Context.UserIdentifier))
+                throw new Exception($"{nameof(Context.UserIdentifier)} is null or empty");
+
             Console.WriteLine($"Confirmed {Context.UserIdentifier} has skipped tts {redemptionId}");
             await _ttsHandler.ConfirmTtsSkipped(Context.ConnectionId, Context.UserIdentifier, redemptionId);
         }

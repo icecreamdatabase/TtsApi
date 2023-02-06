@@ -45,6 +45,9 @@ namespace TtsApi.Model.Schema
         public bool IsSubOnly { get; set; } = false;
 
         [Required]
+        public bool RequestVisme { get; set; } = false;
+
+        [Required]
         public int Cooldown { get; set; } = 0;
 
         public virtual List<RequestQueueIngest> RequestQueueIngests { get; set; }
@@ -57,6 +60,7 @@ namespace TtsApi.Model.Schema
                 entity.Property(e => e.IsSubOnly).HasDefaultValue(false);
                 entity.Property(e => e.Cooldown).HasDefaultValue(0);
                 entity.Property(e => e.DefaultPlaybackSpeed).HasDefaultValue(1.0f);
+                entity.Property(e => e.RequestVisme).HasDefaultValue(false);
                 entity.Property(e => e.VoiceId).HasConversion(
                     v => v.ToString(),
                     v => VoiceId.FindValue(v)
