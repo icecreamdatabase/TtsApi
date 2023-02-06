@@ -23,8 +23,8 @@ namespace TtsApi.BackgroundServices
         [SuppressMessage("ReSharper.DPA", "DPA0006: Large number of DB commands")]
         protected override async Task RunJobAsync(IServiceProvider serviceProvider, CancellationToken stoppingToken)
         {
-            TtsDbContext db = serviceProvider.GetService<TtsDbContext>();
-            TtsHandler ttsHandler = serviceProvider.GetService<TtsHandler>();
+            TtsDbContext? db = serviceProvider.GetService<TtsDbContext>();
+            TtsRequestHandler? ttsHandler = serviceProvider.GetService<TtsRequestHandler>();
             if (db is null || ttsHandler is null)
                 return;
 
@@ -33,7 +33,7 @@ namespace TtsApi.BackgroundServices
                 .Include(r => r.Reward.Channel)
                 .Where(rqi =>
                     rqi != null &&
-                    TtsHandler.ConnectClients.Values.Contains(rqi.Reward.ChannelId.ToString())
+                    TtsRequestHandler.ConnectClients.Values.Contains(rqi.Reward.ChannelId.ToString())
                     // rqi.RewardId is already being checked
                 )
                 .Select(rqi => rqi.Reward.ChannelId)

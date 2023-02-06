@@ -24,15 +24,17 @@ namespace TtsApi.Controllers.EventSubController
     public class EventSubController : ControllerBase
     {
         private readonly ILogger<EventSubController> _logger;
-        private readonly TtsAddRemoveHandler _ttsAddRemoveHandler;
+        private readonly TtsRequestHandler _ttsRequestHandler;
+        private readonly TtsSkipHandler _ttsSkipHandler;
         private readonly ModerationBannedUsers _moderationBannedUsers;
         private static readonly List<string> AlreadyHandledMessages = new();
 
-        public EventSubController(ILogger<EventSubController> logger, TtsAddRemoveHandler ttsAddRemoveHandler,
+        public EventSubController(ILogger<EventSubController> logger, TtsRequestHandler ttsRequestHandler, TtsSkipHandler ttsSkipHandler,
             ModerationBannedUsers moderationBannedUsers)
         {
             _logger = logger;
-            _ttsAddRemoveHandler = ttsAddRemoveHandler;
+            _ttsRequestHandler = ttsRequestHandler;
+            _ttsSkipHandler = ttsSkipHandler;
             _moderationBannedUsers = moderationBannedUsers;
         }
 
@@ -152,7 +154,7 @@ namespace TtsApi.Controllers.EventSubController
                     var parsed =
                         ParseEventSubInput<ChannelPointsCustomRewardRedemptionAddCondition,
                             ChannelPointsCustomRewardRedemptionEvent>(data, bodyAsRawString);
-                    _ttsAddRemoveHandler.CreateNewTtsRequest(parsed);
+                    _ttsRequestHandler.CreateNewTtsRequest(parsed);
                     break;
                 }
                 case (ConditionMap.ChannelPointsCustomRewardRedemptionUpdate, "1"):

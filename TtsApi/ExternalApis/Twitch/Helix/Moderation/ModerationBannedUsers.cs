@@ -13,12 +13,12 @@ namespace TtsApi.ExternalApis.Twitch.Helix.Moderation
         private static readonly Dictionary<string, DateTime> UserLastBannedUtc = new();
 
         private readonly ILogger<ModerationBannedUsers> _logger;
-        private readonly TtsAddRemoveHandler _ttsAddRemoveHandler;
+        private readonly TtsSkipHandler _ttsSkipHandler;
 
-        public ModerationBannedUsers(ILogger<ModerationBannedUsers> logger, TtsAddRemoveHandler ttsAddRemoveHandler)
+        public ModerationBannedUsers(ILogger<ModerationBannedUsers> logger, TtsSkipHandler ttsSkipHandler)
         {
             _logger = logger;
-            _ttsAddRemoveHandler = ttsAddRemoveHandler;
+            _ttsSkipHandler = ttsSkipHandler;
         }
 
         public void HandleEventSubBanEvent(EventSubInput<ChannelBanCondition, ChannelBanEvent> input)
@@ -31,7 +31,7 @@ namespace TtsApi.ExternalApis.Twitch.Helix.Moderation
 
             Console.WriteLine(key);
             UserLastBannedUtc[key] = input.EventSubHeaders.MessageTimestamp;
-            _ttsAddRemoveHandler.SkipAllRequestsByUserInChannel(input.Event.BroadcasterUserId, input.Event.UserId);
+            _ttsSkipHandler.SkipAllRequestsByUserInChannel(input.Event.BroadcasterUserId, input.Event.UserId);
         }
 
         public static bool UserWasTimedOutSinceRedemption(string channelId, string userId,

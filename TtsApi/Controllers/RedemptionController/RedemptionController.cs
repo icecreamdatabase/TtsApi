@@ -20,14 +20,14 @@ namespace TtsApi.Controllers.RedemptionController
     {
         private readonly ILogger<RedemptionController> _logger;
         private readonly TtsDbContext _ttsDbContext;
-        private readonly TtsAddRemoveHandler _ttsAddRemoveHandler;
+        private readonly TtsSkipHandler _ttsSkipHandler;
 
         public RedemptionController(ILogger<RedemptionController> logger, TtsDbContext ttsDbContext,
-            TtsAddRemoveHandler ttsAddRemoveHandler)
+            TtsSkipHandler ttsSkipHandler)
         {
             _logger = logger;
             _ttsDbContext = ttsDbContext;
-            _ttsAddRemoveHandler = ttsAddRemoveHandler;
+            _ttsSkipHandler = ttsSkipHandler;
         }
 
         /// <summary>
@@ -67,8 +67,8 @@ namespace TtsApi.Controllers.RedemptionController
         public async Task<ActionResult> Delete([FromQuery] int roomId, [FromQuery] string redemptionId = null)
         {
             bool successful = string.IsNullOrEmpty(redemptionId)
-                ? await _ttsAddRemoveHandler.SkipCurrentTtsRequest(roomId)
-                : await _ttsAddRemoveHandler.SkipTtsRequest(roomId, redemptionId);
+                ? await _ttsSkipHandler.SkipCurrentTtsRequest(roomId)
+                : await _ttsSkipHandler.SkipTtsRequest(roomId, redemptionId);
             return successful ? NoContent() : NotFound();
         }
     }

@@ -83,5 +83,26 @@ namespace TtsApi.Model.Schema
                 builder.Property(p => p.CharacterCostNeural).HasDefaultValue(0);
             });
         }
+
+        public TtsLogMessage()
+        {
+        }
+
+        public TtsLogMessage(RequestQueueIngest rqi, MessageType reason)
+        {
+            RewardId = rqi.RewardId;
+            RoomId = rqi.Reward.ChannelId;
+            RequesterId = rqi.RequesterId;
+            IsSubOrHigher = rqi.IsSubOrHigher;
+            RawMessage = rqi.RawMessage;
+            VoicesId = rqi.Reward.VoiceId;
+            WasTimedOut = rqi.WasTimedOut;
+            MessageType = reason;
+            RequestTimestamp = rqi.RequestTimestamp;
+            RedemptionId = rqi.RedemptionId;
+            // If skipped before even requesting we won't have a cost
+            CharacterCostStandard = rqi.CharacterCostStandard ?? 0;
+            CharacterCostNeural = rqi.CharacterCostNeural ?? 0;
+        }
     }
 }

@@ -17,15 +17,15 @@ namespace TtsApi.Authentication.Policies.Handler
         private readonly TtsDbContext _ttsDbContext;
         private readonly Moderation _moderation;
 
-        public CanChangeChannelSettingsHandler(ILogger<CanChangeChannelSettingsHandler> logger, TtsDbContext ttsDbContext,
-            Moderation moderation)
+        public CanChangeChannelSettingsHandler(ILogger<CanChangeChannelSettingsHandler> logger,
+            TtsDbContext ttsDbContext, Moderation moderation)
         {
             _logger = logger;
             _ttsDbContext = ttsDbContext;
             _moderation = moderation;
         }
 
-        protected override async Task<Task> HandleRequirementAsync(AuthorizationHandlerContext context,
+        protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context,
             CanChangeChannelSettingsRequirements requirement)
         {
             if (
@@ -36,29 +36,28 @@ namespace TtsApi.Authentication.Policies.Handler
             )
             {
                 context.Succeed(requirement);
-                return Task.CompletedTask;
+                return;
             }
 
             string roomIdStr = context.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(roomIdStr) || !int.TryParse(roomIdStr, out int roomId)) return Task.CompletedTask;
-            {
-                // Mod check
-                // TODO: Mod + ModAreEditors / Editor check
-                Channel channel = _ttsDbContext.Channels
-                    .Include(c => c.ChannelEditors)
-                    .FirstOrDefault(c => c.RoomId == roomId);
-                if (channel is not null)
-                {
-                    string userIdStr = context.User.Claims.FirstOrDefault(c => c.Type == AuthClaims.UserId)?.Value;
-                    if (int.TryParse(userIdStr, out int userId))
-                        if (channel.ChannelEditors.Any(ce => ce.UserId == userId) ||
-                            channel.AllModsAreEditors &&
-                            await _moderation.IsModerator(channel, userId)
-                        )
-                            context.Succeed(requirement);
-                }
-            }
-            return Task.CompletedTask;
+            string userIdStr = context.User.Claims.FirstOrDefault(c => c.Type == AuthClaims.UserId)?.Value;
+            if (
+                string.IsNullOrEmpty(roomIdStr) || !int.TryParse(roomIdStr, out int roomId) ||
+                string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId)
+            )
+                return;
+
+            Channel channel = _ttsDbContext.Channels
+                .Include(c => c.ChannelEditors)
+                .FirstOrDefault(c => c.RoomId == roomId);
+            if (channel is null)
+                return;
+
+            // Is Editor or is Mod and AllModsAreEditors 
+            if (channel.ChannelEditors.Any(ce => ce.UserId == userId) ||
+                await _moderation.IsModerator(channel, userId) && channel.AllModsAreEditors
+            )
+                context.Succeed(requirement);
         }
     }
 }

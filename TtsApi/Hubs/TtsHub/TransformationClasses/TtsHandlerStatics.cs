@@ -10,7 +10,7 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
 {
     public static class TtsHandlerStatics
     {
-        private static readonly Regex CheckWord = new Regex(@"(\+)?(\w+)(\+)?(?:\(x?(\d*\.?\d*)\))?(\+)?:");
+        private static readonly Regex CheckWord = new(@"(\+)?(\w+)(\+)?(?:\(x?(\d*\.?\d*)\))?(\+)?:");
         private const int RegexGroupNeuralFront = 1;
         private const int RegexGroupVoice = 2;
         private const int RegexGroupNeuralMid = 3;
@@ -59,7 +59,7 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
                     {
                         string voiceStr = match.Groups[RegexGroupVoice].Value;
 
-                        Voice voice = GetVoice(voiceStr);
+                        Voice? voice = GetVoice(voiceStr);
                         if (voice is not null)
                         {
                             if (!string.IsNullOrEmpty(currentMessage))
@@ -137,7 +137,7 @@ namespace TtsApi.Hubs.TtsHub.TransformationClasses
             return returnMessage;
         }
 
-        private static Voice GetVoice(string rawVoiceId)
+        private static Voice? GetVoice(string rawVoiceId)
         {
             return typeof(VoiceId).GetFields().Any(info => info.Name == rawVoiceId)
                 ? Polly.VoicesData.FirstOrDefault(v => v.Id == rawVoiceId)
